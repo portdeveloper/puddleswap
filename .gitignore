@@ -1,0 +1,25 @@
+# Node
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+coverage/
+.web-dist/
+
+# Env
+.env
+.env.local
+.env.rebalancer.local
+
+# Foundry
+contracts/lib/
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+
+# Logs
+*.log
+
+# OS
+.DS_Store

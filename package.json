@@ -1,0 +1,14 @@
+{
+  "name": "port-swap",
+  "private": true,
+  "version": "0.1.0",
+  "devDependencies": {
+    "ethers": "^6.15.0"
+  },
+  "scripts": {
+    "test": "make test",
+    "dev": "make dev",
+    "setup": "make setup",
+    "sync-artifacts": "make sync-artifacts"
+  }
+}

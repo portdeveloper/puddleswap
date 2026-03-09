@@ -1,0 +1,20 @@
+import type { Address } from "viem";
+
+export type TokenLevel = "TOP_VERIFIED" | "CHECKMARK" | "BASIC";
+
+export type TokenView = {
+  token: Address;
+  symbol: string;
+  name: string;
+  decimals: number;
+  level: number;
+  imageURI: string;
+  isCore: boolean;
+  active: boolean;
+};
+
+export type QuoteCandidate = {
+  path: Address[];
+  amountOut: bigint;
+  success: boolean;
+};
