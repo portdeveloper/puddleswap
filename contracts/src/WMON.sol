@@ -26,8 +26,9 @@ contract WMON {
     function withdraw(uint256 wad) external {
         require(balanceOf[msg.sender] >= wad, "WMON: insufficient balance");
         balanceOf[msg.sender] -= wad;
-        payable(msg.sender).transfer(wad);
         emit Withdrawal(msg.sender, wad);
+        (bool success, ) = payable(msg.sender).call{value: wad}("");
+        require(success, "WMON: ETH transfer failed");
     }
 
     function totalSupply() external view returns (uint256) {
@@ -45,6 +46,7 @@ contract WMON {
     }
 
     function transferFrom(address src, address dst, uint256 wad) public returns (bool) {
+        require(dst != address(0), "WMON: transfer to zero address");
         require(balanceOf[src] >= wad, "WMON: insufficient balance");
 
         if (src != msg.sender && allowance[src][msg.sender] != type(uint256).max) {

@@ -156,13 +156,17 @@ export function PoolDetailsPage() {
         address: pairAddress,
         abi: contractAbis.pair,
         functionName: "approve",
-        args: [contractAddresses.uniswapV2Router02, 2n ** 256n - 1n]
+        args: [contractAddresses.uniswapV2Router02, parsedInputs.lpAmount]
       });
 
       setStatus(`LP approval sent: ${hash}`);
       await lpAllowanceQuery.refetch();
     } catch (error) {
-      setStatus(`LP approval failed: ${(error as Error).message}`);
+      console.error("LP approval failed", error);
+      const msg = error instanceof Error && error.message.includes("User rejected")
+        ? "Transaction rejected by wallet."
+        : "LP approval failed. Please try again.";
+      setStatus(msg);
     } finally {
       setPending(false);
     }
@@ -193,8 +197,8 @@ export function PoolDetailsPage() {
           pairMetaQuery.data.token1,
           parsedInputs.amount0,
           parsedInputs.amount1,
-          0n,
-          0n,
+          (parsedInputs.amount0 * 98n) / 100n,
+          (parsedInputs.amount1 * 98n) / 100n,
           address,
           BigInt(Math.floor(Date.now() / 1000) + 60 * 20)
         ]
@@ -203,7 +207,11 @@ export function PoolDetailsPage() {
       setStatus(`Add liquidity sent: ${hash}`);
       await lpBalanceQuery.refetch();
     } catch (error) {
-      setStatus(`Add liquidity failed: ${(error as Error).message}`);
+      console.error("Add liquidity failed", error);
+      const msg = error instanceof Error && error.message.includes("User rejected")
+        ? "Transaction rejected by wallet."
+        : "Add liquidity failed. Please try again.";
+      setStatus(msg);
     } finally {
       setPending(false);
     }
@@ -232,8 +240,8 @@ export function PoolDetailsPage() {
           pairMetaQuery.data.token0,
           pairMetaQuery.data.token1,
           parsedInputs.lpAmount,
-          0n,
-          0n,
+          1n,
+          1n,
           address,
           BigInt(Math.floor(Date.now() / 1000) + 60 * 20)
         ]
@@ -242,7 +250,11 @@ export function PoolDetailsPage() {
       setStatus(`Remove liquidity sent: ${hash}`);
       await lpBalanceQuery.refetch();
     } catch (error) {
-      setStatus(`Remove liquidity failed: ${(error as Error).message}`);
+      console.error("Remove liquidity failed", error);
+      const msg = error instanceof Error && error.message.includes("User rejected")
+        ? "Transaction rejected by wallet."
+        : "Remove liquidity failed. Please try again.";
+      setStatus(msg);
     } finally {
       setPending(false);
     }
@@ -295,11 +307,11 @@ export function PoolDetailsPage() {
       <h3>Add Liquidity</h3>
       <label>
         Token0 amount
-        <input value={addAmountToken0} onChange={(event) => setAddAmountToken0(event.target.value)} />
+        <input value={addAmountToken0} onChange={(event) => { const v = event.target.value; if (v === "" || /^\d*\.?\d*$/.test(v)) setAddAmountToken0(v); }} />
       </label>
       <label>
         Token1 amount
-        <input value={addAmountToken1} onChange={(event) => setAddAmountToken1(event.target.value)} />
+        <input value={addAmountToken1} onChange={(event) => { const v = event.target.value; if (v === "" || /^\d*\.?\d*$/.test(v)) setAddAmountToken1(v); }} />
       </label>
       <button type="button" disabled={!isCorrectChain || pending} onClick={addLiquidity}>
         Add Liquidity
@@ -308,7 +320,7 @@ export function PoolDetailsPage() {
       <h3>Remove Liquidity</h3>
       <label>
         LP amount
-        <input value={removeLpAmount} onChange={(event) => setRemoveLpAmount(event.target.value)} />
+        <input value={removeLpAmount} onChange={(event) => { const v = event.target.value; if (v === "" || /^\d*\.?\d*$/.test(v)) setRemoveLpAmount(v); }} />
       </label>
       <div className="button-row">
         <button type="button" disabled={!isCorrectChain || pending || !needsLpApproval} onClick={approveLp}>

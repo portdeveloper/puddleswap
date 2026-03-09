@@ -457,7 +457,8 @@ contract TokenRegistry is AccessControl {
     }
 
     function _validateName(string memory name) private pure {
-        if (bytes(name).length == 0) {
+        uint256 len = bytes(name).length;
+        if (len == 0 || len > 64) {
             revert InvalidNameLength();
         }
     }

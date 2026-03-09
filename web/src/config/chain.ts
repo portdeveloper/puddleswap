@@ -1,7 +1,7 @@
 import { defineChain } from "viem";
 
 export const monadTestnet = defineChain({
-  id: Number(import.meta.env.VITE_CHAIN_ID ?? 10143),
+  id: (() => { const raw = Number(import.meta.env.VITE_CHAIN_ID); return Number.isInteger(raw) && raw > 0 ? raw : 10143; })(),
   name: "Monad Testnet",
   nativeCurrency: {
     decimals: 18,

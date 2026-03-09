@@ -74,7 +74,12 @@ contract StableFaucet is AccessControl {
         emit FaucetEnabled(enabled_);
     }
 
+    error CooldownTooLow();
+
     function setCooldown(uint256 cooldown_) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        if (cooldown_ < 1) {
+            revert CooldownTooLow();
+        }
         cooldown = cooldown_;
         emit CooldownUpdated(cooldown_);
     }

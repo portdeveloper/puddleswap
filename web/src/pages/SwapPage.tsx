@@ -180,15 +180,23 @@ export function SwapPage() {
         address: tokenIn,
         abi: contractAbis.erc20,
         functionName: "approve",
-        args: [contractAddresses.uniswapV2Router02, 2n ** 256n - 1n]
+        args: [contractAddresses.uniswapV2Router02, quoteQuery.data?.amountInRaw ?? 0n]
       });
 
       setLastAction(`Approval sent: ${hash}`);
-      await publicClient.waitForTransactionReceipt({ hash });
+      const approvalReceipt = await publicClient.waitForTransactionReceipt({ hash });
+      if (approvalReceipt.status === "reverted") {
+        setLastAction(`Approval reverted: ${hash}`);
+        return;
+      }
       setLastAction(`Approval confirmed: ${hash}`);
       await allowanceQuery.refetch();
     } catch (error) {
-      setLastAction(`Approval failed: ${(error as Error).message}`);
+      console.error("Approval failed", error);
+      const msg = error instanceof Error && error.message.includes("User rejected")
+        ? "Transaction rejected by wallet."
+        : "Approval failed. Please try again.";
+      setLastAction(msg);
     } finally {
       setPending(false);
       setPendingAction(null);
@@ -205,8 +213,9 @@ export function SwapPage() {
     setLastAction("Submitting swap...");
 
     try {
-      const slippage = Number(slippagePercent);
-      const bps = Number.isFinite(slippage) ? Math.floor(slippage * 100) : 100;
+      const rawSlippage = Number(slippagePercent);
+      const slippage = Number.isFinite(rawSlippage) && rawSlippage > 0 ? Math.min(rawSlippage, 50) : 1;
+      const bps = Math.floor(slippage * 100);
       const minOut = quoteQuery.data.best.amountOut - (quoteQuery.data.best.amountOut * BigInt(bps)) / 10_000n;
       const deadline = BigInt(Math.floor(Date.now() / 1000) + 60 * 20);
       const isTokenInMon = tokenIn === MON_TOKEN;
@@ -239,7 +248,11 @@ export function SwapPage() {
       }
 
       setLastAction(`Swap sent: ${hash}`);
-      await publicClient.waitForTransactionReceipt({ hash });
+      const swapReceipt = await publicClient.waitForTransactionReceipt({ hash });
+      if (swapReceipt.status === "reverted") {
+        setLastAction(`Swap reverted: ${hash}`);
+        return;
+      }
       setLastAction(`Swap confirmed: ${hash}`);
       await Promise.all([
         allowanceQuery.refetch(),
@@ -249,7 +262,11 @@ export function SwapPage() {
         quoteQuery.refetch()
       ]);
     } catch (error) {
-      setLastAction(`Swap failed: ${(error as Error).message}`);
+      console.error("Swap failed", error);
+      const msg = error instanceof Error && error.message.includes("User rejected")
+        ? "Transaction rejected by wallet."
+        : "Swap failed. Check your balance and try again.";
+      setLastAction(msg);
     } finally {
       setPending(false);
       setPendingAction(null);
@@ -408,7 +425,10 @@ export function SwapPage() {
               className="compact-amount-input"
               style={amountInputStyle(amountIn)}
               value={amountIn}
-              onChange={(event) => setAmountIn(event.target.value)}
+              onChange={(event) => {
+                const v = event.target.value;
+                if (v === "" || /^\d*\.?\d*$/.test(v)) setAmountIn(v);
+              }}
               placeholder="0"
             />
           </div>

@@ -18,6 +18,7 @@ contract RegistrationPass is ERC721Enumerable, AccessControl {
 
     error PassExpired(uint256 tokenId);
     error NoValidPass(address owner);
+    error InvalidExpiration();
 
     constructor(address admin_) ERC721("Token Registration Pass", "TRP") {
         _grantRole(DEFAULT_ADMIN_ROLE, admin_);
@@ -25,6 +26,9 @@ contract RegistrationPass is ERC721Enumerable, AccessControl {
     }
 
     function mintPass(address to, uint64 expiresAtTimestamp) external onlyRole(ISSUER_ROLE) returns (uint256 tokenId) {
+        if (expiresAtTimestamp <= block.timestamp) {
+            revert InvalidExpiration();
+        }
         tokenId = _nextTokenId;
         _nextTokenId = tokenId + 1;
 

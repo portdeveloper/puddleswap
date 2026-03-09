@@ -149,12 +149,16 @@ export function CreatePoolPage() {
         address: token,
         abi: contractAbis.erc20,
         functionName: "approve",
-        args: [contractAddresses.uniswapV2Router02, 2n ** 256n - 1n]
+        args: [contractAddresses.uniswapV2Router02, token === (tokenA as Address) ? parsedAmounts.amountARaw : parsedAmounts.amountBRaw]
       });
       setStatus(`Approval sent: ${hash}`);
       await allowanceQuery.refetch();
     } catch (error) {
-      setStatus(`Approval failed: ${(error as Error).message}`);
+      console.error("Approval failed", error);
+      const msg = error instanceof Error && error.message.includes("User rejected")
+        ? "Transaction rejected by wallet."
+        : "Approval failed. Please try again.";
+      setStatus(msg);
     } finally {
       setPending(false);
     }
@@ -186,8 +190,8 @@ export function CreatePoolPage() {
           tokenB as Address,
           parsedAmounts.amountARaw,
           parsedAmounts.amountBRaw,
-          0n,
-          0n,
+          (parsedAmounts.amountARaw * 98n) / 100n,
+          (parsedAmounts.amountBRaw * 98n) / 100n,
           address,
           BigInt(Math.floor(Date.now() / 1000) + 60 * 20)
         ]
@@ -196,7 +200,11 @@ export function CreatePoolPage() {
       setStatus(`Liquidity tx sent: ${hash}`);
       await pairAddressQuery.refetch();
     } catch (error) {
-      setStatus(`Add liquidity failed: ${(error as Error).message}`);
+      console.error("Add liquidity failed", error);
+      const msg = error instanceof Error && error.message.includes("User rejected")
+        ? "Transaction rejected by wallet."
+        : "Add liquidity failed. Please try again.";
+      setStatus(msg);
     } finally {
       setPending(false);
     }
@@ -211,11 +219,11 @@ export function CreatePoolPage() {
 
       <label>
         Amount A
-        <input value={amountA} onChange={(event) => setAmountA(event.target.value)} />
+        <input value={amountA} onChange={(event) => { const v = event.target.value; if (v === "" || /^\d*\.?\d*$/.test(v)) setAmountA(v); }} />
       </label>
       <label>
         Amount B
-        <input value={amountB} onChange={(event) => setAmountB(event.target.value)} />
+        <input value={amountB} onChange={(event) => { const v = event.target.value; if (v === "" || /^\d*\.?\d*$/.test(v)) setAmountB(v); }} />
       </label>
 
       <div className="info-row">

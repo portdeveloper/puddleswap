@@ -10,7 +10,8 @@ RPC_URL="${RPC_URL:-https://testnet-rpc.monad.xyz}"
 LOW_MON_THRESHOLD_MON="${LOW_MON_THRESHOLD_MON:-200}"
 LOW_BALANCE_ALERT_COOLDOWN_SECONDS="${LOW_BALANCE_ALERT_COOLDOWN_SECONDS:-21600}"
 DISCORD_WEBHOOK_URL="${DISCORD_WEBHOOK_URL:-}"
-LOW_BALANCE_ALERT_STATE_FILE="${LOW_BALANCE_ALERT_STATE_FILE:-/tmp/port-swap-low-mon-alert.ts}"
+LOW_BALANCE_ALERT_STATE_FILE="${LOW_BALANCE_ALERT_STATE_FILE:-/app/state/low-mon-alert.ts}"
+mkdir -p "$(dirname "$LOW_BALANCE_ALERT_STATE_FILE")"
 
 if [[ -z "${PRIVATE_KEY:-}" ]]; then
   echo "PRIVATE_KEY is required."
@@ -32,7 +33,10 @@ if ! [[ "$LOW_BALANCE_ALERT_COOLDOWN_SECONDS" =~ ^[0-9]+$ ]] || [[ "$LOW_BALANCE
   exit 1
 fi
 
-OPERATOR_ADDRESS="$(cast wallet address --private-key "$PRIVATE_KEY")"
+OPERATOR_ADDRESS="$(cast wallet address --private-key "$PRIVATE_KEY" 2>/dev/null)" || {
+  echo "Failed to derive operator address from PRIVATE_KEY."
+  exit 1
+}
 
 send_discord_alert() {
   local message="$1"

@@ -9,8 +9,17 @@ coverage/
 
 # Env
 .env
-.env.local
-.env.rebalancer.local
+.env.*
+!.env.example
+
+# Vercel
+.vercel/
+
+# Keys / keystores
+*.pem
+*.key
+*.p12
+*.keystore
 
 # Foundry
 contracts/lib/

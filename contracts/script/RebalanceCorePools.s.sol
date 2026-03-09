@@ -98,11 +98,13 @@ contract RebalanceCorePools is Script {
             }
 
             _ensureStableBalance(stableToken, _operator, amountStableIn);
+            uint256 expectedWmonOut = _amountOut(amountStableIn, reserveStable, reserveWmon);
+            uint256 minWmonOut = (expectedWmonOut * (10_000 - _toleranceBps)) / 10_000;
             address[] memory path = new address[](2);
             path[0] = stableToken;
             path[1] = _wmonToken;
             IUniswapV2Router02(_routerAddress).swapExactTokensForTokens(
-                amountStableIn, 0, path, _operator, block.timestamp + 1 hours
+                amountStableIn, minWmonOut, path, _operator, block.timestamp + 1 hours
             );
             console2.log("swap stable->wmon", amountStableIn);
         } else if (currentPrice > upperBound) {
@@ -114,11 +116,13 @@ contract RebalanceCorePools is Script {
             }
 
             _ensureWmonBalance(_wmonToken, _operator, amountWmonIn);
+            uint256 expectedStableOut = _amountOut(amountWmonIn, reserveWmon, reserveStable);
+            uint256 minStableOut = (expectedStableOut * (10_000 - _toleranceBps)) / 10_000;
             address[] memory path = new address[](2);
             path[0] = _wmonToken;
             path[1] = stableToken;
             IUniswapV2Router02(_routerAddress).swapExactTokensForTokens(
-                amountWmonIn, 0, path, _operator, block.timestamp + 1 hours
+                amountWmonIn, minStableOut, path, _operator, block.timestamp + 1 hours
             );
             console2.log("swap wmon->stable", amountWmonIn);
         } else {

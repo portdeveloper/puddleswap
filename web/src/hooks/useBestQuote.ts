@@ -25,7 +25,7 @@ export function useBestQuote(tokenIn: string, tokenOut: string, amountIn: string
         tokenInAddress &&
         tokenOutAddress &&
         tokenIn !== tokenOut &&
-        Number(amountIn) > 0
+        /^\d*\.?\d+$/.test(amountIn) && Number(amountIn) > 0
     ),
     refetchInterval: 6_000,
     queryFn: async () => {

@@ -49,13 +49,19 @@ contract SeedCorePools is Script {
         IWMON(wmonAddress).approve(routerAddress, type(uint256).max);
 
         IUniswapV2Router02(routerAddress).addLiquidity(
-            usdcAddress, usdtAddress, usdcAmount, usdtAmount, 0, 0, lpOwner, block.timestamp + 1 hours
+            usdcAddress, usdtAddress, usdcAmount, usdtAmount,
+            (usdcAmount * 95) / 100, (usdtAmount * 95) / 100,
+            lpOwner, block.timestamp + 1 hours
         );
         IUniswapV2Router02(routerAddress).addLiquidity(
-            usdcAddress, wmonAddress, usdcAmount / 2, wmonAmount / 2, 0, 0, lpOwner, block.timestamp + 1 hours
+            usdcAddress, wmonAddress, usdcAmount / 2, wmonAmount / 2,
+            (usdcAmount / 2 * 95) / 100, (wmonAmount / 2 * 95) / 100,
+            lpOwner, block.timestamp + 1 hours
         );
         IUniswapV2Router02(routerAddress).addLiquidity(
-            usdtAddress, wmonAddress, usdtAmount / 2, wmonAmount / 2, 0, 0, lpOwner, block.timestamp + 1 hours
+            usdtAddress, wmonAddress, usdtAmount / 2, wmonAmount / 2,
+            (usdtAmount / 2 * 95) / 100, (wmonAmount / 2 * 95) / 100,
+            lpOwner, block.timestamp + 1 hours
         );
 
         vm.stopBroadcast();
