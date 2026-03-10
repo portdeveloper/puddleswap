@@ -103,6 +103,25 @@ export function PoolDetailsPage() {
     }
   });
 
+  const lpTotalSupplyQuery = useQuery({
+    queryKey: ["lp-total-supply", pairAddress],
+    enabled: Boolean(publicClient && isAddress(pairAddress)),
+    refetchInterval: 15_000,
+    queryFn: async () => {
+      if (!publicClient || !isAddress(pairAddress)) {
+        return 0n;
+      }
+
+      const totalSupply = await publicClient.readContract({
+        address: pairAddress,
+        abi: contractAbis.pair,
+        functionName: "totalSupply"
+      });
+
+      return totalSupply as bigint;
+    }
+  });
+
   const lpAllowanceQuery = useQuery({
     queryKey: ["lp-allowance", pairAddress, address, contractAddresses.uniswapV2Router02],
     enabled: Boolean(publicClient && address && isAddress(pairAddress) && contractAddresses.uniswapV2Router02),
@@ -232,6 +251,18 @@ export function PoolDetailsPage() {
     setStatus("Submitting remove-liquidity tx...");
 
     try {
+      const totalSupply = lpTotalSupplyQuery.data ?? 0n;
+      const reserves = pairMetaQuery.data.reserves;
+      let minAmount0 = 1n;
+      let minAmount1 = 1n;
+
+      if (totalSupply > 0n) {
+        const expectedAmount0 = (parsedInputs.lpAmount * reserves[0]) / totalSupply;
+        const expectedAmount1 = (parsedInputs.lpAmount * reserves[1]) / totalSupply;
+        minAmount0 = (expectedAmount0 * 98n) / 100n;
+        minAmount1 = (expectedAmount1 * 98n) / 100n;
+      }
+
       const hash = await writeContractAsync({
         address: contractAddresses.uniswapV2Router02,
         abi: contractAbis.router,
@@ -240,8 +271,8 @@ export function PoolDetailsPage() {
           pairMetaQuery.data.token0,
           pairMetaQuery.data.token1,
           parsedInputs.lpAmount,
-          1n,
-          1n,
+          minAmount0,
+          minAmount1,
           address,
           BigInt(Math.floor(Date.now() / 1000) + 60 * 20)
         ]
