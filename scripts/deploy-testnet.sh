@@ -16,13 +16,16 @@ PASSWORD_FILE="${PASSWORD_FILE:-$HOME/.monad-keystore-password}"
 TARGET_SCRIPT="${TARGET_SCRIPT:-DeployDexCore}"
 SCRIPT_PATH="script/${TARGET_SCRIPT}.s.sol:${TARGET_SCRIPT}"
 
-echo "Deploying ${TARGET_SCRIPT} with keystore account: ${ACCOUNT_NAME}"
+DEPLOYER_ADDRESS="$(cast wallet address --account "$ACCOUNT_NAME" --password-file "$PASSWORD_FILE")"
+echo "Deploying ${TARGET_SCRIPT} with keystore account: ${ACCOUNT_NAME} (${DEPLOYER_ADDRESS})"
 
 pushd contracts >/dev/null
+ADMIN_ADDRESS="${ADMIN_ADDRESS:-$DEPLOYER_ADDRESS}" \
 forge script "$SCRIPT_PATH" \
   --rpc-url "$RPC_URL" \
   --account "$ACCOUNT_NAME" \
   --password-file "$PASSWORD_FILE" \
+  --sender "$DEPLOYER_ADDRESS" \
   --broadcast
 popd >/dev/null
 

@@ -2,16 +2,16 @@
 
 export const deployment = {
   "chainId": 10143,
-  "updatedAt": "2026-02-28T13:16:45Z",
+  "updatedAt": "2026-03-10T12:30:00Z",
   "contracts": {
-    "wmon": "0xd26963176b2BdFE961c4eC92AD91Be308682a2F2",
-    "testUSDC": "0x0C184F2EFFdAac1c48bCBF986665AFa19d414f31",
-    "testUSDT": "0xF28D1a07F3412d2b15A1C546465389975a0C266A",
-    "stableFaucet": "0x4c5E27C3898bDA1B2Aa68fA0937eD89D2a2e4eb7",
-    "uniswapV2Factory": "0xA00188bEe39D462bdBE8c318FD0dA8d4542f6DBB",
-    "uniswapV2Router02": "0xda225241D19039faC3Ec4E2307a4064fE01D0B2f",
-    "openRegistrationGate": "0x1582039dfb51c623A61ee3873A7533c86c0ddF33",
-    "tokenRegistry": "0x902F3Dc5950947689675319BCa5E1ae52E85Bc4f"
+    "wmon": "0x97B3070F9Da6C002343862b35E68Bd8e22608943",
+    "testUSDC": "0xc152fE819323913e478Cab556BE9e24a81790eAF",
+    "testUSDT": "0x1314b22df27BDcD4F8D11a0f4185943e55748917",
+    "stableFaucet": "0x50959dd2a4ef310f9aa2df9498cE9aC0aB956276",
+    "uniswapV2Factory": "0xd498f5beBD0C9f1FE0135a0Cf942dA67Ee6e8A9B",
+    "uniswapV2Router02": "0x430c23895c8D44883526e3E0B09327dAD8766660",
+    "openRegistrationGate": "0xd1a37dF00238b97F453fC583806711048eB9987c",
+    "tokenRegistry": "0x82289127fda2d521c851C696796c41EDB6b6461D"
   }
 } as const;
 
@@ -1733,6 +1733,11 @@ export const abis = {
           "internalType": "uint256"
         }
       ]
+    },
+    {
+      "type": "error",
+      "name": "CooldownTooLow",
+      "inputs": []
     },
     {
       "type": "error",
@@ -3972,6 +3977,11 @@ export const abis = {
           "internalType": "uint256"
         }
       ]
+    },
+    {
+      "type": "error",
+      "name": "InvalidExpiration",
+      "inputs": []
     },
     {
       "type": "error",

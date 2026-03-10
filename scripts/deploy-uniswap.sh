@@ -18,8 +18,8 @@ echo "Deploying Uniswap V2 with keystore account: ${ACCOUNT_NAME}"
 
 pushd contracts >/dev/null
 
-FACTORY_BYTECODE="$(forge inspect lib/v2-core/contracts/UniswapV2Factory.sol:UniswapV2Factory bytecode)"
-ROUTER_BYTECODE="$(forge inspect lib/v2-periphery/contracts/UniswapV2Router02.sol:UniswapV2Router02 bytecode)"
+FACTORY_BYTECODE="$(forge inspect UniswapV2Factory bytecode)"
+ROUTER_BYTECODE="$(forge inspect UniswapV2Router02 bytecode)"
 
 FEE_TO_SETTER="$FEE_TO_SETTER" \
 FACTORY_BYTECODE="$FACTORY_BYTECODE" \
