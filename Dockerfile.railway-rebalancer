@@ -22,7 +22,7 @@ COPY scripts ./scripts
 COPY Makefile ./
 
 RUN chmod +x /app/scripts/*.sh && mkdir -p /app/contracts/broadcast /app/contracts/cache \
-  && adduser -D -h /app rebalancer && chown -R rebalancer:rebalancer /app
+  && adduser --disabled-password --gecos "" --home /app rebalancer && chown -R rebalancer:rebalancer /app
 
 ENV RPC_URL=https://testnet-rpc.monad.xyz
 ENV TARGET_STABLE_PER_WMON=100000000
