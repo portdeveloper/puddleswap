@@ -141,11 +141,12 @@ a:hover {
   font-weight: 600;
   font-size: 15px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 .btn-connect:hover {
-  background-color: var(--brand-green-hover);
+  background-color: var(--surface-white);
+  color: var(--text-dark);
 }
 
 .btn-connect.connected {
