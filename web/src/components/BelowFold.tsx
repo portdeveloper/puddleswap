@@ -149,7 +149,7 @@ export function BelowFold() {
             <span style={{ fontWeight: 800, fontSize: 18 }}>Puddle</span>
             <span style={{ fontSize: 13, color: "var(--text-muted)", marginLeft: 4 }}>Monad Testnet</span>
           </div>
-          <div style={{ fontFamily: "var(--font-hand)", fontSize: 16, color: "var(--text-muted)" }}>just a testnet puddle</div>
+          <div style={{ fontSize: 13, color: "var(--text-muted)" }}>built by <a href="https://x.com/port_dev" target="_blank" rel="noopener noreferrer" style={{ color: "var(--brand-green)", fontWeight: 600 }}>@port</a></div>
         </div>
       </div>
     </>
