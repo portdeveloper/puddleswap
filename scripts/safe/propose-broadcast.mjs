@@ -155,7 +155,7 @@ async function main() {
       contractTransactionHash,
       sender: signer.address,
       signature,
-      origin: `port-swap:${proposal.type}-${index + 1}`
+      origin: `puddle:${proposal.type}-${index + 1}`
     };
 
     const headers = {

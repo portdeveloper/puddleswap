@@ -1,6 +1,6 @@
 # Trust Model
 
-This document describes the trust assumptions, privileged roles, and threat boundaries for Port Swap on Monad testnet.
+This document describes the trust assumptions, privileged roles, and threat boundaries for Puddle on Monad testnet.
 
 ## Privileged Roles
 

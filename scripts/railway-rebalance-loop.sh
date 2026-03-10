@@ -84,7 +84,7 @@ check_low_mon_balance() {
   local timestamp
   timestamp="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
   local message
-  message=$'PORT SWAP ALERT: Low MON balance on rebalancer wallet\n'
+  message=$'PUDDLE ALERT: Low MON balance on rebalancer wallet\n'
   message+="address: ${OPERATOR_ADDRESS}"$'\n'
   message+="balance: ${balance_mon} MON"$'\n'
   message+="threshold: ${LOW_MON_THRESHOLD_MON} MON"$'\n'

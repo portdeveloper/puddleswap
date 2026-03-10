@@ -31,7 +31,7 @@ async function main() {
   );
 
   const deploymentBytecode = required(process.env.DEPLOYMENT_BYTECODE, "DEPLOYMENT_BYTECODE");
-  const origin = process.env.SAFE_ORIGIN ?? "port-swap:create";
+  const origin = process.env.SAFE_ORIGIN ?? "puddle:create";
 
   const provider = new ethers.JsonRpcProvider(rpcUrl);
   const wallet = loadWalletFromKeystore().connect(provider);

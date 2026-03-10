@@ -1,4 +1,4 @@
-# Port Swap (Monad Testnet DEX)
+# Puddle (Monad Testnet DEX)
 
 Static, no-backend DEX for Monad testnet with:
 - Testnet USDC/USDT contracts
