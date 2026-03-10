@@ -5,7 +5,7 @@ import { useChainGuard } from "../hooks/useChainGuard";
 import { AnimatedBackground } from "./AnimatedBackground";
 
 const links = [
-  { to: "/swap", label: "Swap" },
+  { to: "/", label: "Swap" },
   { to: "/pool/new", label: "Pools" },
 ];
 
@@ -27,7 +27,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <AnimatedBackground />
 
       <nav className="topbar">
-        <NavLink to="/swap" className="logo">
+        <NavLink to="/" className="logo">
           <div className="logo-mark" />
           Puddle
         </NavLink>
@@ -36,6 +36,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <NavLink
               key={link.to}
               to={link.to}
+              end={link.to === "/"}
               className={({ isActive }) => isActive ? "active" : ""}
             >
               {link.label}
