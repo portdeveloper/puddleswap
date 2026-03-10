@@ -2,6 +2,7 @@ import { NavLink } from "react-router-dom";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 
 import { useChainGuard } from "../hooks/useChainGuard";
+import { AnimatedBackground } from "./AnimatedBackground";
 
 const links = [
   { to: "/swap", label: "Swap" },
@@ -23,11 +24,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="app-shell">
-      {/* Confetti decorations */}
-      <svg className="confetti c1" viewBox="0 0 24 24"><polygon points="12,2 22,20 2,20" /></svg>
-      <svg className="confetti c2" viewBox="0 0 24 24"><path d="M12,2 L15,9 L22,9 L16,14 L18,21 L12,17 L6,21 L8,14 L2,9 L9,9 Z" /></svg>
-      <svg className="confetti c3" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /></svg>
-      <svg className="confetti c4" viewBox="0 0 24 24"><polygon points="12,2 22,12 12,22 2,12" /></svg>
+      <AnimatedBackground />
 
       <nav className="topbar">
         <NavLink to="/swap" className="logo">
