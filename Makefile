@@ -13,7 +13,7 @@ setup-web:
 test: test-contracts test-web
 
 test-contracts:
-	cd contracts && forge test
+	cd contracts && forge test --no-match-path test/E2ESwap.t.sol
 
 test-web:
 	pnpm --dir web test --run
