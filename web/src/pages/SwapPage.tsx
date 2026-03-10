@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { formatUnits, isAddress, type Address, type Hash } from "viem";
 import { useAccount, useConnect, usePublicClient, useWriteContract } from "wagmi";
@@ -43,6 +43,21 @@ export function SwapPage() {
   const [pending, setPending] = useState(false);
   const [pendingAction, setPendingAction] = useState<"approve" | "swap" | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const mascotRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onScroll() {
+      if (!mascotRef.current) return;
+      const fadeStart = 300;
+      const fadeEnd = 600;
+      const y = window.scrollY;
+      const opacity = y <= fadeStart ? 1 : y >= fadeEnd ? 0 : 1 - (y - fadeStart) / (fadeEnd - fadeStart);
+      mascotRef.current.style.opacity = String(opacity);
+      mascotRef.current.style.pointerEvents = opacity === 0 ? "none" : "";
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const { data: coreTokens = [] } = useCoreTokens();
   const tokenInMeta = useTokenMeta(tokenIn);
@@ -421,7 +436,7 @@ export function SwapPage() {
   return (
     <>
       {/* Mascot */}
-      <div className="character-container">
+      <div className="character-container" ref={mascotRef}>
         <div className="speech-bubble warning">
           Testnet tokens have no real value!
         </div>
@@ -588,6 +603,10 @@ export function SwapPage() {
               {showAdvanced ? "Hide advanced" : "Advanced"}
             </button>
           </div>
+
+          <div className="disclaimer-inline">
+            Unaudited software provided "as is." Use at your own risk — may contain bugs resulting in loss of funds. Not financial advice.
+          </div>
         </div>
 
         {/* Diagnostics */}
@@ -650,6 +669,7 @@ export function SwapPage() {
           </p>
         )}
       </div>
+
     </>
   );
 }

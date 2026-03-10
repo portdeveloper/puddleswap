@@ -1,8 +1,9 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 
 import { useChainGuard } from "../hooks/useChainGuard";
 import { AnimatedBackground } from "./AnimatedBackground";
+import { BelowFold } from "./BelowFold";
 
 const links = [
   { to: "/", label: "Swap" },
@@ -21,6 +22,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
   const { isCorrectChain, expectedChainId } = useChainGuard();
+
+  const location = useLocation();
+  const isHomePage = location.pathname === "/";
 
   return (
     <div className="app-shell">
@@ -76,6 +80,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       )}
 
       <main>{children}</main>
+      {isHomePage && <BelowFold />}
     </div>
   );
 }
