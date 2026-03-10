@@ -1,4 +1,4 @@
-SHELL := /bin/zsh
+SHELL := /bin/bash
 
 .PHONY: setup setup-contracts setup-web test test-contracts test-web dev deploy-testnet-safe deploy-uniswap-safe rebalance-testnet deploy-railway-rebalancer sync-artifacts lint format
 
