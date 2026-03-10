@@ -4,7 +4,6 @@ export const deployment = {
   "chainId": 10143,
   "updatedAt": "2026-02-28T13:16:45Z",
   "contracts": {
-    "safe": "",
     "wmon": "0xd26963176b2BdFE961c4eC92AD91Be308682a2F2",
     "testUSDC": "0x0C184F2EFFdAac1c48bCBF986665AFa19d414f31",
     "testUSDT": "0xF28D1a07F3412d2b15A1C546465389975a0C266A",
@@ -12,9 +11,7 @@ export const deployment = {
     "uniswapV2Factory": "0xA00188bEe39D462bdBE8c318FD0dA8d4542f6DBB",
     "uniswapV2Router02": "0xda225241D19039faC3Ec4E2307a4064fE01D0B2f",
     "openRegistrationGate": "0x1582039dfb51c623A61ee3873A7533c86c0ddF33",
-    "tokenRegistry": "0x902F3Dc5950947689675319BCa5E1ae52E85Bc4f",
-    "registrationPass": "",
-    "passRegistrationGate": ""
+    "tokenRegistry": "0x902F3Dc5950947689675319BCa5E1ae52E85Bc4f"
   }
 } as const;
 

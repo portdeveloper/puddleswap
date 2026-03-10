@@ -12,8 +12,8 @@ import {WMON} from "../src/WMON.sol";
 
 contract DeployDexCore is Script {
     function run() external {
-        address safe = vm.envAddress("SAFE_ADDRESS");
-        address verifier = vm.envOr("VERIFIER_ADDRESS", safe);
+        address admin = vm.envOr("ADMIN_ADDRESS", msg.sender);
+        address verifier = vm.envOr("VERIFIER_ADDRESS", admin);
         address wmon = vm.envOr("WMON_ADDRESS", address(0));
 
         uint256 claimAmountUSDC = vm.envOr("USDC_CLAIM_AMOUNT", uint256(1_000 * 1e6));
@@ -27,13 +27,13 @@ contract DeployDexCore is Script {
             console2.log("Deployed WMON:", wmon);
         }
 
-        TestUSDC usdc = new TestUSDC(safe);
-        TestUSDT usdt = new TestUSDT(safe);
+        TestUSDC usdc = new TestUSDC(admin);
+        TestUSDT usdt = new TestUSDT(admin);
         StableFaucet faucet =
-            new StableFaucet(safe, address(usdc), address(usdt), claimAmountUSDC, claimAmountUSDT, faucetCooldown);
+            new StableFaucet(admin, address(usdc), address(usdt), claimAmountUSDC, claimAmountUSDT, faucetCooldown);
 
-        OpenRegistrationGate openGate = new OpenRegistrationGate(safe, 7 days, 1);
-        TokenRegistry registry = new TokenRegistry(safe, verifier, address(openGate));
+        OpenRegistrationGate openGate = new OpenRegistrationGate(admin, 7 days, 1);
+        TokenRegistry registry = new TokenRegistry(admin, verifier, address(openGate));
 
         usdc.grantRole(usdc.MINTER_ROLE(), address(faucet));
         usdt.grantRole(usdt.MINTER_ROLE(), address(faucet));

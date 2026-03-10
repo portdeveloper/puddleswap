@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: setup setup-contracts setup-web test test-contracts test-web dev deploy-testnet-safe deploy-uniswap-safe rebalance-testnet deploy-railway-rebalancer sync-artifacts lint format
+.PHONY: setup setup-contracts setup-web test test-contracts test-web dev deploy-testnet deploy-uniswap verify-contracts rebalance-testnet deploy-railway-rebalancer sync-artifacts lint format
 
 setup: setup-contracts setup-web
 
@@ -27,11 +27,14 @@ lint:
 format:
 	pnpm --dir web format
 
-deploy-testnet-safe:
-	bash scripts/deploy-testnet-safe.sh
+deploy-testnet:
+	bash scripts/deploy-testnet.sh
 
-deploy-uniswap-safe:
-	bash scripts/deploy-uniswap-stock-safe.sh
+deploy-uniswap:
+	bash scripts/deploy-uniswap.sh
+
+verify-contracts:
+	bash scripts/verify-contracts.sh
 
 sync-artifacts:
 	node scripts/sync-artifacts.mjs

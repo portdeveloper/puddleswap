@@ -13,7 +13,6 @@ function asAddress(value: string | undefined): Address | undefined {
 }
 
 export const contractAddresses = {
-  safe: asAddress(deployment.contracts.safe),
   wmon: asAddress(deployment.contracts.wmon),
   testUSDC: asAddress(deployment.contracts.testUSDC),
   testUSDT: asAddress(deployment.contracts.testUSDT),
@@ -21,9 +20,7 @@ export const contractAddresses = {
   uniswapV2Factory: asAddress(deployment.contracts.uniswapV2Factory),
   uniswapV2Router02: asAddress(deployment.contracts.uniswapV2Router02),
   openRegistrationGate: asAddress(deployment.contracts.openRegistrationGate),
-  tokenRegistry: asAddress(deployment.contracts.tokenRegistry),
-  registrationPass: asAddress(deployment.contracts.registrationPass),
-  passRegistrationGate: asAddress(deployment.contracts.passRegistrationGate)
+  tokenRegistry: asAddress(deployment.contracts.tokenRegistry)
 } as const;
 
 function fallbackAbi<T extends readonly unknown[]>(generated: readonly unknown[], fallback: T): T {

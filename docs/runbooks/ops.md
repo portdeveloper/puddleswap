@@ -1,34 +1,34 @@
 # Runbook: Ongoing Operations
 
+All admin operations use the deployer keystore account via `cast send`.
+
 ## Rotate verifier role
 
-1. Propose Safe tx:
-   - `TokenRegistry.grantRole(VERIFIER_ROLE, newVerifier)`
-2. Execute via Safe.
-3. Optionally revoke old verifier role.
+```bash
+cast send <TokenRegistry> "grantRole(bytes32,address)" <VERIFIER_ROLE> <newVerifier> \
+  --account puddleswap --password-file ~/.monad-keystore-password --rpc-url https://testnet-rpc.monad.xyz
+```
+
+Optionally revoke old verifier role with `revokeRole`.
 
 ## Adjust faucet params
 
-1. Propose one or more Safe txs:
-   - `StableFaucet.setClaimAmounts(usdcAmount, usdtAmount)`
-   - `StableFaucet.setCooldown(seconds)`
-   - `StableFaucet.setEnabled(bool)`
-2. Execute via Safe.
+```bash
+cast send <StableFaucet> "setClaimAmounts(uint256,uint256)" <usdcAmount> <usdtAmount> \
+  --account puddleswap --password-file ~/.monad-keystore-password --rpc-url https://testnet-rpc.monad.xyz
+```
+
+Other functions: `setCooldown(uint256)`, `setEnabled(bool)`.
 
 ## Emergency admin mint
 
-1. Propose `StableFaucet.adminMint(token, to, amount)` as Safe/operator role.
-2. Execute via Safe.
+```bash
+cast send <StableFaucet> "adminMint(address,address,uint256)" <token> <to> <amount> \
+  --account puddleswap --password-file ~/.monad-keystore-password --rpc-url https://testnet-rpc.monad.xyz
+```
 
 ## Registry moderation
 
-1. Promote/demote token level:
-   - `TokenRegistry.setTokenLevel(token, level)`
-2. Deactivate problematic token:
-   - `TokenRegistry.setTokenActive(token, false)`
-3. Adjust core routing token status:
-   - `TokenRegistry.setCore(token, bool)`
-
-## Pause mint surfaces (if enabled)
-
-If pausable logic is enabled in token contracts, use Safe-admin pause and unpause functions.
+- Promote/demote token level: `TokenRegistry.setTokenLevel(token, level)`
+- Deactivate problematic token: `TokenRegistry.setTokenActive(token, false)`
+- Adjust core routing token status: `TokenRegistry.setCore(token, bool)`

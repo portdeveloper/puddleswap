@@ -1,17 +1,14 @@
-# Runbook: Deploy to Monad Testnet via Safe
+# Runbook: Deploy to Monad Testnet
 
 ## Preconditions
 
-1. Safe 2-of-3 deployed on Monad testnet.
-2. At least one signer wallet funded with testnet MON.
-3. `claude-monad` keystore present with password file.
+1. Foundry keystore account created (default: `puddleswap`).
+2. Keystore password file at `~/.monad-keystore-password`.
+3. Deployer wallet funded with testnet MON.
 4. `.env` configured:
-   - `SAFE_ADDRESS`
    - `RPC_URL`
    - `CHAIN_ID=10143`
-   - `SAFE_TX_SERVICE_URL`
-   - `SAFE_CREATE_CALL`
-   - `SAFE_API_KEY` (if required)
+   - `ACCOUNT_NAME` (optional, defaults to `puddleswap`)
 
 ## Step 1: Build and test
 
@@ -19,58 +16,52 @@
 make test
 ```
 
-## Step 2: Propose stock Uniswap V2 deployments
-
-Propose and execute factory first:
+## Step 2: Deploy Uniswap V2
 
 ```bash
-MODE=factory make deploy-uniswap-safe
+FEE_TO_SETTER=<deployer-address> make deploy-uniswap
 ```
 
-After factory execution, set `FACTORY_ADDRESS` and propose router:
+This deploys WMON (if not set), UniswapV2Factory, and UniswapV2Router02 in a single transaction.
+
+## Step 3: Deploy core contracts
 
 ```bash
-MODE=router make deploy-uniswap-safe
+TARGET_SCRIPT=DeployDexCore make deploy-testnet
 ```
 
-## Step 3: Propose core deployment txs
+Deploys TestUSDC, TestUSDT, StableFaucet, OpenRegistrationGate, and TokenRegistry. The deployer (`msg.sender`) becomes the admin.
 
-```bash
-TARGET_SCRIPT=DeployDexCore make deploy-testnet-safe
-```
-
-This dry-runs `contracts/script/DeployDexCore.s.sol` with `--sender SAFE_ADDRESS`, extracts CREATE tx bytecode, wraps each as `CreateCall.performCreate` delegatecall, and posts proposals to Safe Transaction Service.
-
-## Step 4: Execute in Safe UI
-
-1. Open queue URL printed by script.
-2. Collect second signature.
-3. Execute each deployment transaction in nonce order.
-
-## Step 5: Register core tokens
+## Step 4: Register core tokens
 
 Set addresses from deployed contracts, then:
 
 ```bash
-TARGET_SCRIPT=RegisterCoreTokens make deploy-testnet-safe
+TOKEN_REGISTRY=<addr> USDC_ADDRESS=<addr> USDT_ADDRESS=<addr> WMON_ADDRESS=<addr> \
+  TARGET_SCRIPT=RegisterCoreTokens make deploy-testnet
 ```
 
-Execute queue txs in Safe UI.
-
-## Step 6: Seed core pools
-
-Set seed amounts and addresses:
+## Step 5: Seed core pools
 
 ```bash
-TARGET_SCRIPT=SeedCorePools make deploy-testnet-safe
+ROUTER_ADDRESS=<addr> USDC_ADDRESS=<addr> USDT_ADDRESS=<addr> WMON_ADDRESS=<addr> LP_OWNER=<addr> \
+  TARGET_SCRIPT=SeedCorePools make deploy-testnet
 ```
 
-Execute in Safe UI.
-
-## Step 7: Persist config
+## Step 6: Persist config
 
 Update `config/addresses/10143.json`, then:
 
 ```bash
 make sync-artifacts
 ```
+
+## Keystore setup
+
+Create a new keystore account:
+
+```bash
+cast wallet import puddleswap --interactive
+```
+
+Store the password in `~/.monad-keystore-password` for scripted use.

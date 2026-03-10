@@ -4,16 +4,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-# Load local rebalancer env if present.
-if [[ -f "$ROOT_DIR/.env.rebalancer.local" ]]; then
-  set -a
-  # shellcheck source=/dev/null
-  source "$ROOT_DIR/.env.rebalancer.local"
-  set +a
-fi
-
 RPC_URL="${RPC_URL:-https://testnet-rpc.monad.xyz}"
-ACCOUNT_NAME="${ACCOUNT_NAME:-claude-monad}"
+ACCOUNT_NAME="${ACCOUNT_NAME:-puddleswap}"
 PASSWORD_FILE="${PASSWORD_FILE:-$HOME/.monad-keystore-password}"
 PRIVATE_KEY="${PRIVATE_KEY:-}"
 TARGET_STABLE_PER_WMON="${TARGET_STABLE_PER_WMON:-100000000}"

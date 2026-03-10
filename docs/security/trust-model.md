@@ -4,17 +4,15 @@ This document describes the trust assumptions, privileged roles, and threat boun
 
 ## Privileged Roles
 
-### Safe Multisig (DEFAULT_ADMIN_ROLE)
+### Deployer (DEFAULT_ADMIN_ROLE)
 
-A 2-of-3 Safe multisig serves as the admin for all contracts. It controls:
+The deployer's keystore account serves as the admin for all contracts. It controls:
 
 - **TokenRegistry**: grant/revoke VERIFIER_ROLE, swap registration gates
 - **OpenRegistrationGate**: set cooldown and max active registrations
 - **StableFaucet**: enable/disable faucet, set cooldown and claim amounts, grant OPERATOR_ROLE
 - **TestUSDC / TestUSDT**: grant/revoke MINTER_ROLE
-- **RegistrationPass**: grant/revoke ISSUER_ROLE and CONSUMER_ROLE
-
-**Trust assumption:** At least 2 of 3 Safe owners are honest and their keys are uncompromised.
+**Trust assumption:** The deployer keystore is uncompromised and the operator acts in good faith.
 
 ### VERIFIER_ROLE (TokenRegistry)
 
@@ -26,7 +24,7 @@ Can register verified tokens, set token levels, toggle core status, set image UR
 
 Can mint unlimited test stablecoins. Currently granted to:
 
-- Safe multisig (admin)
+- Deployer admin
 - StableFaucet contract (for user claims)
 - Rebalancer operator wallet (for pool rebalancing)
 
@@ -90,17 +88,15 @@ All swap and liquidity operations go through the stock Uniswap V2 Router. No cus
 
 | Key | Storage | Access |
 |-----|---------|--------|
-| Safe owner keys (x3) | Individual hardware/software wallets | Manual signing for admin ops |
-| Rebalancer private key | Railway environment variable | Automated rebalancer process |
-| Foundry keystore | Local `~/.foundry/keystores/` | Developer machine only |
+| Deployer keystore | Local `~/.foundry/keystores/` | Developer machine only |
 | Keystore password | Local `~/.monad-keystore-password` | Developer machine only |
-| Safe API key | Environment variable | Deployment scripts |
+| Rebalancer private key | Railway environment variable | Automated rebalancer process |
 | WalletConnect project ID | Vite env var (`VITE_*`) | Bundled in frontend (public) |
 | Discord webhook URL | Railway environment variable | Rebalancer alerts |
 
 ## Contract Upgrade Path
 
-No contracts are upgradeable. All contracts are deployed as immutable bytecode. Changes require deploying new contracts and migrating via the Safe multisig (e.g., updating the registration gate on TokenRegistry).
+No contracts are upgradeable. All contracts are deployed as immutable bytecode. Changes require deploying new contracts and migrating via the admin account (e.g., updating the registration gate on TokenRegistry).
 
 ## Network Assumptions
 
