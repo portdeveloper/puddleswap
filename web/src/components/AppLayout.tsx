@@ -46,13 +46,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
       <nav className="topbar">
         <NavLink to="/" className="logo">
-          <svg className="logo-mark" width="20" height="20" viewBox="0 0 32 32" fill="none">
-            <ellipse cx="16" cy="18" rx="12" ry="9" fill="#4E9A55" transform="rotate(-3 16 18)" />
-            <ellipse cx="13" cy="16.5" rx="1.2" ry="2.2" fill="#1E201E" />
-            <ellipse cx="19" cy="16.5" rx="1.2" ry="2.2" fill="#1E201E" />
-            <path d="M13.5 21q2.5 2 5 0" stroke="#1E201E" strokeWidth="1.2" fill="none" strokeLinecap="round" />
-          </svg>
-          Puddle
+          puddleswap
         </NavLink>
         <div className="nav-links">
           {links.map((link) => (
