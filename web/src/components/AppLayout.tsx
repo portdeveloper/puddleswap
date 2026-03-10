@@ -5,7 +5,7 @@ import { useChainGuard } from "../hooks/useChainGuard";
 
 const links = [
   { to: "/swap", label: "Swap" },
-  { to: "/pool/new", label: "Create Pool" }
+  { to: "/pool/new", label: "Pools" },
 ];
 
 function formatAddress(address?: string) {
@@ -20,51 +20,62 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
   const { isCorrectChain, expectedChainId } = useChainGuard();
-  const addressLabel = formatAddress(address);
 
   return (
     <div className="app-shell">
-      <header className="topbar">
-        <div>
-          <h1>Monad Testnet DEX</h1>
-          <p>Static Uniswap v2 terminal for builders</p>
-        </div>
+      {/* Confetti decorations */}
+      <svg className="confetti c1" viewBox="0 0 24 24"><polygon points="12,2 22,20 2,20" /></svg>
+      <svg className="confetti c2" viewBox="0 0 24 24"><path d="M12,2 L15,9 L22,9 L16,14 L18,21 L12,17 L6,21 L8,14 L2,9 L9,9 Z" /></svg>
+      <svg className="confetti c3" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /></svg>
+      <svg className="confetti c4" viewBox="0 0 24 24"><polygon points="12,2 22,12 12,22 2,12" /></svg>
 
-        <div className="wallet-controls">
-          {!isConnected ? (
-            <button
-              type="button"
-              onClick={() => {
-                const injectedConnector = connectors[0];
-                if (injectedConnector) {
-                  connect({ connector: injectedConnector });
-                }
-              }}
+      <nav className="topbar">
+        <NavLink to="/swap" className="logo">
+          <div className="logo-mark" />
+          Puddle
+        </NavLink>
+        <div className="nav-links">
+          {links.map((link) => (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              className={({ isActive }) => isActive ? "active" : ""}
             >
-              Connect Wallet
-            </button>
-          ) : (
-            <>
-              <span className="address-pill">{addressLabel}</span>
-              <button type="button" onClick={() => disconnect()}>
-                Disconnect
-              </button>
-            </>
-          )}
+              {link.label}
+            </NavLink>
+          ))}
         </div>
-      </header>
+        {!isConnected ? (
+          <button
+            type="button"
+            className="btn-connect"
+            onClick={() => {
+              const injectedConnector = connectors[0];
+              if (injectedConnector) {
+                connect({ connector: injectedConnector });
+              }
+            }}
+          >
+            Connect Wallet
+          </button>
+        ) : (
+          <button
+            type="button"
+            className="btn-connect connected"
+            onClick={() => disconnect()}
+            title="Click to disconnect"
+          >
+            {formatAddress(address)}
+          </button>
+        )}
+      </nav>
 
       {!isCorrectChain && (
-        <div className="network-warning">Wrong chain selected. Switch wallet to Monad testnet ({expectedChainId}).</div>
+        <div className="network-warning">
+          <div className="network-dot" />
+          Switch wallet to Monad testnet ({expectedChainId})
+        </div>
       )}
-
-      <nav className="tabs">
-        {links.map((link) => (
-          <NavLink key={link.to} to={link.to} className={({ isActive }) => (isActive ? "tab active" : "tab")}>
-            {link.label}
-          </NavLink>
-        ))}
-      </nav>
 
       <main>{children}</main>
     </div>

@@ -1,4 +1,4 @@
-import { useMemo, useState, type CSSProperties } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { formatUnits, isAddress, type Address, type Hash } from "viem";
 import { useAccount, useConnect, usePublicClient, useWriteContract } from "wagmi";
@@ -13,12 +13,18 @@ function shortAddress(value: string) {
   return `${value.slice(0, 6)}...${value.slice(-4)}`;
 }
 
-function amountInputStyle(value: string): CSSProperties {
-  const length = Math.min(Math.max(value.trim().length, 1), 48);
-  return { "--amount-chars": String(length) } as CSSProperties;
-}
-
 const MON_TOKEN = "MON";
+
+const TOKEN_COLORS: Record<string, string> = {
+  MON: "mon",
+  WMON: "wmon",
+  USDC: "usdc",
+  USDT: "usdt",
+};
+
+function getTokenColorClass(symbol: string) {
+  return TOKEN_COLORS[symbol] ?? "";
+}
 
 export function SwapPage() {
   const { address, isConnected } = useAccount();
@@ -36,6 +42,7 @@ export function SwapPage() {
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [pending, setPending] = useState(false);
   const [pendingAction, setPendingAction] = useState<"approve" | "swap" | null>(null);
+  const [showSettings, setShowSettings] = useState(false);
 
   const { data: coreTokens = [] } = useCoreTokens();
   const tokenInMeta = useTokenMeta(tokenIn);
@@ -335,17 +342,14 @@ export function SwapPage() {
 
   const isTokenInMon = tokenIn === MON_TOKEN;
   const isTokenOutMon = tokenOut === MON_TOKEN;
-  const tokenInSymbol = isAddress(tokenIn)
-    ? symbolByAddress.get(tokenIn.toLowerCase()) ?? shortAddress(tokenIn)
-    : isTokenInMon
-      ? MON_TOKEN
-      : "Select";
+  const tokenInSymbol = getTokenLabel(tokenIn);
+  const tokenOutSymbol = getTokenLabel(tokenOut);
 
   const bestQuoteReadable =
     quoteQuery.data?.best && quoteQuery.data.decimalsOut !== undefined
       ? formatUnits(quoteQuery.data.best.amountOut, quoteQuery.data.decimalsOut)
-      : "-";
-  const bestQuoteValue = bestQuoteReadable === "-" ? "0" : bestQuoteReadable;
+      : "";
+  const bestQuoteValue = bestQuoteReadable || "0";
 
   const amountInRawPreview =
     quoteQuery.data?.amountInRaw !== undefined && quoteQuery.data.decimalsIn !== undefined
@@ -373,7 +377,7 @@ export function SwapPage() {
         ? "Swapping..."
         : "Waiting for wallet..."
     : !isConnected
-      ? "Connect wallet"
+      ? "Connect Wallet"
       : hasInsufficientBalance
         ? `Insufficient ${tokenInSymbol} balance`
       : needsApproval
@@ -385,7 +389,9 @@ export function SwapPage() {
       ? connectors.length === 0
       : !isCorrectChain || hasInsufficientBalance || (!needsApproval && !quoteQuery.data?.best));
 
-  const routeReadable =
+  const isReady = isConnected && !hasInsufficientBalance && (needsApproval || Boolean(quoteQuery.data?.best));
+
+  const routeLabels =
     quoteQuery.data?.best?.path
       .map((pathAddress, index, path) => {
         if (
@@ -397,172 +403,303 @@ export function SwapPage() {
         }
 
         return symbolByAddress.get(pathAddress.toLowerCase()) ?? shortAddress(pathAddress);
-      })
-      .join(" -> ") ?? "No route";
+      }) ?? [];
+
+  const chevronDown = (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+
+  const arrowRight = (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="5" y1="12" x2="19" y2="12" />
+      <polyline points="12 5 19 12 12 19" />
+    </svg>
+  );
 
   return (
-    <section className="swap-hero swap-compact-layout">
-      <div className="swap-compact-card">
-        <div className="swap-mode-toggle" aria-label="Swap mode">
-          <div className="mode-pill mode-pill-static active">Swap</div>
+    <>
+      {/* Mascot */}
+      <div className="character-container">
+        <div className="speech-bubble warning">
+          Testnet tokens have no real value!
         </div>
-
-        <div className="swap-panel compact-panel">
-          <div className="swap-panel-top compact-panel-top">
-            <span className="panel-label">From</span>
-            <span className="panel-balance">Balance {balanceInReadable}</span>
-          </div>
-
-          <div className="swap-panel-main compact-panel-main">
-            <select value={tokenIn} onChange={(event) => setTokenIn(event.target.value)} className="compact-token-select">
-              {selectableTokens.map((token) => (
-                <option key={token} value={token}>
-                  {getTokenLabel(token)}
-                </option>
-              ))}
-            </select>
-            <input
-              className="compact-amount-input"
-              style={amountInputStyle(amountIn)}
-              value={amountIn}
-              onChange={(event) => {
-                const v = event.target.value;
-                if (v === "" || /^\d*\.?\d*$/.test(v)) setAmountIn(v);
-              }}
-              placeholder="0"
-            />
-          </div>
+        <div className="speech-bubble">
+          Ready to make a splash?
         </div>
-
-        <button
-          type="button"
-          className="swap-direction-button compact-direction-button"
-          aria-label="Switch sell and buy tokens"
-          title="Switch sell and buy tokens"
-          onClick={handleSwapDirection}
-        >
-          <span className="direction-glyph" aria-hidden="true">
-            ⇅
-          </span>
-        </button>
-
-        <div className="swap-panel compact-panel">
-          <div className="swap-panel-top compact-panel-top">
-            <span className="panel-label">To</span>
-            <span className="panel-balance">Balance {balanceOutReadable}</span>
+        <div className="puddle-char">
+          <div className="face">
+            <div className="eye" />
+            <div className="smile" />
+            <div className="eye" />
           </div>
-
-          <div className="swap-panel-main compact-panel-main">
-            <select
-              value={tokenOut}
-              onChange={(event) => setTokenOut(event.target.value)}
-              className="compact-token-select"
-            >
-              {selectableTokens.map((token) => (
-                <option key={token} value={token}>
-                  {getTokenLabel(token)}
-                </option>
-              ))}
-            </select>
-            <input className="compact-amount-input" style={amountInputStyle(bestQuoteValue)} value={bestQuoteValue} readOnly />
-          </div>
-        </div>
-
-        <div className="swap-meta compact-meta">
-          <div className="route-preview compact-route-preview">
-            <span>Best route</span>
-            <strong>{routeReadable}</strong>
-          </div>
-          <label className="slippage-field compact-slippage-field">
-            Slippage (%)
-            <input
-              value={slippagePercent}
-              onChange={(event) => setSlippagePercent(event.target.value)}
-              placeholder="1"
-              className="slippage-input compact-slippage-input"
-            />
-          </label>
-        </div>
-
-        <button type="button" className="swap-cta compact-cta" disabled={primaryDisabled} onClick={handlePrimaryAction}>
-          {primaryButtonLabel}
-        </button>
-
-        <div className="swap-debug compact-debug">
-          <button type="button" className="swap-link-button" onClick={() => setShowDiagnostics((value) => !value)}>
-            {showDiagnostics ? "Hide diagnostics" : "Routing table"}
-          </button>
-          <button type="button" className="swap-link-button" onClick={() => setShowAdvanced((value) => !value)}>
-            {showAdvanced ? "Hide advanced" : "Advanced token input"}
-          </button>
         </div>
       </div>
 
-      {showDiagnostics && (
-        <section className="swap-diagnostics compact-box">
-          <div className="diagnostic-header">
-            <span>Path</span>
-            <span>Status</span>
-            <span>Amount Out</span>
-          </div>
-          {quoteQuery.data?.quotes.map((quote) => (
-            <div key={quote.path.join("-")} className="diagnostic-row">
-              <code>{quote.path.join(" -> ")}</code>
-              <span className={quote.success ? "diag-ok" : "diag-fail"}>{quote.success ? "LIVE" : "FAIL"}</span>
-              <span>{quote.success ? formatUnits(quote.amountOut, quoteQuery.data?.decimalsOut ?? 18) : "-"}</span>
+      {/* Swap widget */}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
+        <div className="swap-widget">
+          <div className="widget-header">
+            <div className="widget-tabs">
+              <button type="button" className="widget-tab active">Swap</button>
             </div>
-          ))}
-          <div className="diagnostic-row">
-            <code>Input Preview</code>
-            <span className="diag-ok">INFO</span>
-            <span>{amountInRawPreview}</span>
+            <button
+              type="button"
+              className="icon-btn"
+              title="Settings"
+              onClick={() => setShowSettings(v => !v)}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+            </button>
           </div>
-        </section>
-      )}
 
-      {showAdvanced && (
-        <section className="swap-advanced compact-box">
-          <label>
-            Sell token address
-            <input value={tokenIn} onChange={(event) => setTokenIn(event.target.value)} placeholder="0x..." />
-          </label>
-          <label>
-            Buy token address
-            <input value={tokenOut} onChange={(event) => setTokenOut(event.target.value)} placeholder="0x..." />
-          </label>
-        </section>
-      )}
+          {showSettings && (
+            <div className="slippage-row" style={{ paddingBottom: 8 }}>
+              <span>Slippage tolerance</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <input
+                  className="slippage-input-inline"
+                  value={slippagePercent}
+                  onChange={(event) => setSlippagePercent(event.target.value)}
+                  placeholder="1"
+                />
+                <span style={{ fontWeight: 600, color: "var(--text-dark)" }}>%</span>
+              </div>
+            </div>
+          )}
 
-      <div className="quick-token-row compact-quick-row">
-        <span>Quick tokens</span>
-        <button type="button" className="quick-token" onClick={() => setTokenIn(MON_TOKEN)}>
-          Sell MON
-        </button>
-        <button type="button" className="quick-token" onClick={() => setTokenOut(MON_TOKEN)}>
-          Buy MON
-        </button>
-        {quickTokenAddresses.map((token) => (
-          <button key={`sell-${token}`} type="button" className="quick-token" onClick={() => setTokenIn(token)}>
-            Sell {getTokenLabel(token)}
+          {/* You pay */}
+          <div className="token-input-container">
+            <div className="input-header">
+              <span>You pay</span>
+            </div>
+            <div className="input-body">
+              <input
+                type="text"
+                className="amount-input"
+                value={amountIn}
+                onChange={(event) => {
+                  const v = event.target.value;
+                  if (v === "" || /^\d*\.?\d*$/.test(v)) setAmountIn(v);
+                }}
+                placeholder="0"
+              />
+              <TokenSelectorButton
+                tokens={selectableTokens}
+                value={tokenIn}
+                onChange={setTokenIn}
+                getLabel={getTokenLabel}
+                getColorClass={getTokenColorClass}
+                chevron={chevronDown}
+              />
+            </div>
+            {isConnected && (
+              <span className="token-balance">Balance: {balanceInReadable}</span>
+            )}
+          </div>
+
+          {/* Swap direction */}
+          <div className="swap-divider">
+            <button
+              type="button"
+              className="swap-arrow-btn"
+              onClick={handleSwapDirection}
+              aria-label="Switch tokens"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <polyline points="19 12 12 19 5 12" />
+              </svg>
+            </button>
+          </div>
+
+          {/* You receive */}
+          <div className="token-input-container">
+            <div className="input-header">
+              <span>You receive</span>
+            </div>
+            <div className="input-body">
+              <input
+                type="text"
+                className="amount-input"
+                value={bestQuoteValue}
+                readOnly
+                placeholder="0"
+              />
+              <TokenSelectorButton
+                tokens={selectableTokens}
+                value={tokenOut}
+                onChange={setTokenOut}
+                getLabel={getTokenLabel}
+                getColorClass={getTokenColorClass}
+                chevron={chevronDown}
+              />
+            </div>
+            {isConnected && (
+              <span className="token-balance">Balance: {balanceOutReadable}</span>
+            )}
+          </div>
+
+          {/* Route info */}
+          {quoteQuery.data?.best && (
+            <div className="route-info">
+              {quoteQuery.data.decimalsIn !== undefined && quoteQuery.data.decimalsOut !== undefined && quoteQuery.data.amountInRaw > 0n && (
+                <div className="route-row">
+                  <span>Exchange Rate</span>
+                  <span className="route-value">
+                    1 {tokenInSymbol} = {(Number(bestQuoteValue) / Number(amountIn || "1")).toFixed(4)} {tokenOutSymbol}
+                  </span>
+                </div>
+              )}
+              <div className="route-row">
+                <span>Route</span>
+                <span className="route-path">
+                  {routeLabels.map((label, i) => (
+                    <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                      {i > 0 && arrowRight}
+                      {label}
+                    </span>
+                  ))}
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* CTA */}
+          <button
+            type="button"
+            className={`btn-main ${isReady ? "ready" : ""}`}
+            disabled={primaryDisabled}
+            onClick={handlePrimaryAction}
+          >
+            {primaryButtonLabel}
           </button>
-        ))}
-        {quickTokenAddresses.map((token) => (
-          <button key={`buy-${token}`} type="button" className="quick-token" onClick={() => setTokenOut(token)}>
-            Buy {getTokenLabel(token)}
-          </button>
-        ))}
-      </div>
 
-      {lastAction && (
-        <p className="swap-status" title={lastAction}>
-          {lastAction}
-        </p>
-      )}
-      {!isCorrectChain && (
-        <div className="network-warning">
-          Wrong chain selected. Switch wallet to Monad testnet (10143) to approve and swap.
+          {/* Debug links */}
+          <div className="debug-links">
+            <button type="button" className="debug-link" onClick={() => setShowDiagnostics((v) => !v)}>
+              {showDiagnostics ? "Hide diagnostics" : "Routing table"}
+            </button>
+            <button type="button" className="debug-link" onClick={() => setShowAdvanced((v) => !v)}>
+              {showAdvanced ? "Hide advanced" : "Advanced"}
+            </button>
+          </div>
         </div>
-      )}
-    </section>
+
+        {/* Diagnostics */}
+        {showDiagnostics && (
+          <div className="diagnostics-panel">
+            <div className="diagnostic-header">
+              <span>Path</span>
+              <span>Status</span>
+              <span>Out</span>
+            </div>
+            {quoteQuery.data?.quotes.map((quote) => (
+              <div key={quote.path.join("-")} className="diagnostic-row">
+                <code>{quote.path.map(a => symbolByAddress.get(a.toLowerCase()) ?? shortAddress(a)).join(" > ")}</code>
+                <span className={quote.success ? "diag-ok" : "diag-fail"}>{quote.success ? "LIVE" : "FAIL"}</span>
+                <span>{quote.success ? formatUnits(quote.amountOut, quoteQuery.data?.decimalsOut ?? 18) : "-"}</span>
+              </div>
+            ))}
+            <div className="diagnostic-row">
+              <code>Input Preview</code>
+              <span className="diag-ok">INFO</span>
+              <span>{amountInRawPreview}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Advanced token input */}
+        {showAdvanced && (
+          <div className="advanced-panel">
+            <label>
+              Sell token address
+              <input value={tokenIn} onChange={(event) => setTokenIn(event.target.value)} placeholder="0x..." />
+            </label>
+            <label>
+              Buy token address
+              <input value={tokenOut} onChange={(event) => setTokenOut(event.target.value)} placeholder="0x..." />
+            </label>
+          </div>
+        )}
+
+        {/* Quick tokens */}
+        <div className="quick-tokens">
+          <span className="quick-tokens-label">Quick:</span>
+          <button type="button" className="quick-pill" onClick={() => setTokenIn(MON_TOKEN)}>
+            Sell MON
+          </button>
+          <button type="button" className="quick-pill" onClick={() => setTokenOut(MON_TOKEN)}>
+            Buy MON
+          </button>
+          {quickTokenAddresses.map((token) => (
+            <button key={`sell-${token}`} type="button" className="quick-pill" onClick={() => setTokenIn(token)}>
+              Sell {getTokenLabel(token)}
+            </button>
+          ))}
+        </div>
+
+        {/* Status */}
+        {lastAction && (
+          <p className="swap-status" title={lastAction}>
+            {lastAction}
+          </p>
+        )}
+      </div>
+    </>
+  );
+}
+
+/* Token selector as a dropdown button */
+function TokenSelectorButton({
+  tokens,
+  value,
+  onChange,
+  getLabel,
+  getColorClass,
+  chevron,
+}: {
+  tokens: string[];
+  value: string;
+  onChange: (v: string) => void;
+  getLabel: (v: string) => string;
+  getColorClass: (symbol: string) => string;
+  chevron: React.ReactNode;
+}) {
+  const label = getLabel(value);
+  const colorClass = getColorClass(label);
+
+  return (
+    <div style={{ position: "relative", flexShrink: 0 }}>
+      <div className="token-selector">
+        <div className={`token-icon ${colorClass}`}>{label.charAt(0)}</div>
+        {label}
+        {chevron}
+      </div>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        style={{
+          position: "absolute",
+          inset: 0,
+          opacity: 0,
+          cursor: "pointer",
+          width: "100%",
+          height: "100%",
+          border: "none",
+          padding: 0,
+        }}
+      >
+        {tokens.map((token) => (
+          <option key={token} value={token}>
+            {getLabel(token)}
+          </option>
+        ))}
+      </select>
+    </div>
   );
 }
