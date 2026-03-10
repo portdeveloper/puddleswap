@@ -171,6 +171,7 @@ a:hover {
   z-index: 100;
   box-shadow: 0 8px 24px rgba(0,0,0,0.08);
   width: max-content;
+  height: 56px;
 }
 
 .logo {
@@ -246,6 +247,16 @@ a:hover {
   font-size: 13px;
   padding: 10px 20px;
   font-family: 'SF Mono', 'Fira Code', monospace;
+  min-width: 150px;
+  text-align: center;
+}
+
+.btn-connect.connected.confirm {
+  background-color: var(--accent-pink);
+  border-color: var(--accent-pink);
+  color: white;
+  font-family: var(--font-ui);
+  font-size: 14px;
 }
 
 /* ── Network warning ── */

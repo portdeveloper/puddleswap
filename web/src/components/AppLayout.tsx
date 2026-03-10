@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 
@@ -22,9 +23,22 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
   const { isCorrectChain, expectedChainId } = useChainGuard();
+  const [confirmDisconnect, setConfirmDisconnect] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
 
   const location = useLocation();
   const isHomePage = location.pathname === "/";
+
+  useEffect(() => {
+    if (!confirmDisconnect) return;
+    function onClickOutside(e: MouseEvent) {
+      if (btnRef.current && !btnRef.current.contains(e.target as Node)) {
+        setConfirmDisconnect(false);
+      }
+    }
+    document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, [confirmDisconnect]);
 
   return (
     <div className="app-shell">
@@ -63,11 +77,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         ) : (
           <button
             type="button"
-            className="btn-connect connected"
-            onClick={() => disconnect()}
-            title="Click to disconnect"
+            ref={btnRef}
+            className={`btn-connect connected${confirmDisconnect ? " confirm" : ""}`}
+            onClick={() => {
+              if (confirmDisconnect) {
+                disconnect();
+                setConfirmDisconnect(false);
+              } else {
+                setConfirmDisconnect(true);
+              }
+            }}
           >
-            {formatAddress(address)}
+            {confirmDisconnect ? "Disconnect?" : formatAddress(address)}
           </button>
         )}
       </nav>
