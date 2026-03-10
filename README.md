@@ -1,18 +1,19 @@
-# Puddle (Monad Testnet DEX)
+# PuddleSwap
 
-Static, no-backend DEX for Monad testnet with:
+A static, no-backend DEX on Monad testnet.
+
+- Uniswap V2 factory/router
 - Testnet USDC/USDT contracts
-- Stock Uniswap V2 factory/router
 - Onchain token registry with prefix search
 - Safe-based deployment and admin workflow
 
 ## Repository layout
 
-- `contracts/` Foundry contracts, scripts, tests
-- `web/` Vite React app (RPC-only)
-- `config/addresses/10143.json` deployment addresses
-- `scripts/` helper scripts for Safe tx proposal + artifact sync
-- `docs/runbooks/` operator runbooks
+- `contracts/` — Foundry contracts, scripts, tests
+- `web/` — Vite + React frontend (RPC-only, no backend)
+- `config/addresses/10143.json` — deployment addresses
+- `scripts/` — Safe tx proposal + artifact sync helpers
+- `docs/runbooks/` — operator runbooks
 
 ## Quick start
 
