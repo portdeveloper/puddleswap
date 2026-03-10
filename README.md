@@ -2,71 +2,138 @@
 
 A static, no-backend DEX on Monad testnet. Solves the problem of builders needing stablecoins and token swaps on testnet without waiting for mainnet DEX deployments.
 
-- **Mintable stablecoins** — testnet USDC/USDT that we issue, making distribution easy
-- **Stock Uniswap V2** — unmodified factory/router, immutable and GPL-licensed
-- **Static frontend** — no backend, RPC-only. Not branded as Uniswap or Monad
-- **Onchain token registry** — prefix search with three tiers (Top Verified, Checkmark, Basic) so the UI can autocomplete without maintaining a token list in git
-- **Star routing** — core tokens (USDC, USDT, WMON) are used as intermediaries. Any token with a pool against a core token is tradeable. Best route is found via a single batched RPC call
-- **Open registration** — anyone can register a token with a 7-day cooldown. Basic tokens don't display custom images (NSFW protection). Verified/checkmark status is granted by a verifier role
-- **Faucet** — users can claim testnet USDC/USDT with a per-address cooldown
+**Live at [app.puddleswap.org](https://app.puddleswap.org)**
 
-## Repository layout
+## How it works
 
-- `contracts/` — Foundry contracts, scripts, tests
-- `web/` — Vite + React frontend (RPC-only, no backend)
-- `config/addresses/10143.json` — deployment addresses
-- `scripts/` — deployment + artifact sync helpers
-- `docs/runbooks/` — operator runbooks
+### Swapping tokens
 
-## Quick start
+Select a token to sell and a token to buy. PuddleSwap finds the best route automatically using **star routing** — core tokens (USDC, USDT, WMON) act as intermediaries. For any swap A -> B, the UI checks all possible paths in a single batched RPC call:
 
-```bash
-make setup
-make test
-make dev
+- A -> B (direct)
+- A -> USDC -> B, A -> USDT -> B, A -> WMON -> B (3-hop)
+- A -> USDC -> WMON -> B, A -> WMON -> USDC -> B, etc. (4-hop)
+
+This means any token with a pool against at least one core token is tradeable against any other. The best quote wins. Slippage is configurable (default 1%, max 50%) and quotes refresh every 6 seconds.
+
+### Creating pools
+
+Navigate to Pools > Create. Pick two tokens, set initial amounts, approve both, and create. This deploys a new Uniswap V2 pair and adds the first liquidity in one flow.
+
+### Managing liquidity
+
+Click any pool to see reserves, your LP balance, and add or remove liquidity. Removing burns your LP tokens and returns both underlying tokens proportionally.
+
+### Token registry
+
+An onchain registry lets the UI autocomplete token names without maintaining a list in git. Tokens have three trust tiers:
+
+- **Top Verified** — core tokens like USDC, USDT, WMON
+- **Checkmark** — vetted by a verifier
+- **Basic** — registered by anyone (7-day cooldown, max 1 active per address, no custom images for NSFW protection)
+
+Search works by symbol prefix (up to 4 characters). Higher-tier tokens appear first.
+
+### Faucet
+
+The StableFaucet contract lets anyone claim testnet USDC and USDT with a per-address cooldown (default 24 hours). An admin can tune claim amounts or disable the faucet.
+
+### Rebalancer
+
+An automated service on Railway keeps the core pools (USDC/WMON, USDT/WMON) near a target price. It runs every 5 minutes, can mint stablecoins as needed, and sends Discord alerts on low MON balance.
+
+## Architecture
+
+```
+contracts/          Foundry — Solidity contracts, deploy scripts, tests
+web/                Vite + React + TypeScript — static frontend (RPC-only)
+config/             Deployed contract addresses per chain
+scripts/            Deploy, verify, rebalance, sync helpers
+docs/               Runbooks and security docs
 ```
 
-## Deployment flow
+The frontend has zero backend dependencies. All data comes from RPC calls to Monad testnet. Wallet connection uses an injected provider (MetaMask, Rabby, etc.).
 
-1. Create a Foundry keystore account:
+## Contracts (Monad testnet)
+
+| Contract | Address |
+|----------|---------|
+| WMON | `0x97B3070F9Da6C002343862b35E68Bd8e22608943` |
+| TestUSDC | `0xc152fE819323913e478Cab556BE9e24a81790eAF` |
+| TestUSDT | `0x1314b22df27BDcD4F8D11a0f4185943e55748917` |
+| StableFaucet | `0x50959dd2a4ef310f9aa2df9498cE9aC0aB956276` |
+| UniswapV2Factory | `0xd498f5beBD0C9f1FE0135a0Cf942dA67Ee6e8A9B` |
+| UniswapV2Router02 | `0x430c23895c8D44883526e3E0B09327dAD8766660` |
+| OpenRegistrationGate | `0xd1a37dF00238b97F453fC583806711048eB9987c` |
+| TokenRegistry | `0x82289127fda2d521c851C696796c41EDB6b6461D` |
+
+All contracts are verified on [MonadVision](https://testnet.monadvision.com), [Socialscan](https://monad-testnet.socialscan.io), and [Monadscan](https://testnet.monadscan.com).
+
+## Development
+
+```bash
+make setup    # install Foundry deps + pnpm install
+make test     # run contract tests + web tests
+make dev      # start Vite dev server
+```
+
+## Deployment
+
+### Contracts
+
+1. Create a Foundry keystore:
 
 ```bash
 cast wallet import puddleswap --interactive
 ```
 
-2. Export required env vars in `.env`.
-3. Deploy Uniswap V2:
+2. Store the password for scripted use:
+
+```bash
+echo -n "your-password" > ~/.monad-keystore-password
+chmod 600 ~/.monad-keystore-password
+```
+
+3. Copy `.env.example` to `.env` and fill values.
+
+4. Deploy:
 
 ```bash
 FEE_TO_SETTER=<deployer-address> make deploy-uniswap
-```
-
-4. Deploy core contracts:
-
-```bash
 TARGET_SCRIPT=DeployDexCore make deploy-testnet
+TARGET_SCRIPT=RegisterCoreTokens make deploy-testnet
+TARGET_SCRIPT=SeedCorePools make deploy-testnet
 ```
 
-Other script targets can be deployed by changing `TARGET_SCRIPT`:
-- `RegisterCoreTokens`
-- `SeedCorePools`
-
-## ABI/address sync for web
-
-After contracts compile/deploy:
+5. Update addresses and sync to frontend:
 
 ```bash
+# edit config/addresses/10143.json with new addresses
 make sync-artifacts
 ```
 
-This updates `web/src/config/generated.ts` from Foundry artifacts and `config/addresses/10143.json`.
+6. Verify on all block explorers:
 
-## Environment
+```bash
+ADMIN_ADDRESS=<deployer-address> make verify-contracts
+```
 
-Copy `.env.example` to `.env` and fill values.
+### Frontend
 
-## Security notes
+Deployed to Vercel. Pushes to `master` auto-deploy. The only required env var is `VITE_WALLETCONNECT_PROJECT_ID`.
+
+### Rebalancer
+
+Runs on Railway as a Docker service. See `docs/runbooks/railway-rebalancer.md`.
+
+```bash
+PRIVATE_KEY=<key> make deploy-railway-rebalancer
+```
+
+## Security
 
 - All privileged roles are owned by the deployer keystore account.
-- UI blocks writes if wallet is not on Monad testnet (`10143`).
-- BASIC tokens in registry intentionally do not display custom images.
+- UI blocks writes if wallet is not on Monad testnet (chain ID `10143`).
+- Rebalancer key is stored as a Railway env var, never in code.
+- Uniswap V2 contracts are stock/unmodified.
+- See `docs/security/trust-model.md` for the full threat model.

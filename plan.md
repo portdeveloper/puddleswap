@@ -1,80 +1,49 @@
 # PuddleSwap — Testnet Prod Plan
 
-## 1. Replace Safe with Foundry Keystore
+## Status: COMPLETE
 
-The Safe multisig adds unnecessary complexity for a testnet app. Switch to direct
-deploys using a foundry keystore (`cast wallet`).
+All items done. Production URL: https://app.puddleswap.org
 
-### 1a. Simplify deployment scripts
+## 1. Replace Safe with Foundry Keystore — DONE
 
-- [x] Created `scripts/deploy-testnet.sh` — replaces `deploy-testnet-safe.sh`
-- [x] Created `scripts/deploy-uniswap.sh` — replaces `deploy-uniswap-stock-safe.sh`
-- [x] Deleted `scripts/safe/` directory (`propose-create.mjs`, `propose-broadcast.mjs`)
-- [x] Deleted `scripts/deploy-testnet-safe.sh` and `scripts/deploy-uniswap-stock-safe.sh`
+- Removed Safe deployment infrastructure
+- New deploy scripts use `forge script --account puddleswap`
+- All docs updated
 
-### 1b. Update Solidity deploy scripts
+## 2. Fix Rebalancer Key Management — DONE
 
-- [x] `DeployDexCore.s.sol` — replaced `SAFE_ADDRESS` with `ADMIN_ADDRESS` (defaults to `msg.sender`)
-- [x] `DeployPhase2PassGate.s.sol` — same change
-- [x] Deleted `DeploySafeCREATE2.s.sol`
+- Deleted `.env.rebalancer.local`
+- Key lives in Railway env vars only
 
-### 1c. Update config & env
+## 3. Phase 2 Pass Registration — CUT
 
-- [x] `.env.example` — removed Safe vars, added `ACCOUNT_NAME=puddleswap`
-- [x] `config/addresses/10143.json` — removed `safe` field
-- [x] `web/src/config/generated.ts` — removed `safe` field
-- [x] `web/src/lib/contracts.ts` — removed `safe` address
-- [x] Updated `Makefile` targets
+- Open registration is sufficient for testnet
+- Removed RegistrationPass/PassRegistrationGate code
 
-### 1d. Update docs
+## 4. Restore CI — DONE
 
-- [x] `docs/runbooks/deploy-testnet.md` — rewritten for keystore workflow
-- [x] `docs/security/trust-model.md` — removed Safe, documented keystore approach
-- [x] `docs/runbooks/phase2-gate-migration.md` — updated for direct broadcast
-- [x] `docs/runbooks/ops.md` — replaced Safe proposals with `cast send` commands
-- [x] `README.md` — updated deployment flow and security notes
+- `.github/workflows/ci.yml` restored
 
----
+## 5. Fresh Contract Deployment — DONE
 
-## 2. Fix Rebalancer Key Management
+| Contract | Address |
+|----------|---------|
+| WMON | `0x97B3070F9Da6C002343862b35E68Bd8e22608943` |
+| TestUSDC | `0xc152fE819323913e478Cab556BE9e24a81790eAF` |
+| TestUSDT | `0x1314b22df27BDcD4F8D11a0f4185943e55748917` |
+| StableFaucet | `0x50959dd2a4ef310f9aa2df9498cE9aC0aB956276` |
+| UniswapV2Factory | `0xd498f5beBD0C9f1FE0135a0Cf942dA67Ee6e8A9B` |
+| UniswapV2Router02 | `0x430c23895c8D44883526e3E0B09327dAD8766660` |
+| OpenRegistrationGate | `0xd1a37dF00238b97F453fC583806711048eB9987c` |
+| TokenRegistry | `0x82289127fda2d521c851C696796c41EDB6b6461D` |
 
-- [x] Deleted `.env.rebalancer.local` (contained hardcoded private key)
-- [x] Removed local env file sourcing from `scripts/rebalance-testnet-core.sh`
-- [x] Updated default keystore account name to `puddleswap`
-- [ ] Verify Railway service has `PRIVATE_KEY` set as env var (not in repo)
+- Admin: `0xb0E956d64cd412Edb242839793C7910e5E15a298` (puddleswap keystore)
+- All contracts verified on MonadVision, Socialscan, Monadscan
+- Core tokens registered (USDC, USDT, WMON as TOP_VERIFIED)
+- Pools seeded (USDC/USDT, USDC/WMON, USDT/WMON)
+- Rebalancer granted MINTER_ROLE on both stablecoins
 
----
+## 6. Deployment — DONE
 
-## 3. Deploy Phase 2 Contracts (or Cut Scope)
-
-Decide: do we need `RegistrationPass` and `PassRegistrationGate`?
-
-**If yes:**
-- [ ] Deploy `RegistrationPass` via `TARGET_SCRIPT=DeployPhase2PassGate make deploy-testnet`
-- [ ] Update `config/addresses/10143.json` with new addresses
-- [ ] Run `make sync-artifacts`
-
-**If no:**
-- [ ] Remove `RegistrationPass.sol` and `PassRegistrationGate.sol` from contracts
-- [ ] Remove empty entries from `config/addresses/10143.json`
-- [ ] Delete `docs/runbooks/phase2-gate-migration.md`
-
----
-
-## 4. Restore CI
-
-- [x] Added back GitHub Actions workflow (`.github/workflows/ci.yml`)
-  - Runs `make test` (forge + vitest)
-  - Runs `pnpm lint`, `pnpm typecheck`, `pnpm build`
-
----
-
-## 5. Pre-Launch Checks
-
-- [ ] Verify all deployed contracts on block explorer (socialscan)
-- [ ] Test full swap flow end-to-end on testnet
-- [ ] Test token registration flow
-- [ ] Test faucet claim flow
-- [ ] Confirm Vercel deployment works (`vercel.json` config, env vars set)
-- [ ] Confirm rebalancer is running on Railway and keeping pools healthy
-- [ ] Review CSP headers in `vercel.json` — make sure `connect-src` allows the RPC URL
+- Vercel: auto-deployed from git push, live at https://app.puddleswap.org
+- Railway: rebalancer redeployed with new contract addresses
