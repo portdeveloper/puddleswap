@@ -15,8 +15,8 @@ export const monadTestnet = defineChain({
   },
   blockExplorers: {
     default: {
-      name: "Monad Socialscan",
-      url: import.meta.env.VITE_EXPLORER_BASE_URL ?? "https://monad-testnet.socialscan.io"
+      name: "MonadScan",
+      url: import.meta.env.VITE_EXPLORER_BASE_URL ?? "https://testnet.monadscan.com"
     }
   }
 });
