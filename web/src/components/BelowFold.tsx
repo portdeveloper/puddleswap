@@ -145,7 +145,12 @@ export function BelowFold() {
         {/* Footer */}
         <div className="reveal reveal-delay-3" style={{ width: "100%", maxWidth: 900, display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 32, borderTop: "1px solid var(--border-light)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div className="logo-mark" />
+            <svg className="logo-mark" width="20" height="20" viewBox="0 0 32 32" fill="none">
+              <ellipse cx="16" cy="18" rx="12" ry="9" fill="#4E9A55" transform="rotate(-3 16 18)" />
+              <ellipse cx="13" cy="16.5" rx="1.2" ry="2.2" fill="#1E201E" />
+              <ellipse cx="19" cy="16.5" rx="1.2" ry="2.2" fill="#1E201E" />
+              <path d="M13.5 21q2.5 2 5 0" stroke="#1E201E" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+            </svg>
             <span style={{ fontWeight: 800, fontSize: 18 }}>Puddle</span>
             <span style={{ fontSize: 13, color: "var(--text-muted)", marginLeft: 4 }}>Monad Testnet</span>
           </div>

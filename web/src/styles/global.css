@@ -186,10 +186,6 @@ a:hover {
 }
 
 .logo-mark {
-  width: 16px;
-  height: 16px;
-  background-color: var(--brand-green);
-  border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
   flex-shrink: 0;
 }
 
@@ -354,46 +350,30 @@ main {
   margin-bottom: 24px;
 }
 
-.puddle-char {
-  width: 140px;
-  height: 100px;
-  background-color: var(--brand-green);
-  border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
-  position: relative;
-  animation: morph 8s ease-in-out infinite;
-}
-
 @keyframes morph {
-  0% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
-  50% { border-radius: 60% 40% 30% 70% / 50% 60% 40% 50%; }
-  100% { border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%; }
+  0%   { border-radius: 50% 50% 45% 55% / 40% 45% 55% 60%; }
+  20%  { border-radius: 45% 55% 50% 50% / 50% 40% 60% 50%; }
+  40%  { border-radius: 55% 45% 48% 52% / 45% 55% 45% 55%; }
+  60%  { border-radius: 48% 52% 55% 45% / 55% 48% 52% 48%; }
+  80%  { border-radius: 52% 48% 45% 55% / 48% 52% 48% 52%; }
+  100% { border-radius: 50% 50% 45% 55% / 40% 45% 55% 60%; }
 }
 
-.face {
-  position: absolute;
-  top: 40%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+.puddle-char-wrapper {
+  width: 180px;
+  height: 110px;
+  border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+  background: var(--brand-green);
   display: flex;
-  gap: 20px;
+  align-items: center;
+  justify-content: center;
+  animation: morph 8s ease-in-out infinite;
+  overflow: hidden;
 }
 
-.eye {
-  width: 6px;
-  height: 12px;
-  background-color: var(--nav-dark);
-  border-radius: var(--radius-pill);
-}
-
-.smile {
-  position: absolute;
-  top: 18px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 16px;
-  height: 8px;
-  border-bottom: 3px solid var(--nav-dark);
-  border-radius: 0 0 16px 16px;
+svg.puddle-char {
+  width: 160px;
+  height: 110px;
 }
 
 /* ── Swap widget ── */

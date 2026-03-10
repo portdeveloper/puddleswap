@@ -443,12 +443,13 @@ export function SwapPage() {
         <div className="speech-bubble">
           Ready to make a splash?
         </div>
-        <div className="puddle-char">
-          <div className="face">
-            <div className="eye" />
-            <div className="smile" />
-            <div className="eye" />
-          </div>
+        <div className="puddle-char-wrapper">
+          <svg className="puddle-char" viewBox="0 0 140 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="70" cy="55" rx="55" ry="38" fill="#4E9A55" transform="rotate(-3 70 55)" />
+            <ellipse cx="57" cy="48" rx="4" ry="8" fill="#1E201E" />
+            <ellipse cx="83" cy="48" rx="4" ry="8" fill="#1E201E" />
+            <path d="M60 68q10 8 20 0" stroke="#1E201E" strokeWidth="3" fill="none" strokeLinecap="round" />
+          </svg>
         </div>
       </div>
 
