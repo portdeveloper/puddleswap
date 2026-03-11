@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { formatUnits, isAddress, type Address, type Hash } from "viem";
-import { useAccount, useConnect, usePublicClient, useWriteContract } from "wagmi";
+import { useAccount, useConnect, usePublicClient, useSwitchChain, useWriteContract } from "wagmi";
 import { monadTestnet } from "../config/chain";
 
 import { useChainGuard } from "../hooks/useChainGuard";
@@ -32,6 +32,7 @@ export function SwapPage() {
   const { connect, connectors } = useConnect();
   const publicClient = usePublicClient({ chainId: monadTestnet.id });
   const { isCorrectChain } = useChainGuard();
+  const { switchChain } = useSwitchChain();
   const { writeContractAsync } = useWriteContract();
 
   const [tokenIn, setTokenIn] = useState(contractAddresses.testUSDC ?? "");
@@ -314,6 +315,11 @@ export function SwapPage() {
       return;
     }
 
+    if (!isCorrectChain) {
+      switchChain({ chainId: monadTestnet.id });
+      return;
+    }
+
     if (needsApproval) {
       await handleApprove();
       return;
@@ -394,6 +400,8 @@ export function SwapPage() {
         : "Waiting for wallet..."
     : !isConnected
       ? "Connect Wallet"
+      : !isCorrectChain
+        ? "Switch to Monad Testnet"
       : hasInsufficientBalance
         ? `Insufficient ${tokenInSymbol} balance`
       : needsApproval
@@ -403,9 +411,9 @@ export function SwapPage() {
     pending ||
     (!isConnected
       ? connectors.length === 0
-      : !isCorrectChain || hasInsufficientBalance || (!needsApproval && !quoteQuery.data?.best));
+      : isCorrectChain && (hasInsufficientBalance || (!needsApproval && !quoteQuery.data?.best)));
 
-  const isReady = isConnected && !hasInsufficientBalance && (needsApproval || Boolean(quoteQuery.data?.best));
+  const isReady = isConnected && isCorrectChain && !hasInsufficientBalance && (needsApproval || Boolean(quoteQuery.data?.best));
 
   const routeLabels =
     quoteQuery.data?.best?.path
