@@ -1,6 +1,104 @@
 import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import type { Address } from "viem";
+import { Link } from "react-router-dom";
+import { usePublicClient } from "wagmi";
+
+import { useAllPools } from "../hooks/useAllPools";
+import type { PoolInfo } from "../hooks/useAllPools";
+import { useCoreTokens } from "../hooks/useCoreTokens";
+import { contractAbis, multicall3Address } from "../lib/contracts";
+
+function tokenIconClass(symbol: string): string {
+  const s = symbol.toLowerCase();
+  if (s === "usdc" || s === "tusdc") return "usdc";
+  if (s === "usdt" || s === "tusdt") return "usdt";
+  if (s === "mon") return "mon";
+  if (s === "wmon") return "wmon";
+  return "";
+}
+
+function abbreviate(n: string): string {
+  const num = Number(n);
+  if (Number.isNaN(num) || num === 0) return "0";
+  if (num >= 1_000_000) return `${(num / 1_000_000).toFixed(2)}M`;
+  if (num >= 1_000) return `${(num / 1_000).toFixed(2)}K`;
+  if (num >= 1) return num.toFixed(2);
+  return num.toPrecision(4);
+}
+
+function PoolPreviewRow({ pool }: { pool: PoolInfo }) {
+  return (
+    <Link to={`/pool/${pool.pairAddress}`} className="pool-row">
+      <div className="pool-pair">
+        <div className="pool-icons">
+          <div className={`token-icon ${tokenIconClass(pool.symbol0)}`}>{pool.symbol0.slice(0, 1)}</div>
+          <div className={`token-icon ${tokenIconClass(pool.symbol1)}`}>{pool.symbol1.slice(0, 1)}</div>
+        </div>
+        <div>
+          <div className="pool-pair-name">{pool.symbol0} / {pool.symbol1}</div>
+        </div>
+      </div>
+      <div><div className="pool-stat">{abbreviate(pool.reserve0Formatted)}</div><div className="pool-stat-sub">{pool.symbol0}</div></div>
+      <div><div className="pool-stat">{abbreviate(pool.reserve1Formatted)}</div><div className="pool-stat-sub">{pool.symbol1}</div></div>
+      <div>
+        {pool.lpBalance > 0n ? (
+          <>
+            <div className="pool-stat">{abbreviate(pool.lpBalanceFormatted)}</div>
+            <div className="pool-stat-sub">{pool.sharePercent}% share</div>
+          </>
+        ) : (
+          <div className="pool-stat" style={{ color: "var(--text-muted)" }}>&mdash;</div>
+        )}
+      </div>
+    </Link>
+  );
+}
+
+interface CoreTokenInfo {
+  address: Address;
+  symbol: string;
+  name: string;
+}
+
+function useCoreTokenMeta(coreTokens: Address[] | undefined) {
+  const publicClient = usePublicClient();
+
+  return useQuery({
+    queryKey: ["core-token-meta", coreTokens],
+    enabled: Boolean(publicClient && coreTokens && coreTokens.length > 0),
+    staleTime: 30_000,
+    queryFn: async (): Promise<CoreTokenInfo[]> => {
+      if (!publicClient || !coreTokens || coreTokens.length === 0) return [];
+
+      const calls = coreTokens.flatMap((addr) => [
+        { address: addr, abi: contractAbis.erc20, functionName: "symbol" as const },
+        { address: addr, abi: contractAbis.erc20, functionName: "name" as const },
+      ]);
+
+      const results = await publicClient.multicall({
+        contracts: calls,
+        multicallAddress: multicall3Address,
+      });
+
+      return coreTokens.map((addr, i) => {
+        const symbolResult = results[i * 2];
+        const nameResult = results[i * 2 + 1];
+        return {
+          address: addr,
+          symbol: symbolResult?.status === "success" ? (symbolResult.result as string) : "???",
+          name: nameResult?.status === "success" ? (nameResult.result as string) : "Unknown",
+        };
+      });
+    },
+  });
+}
 
 export function BelowFold() {
+  const poolsQuery = useAllPools();
+  const coreTokensQuery = useCoreTokens();
+  const coreTokenMetaQuery = useCoreTokenMeta(coreTokensQuery.data);
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -42,73 +140,31 @@ export function BelowFold() {
               <div className="section-title">Active Pools</div>
               <p className="section-sub">Small but mighty. These are the puddles powering every swap.</p>
             </div>
-            <a href="/pool/new" className="btn-green-outline">+ Create Pool</a>
+            <Link to="/pools" className="btn-green-outline">View All Pools</Link>
           </div>
           <div className="pools-table">
             <div className="pools-table-header">
               <span>Pool</span>
-              <span>TVL</span>
-              <span>Volume 24h</span>
+              <span>Reserve 0</span>
+              <span>Reserve 1</span>
               <span>Your Liquidity</span>
-              <span />
             </div>
-            <div className="pool-row">
-              <div className="pool-pair">
-                <div className="pool-icons">
-                  <div className="token-icon mon">M</div>
-                  <div className="token-icon usdc">U</div>
-                </div>
-                <div>
-                  <div className="pool-pair-name">MON / USDC</div>
-                  <span className="pool-badge">&#10003; Verified</span>
-                </div>
+
+            {poolsQuery.isLoading && (
+              <div style={{ padding: "40px 24px", textAlign: "center", color: "var(--text-muted)" }}>
+                Loading pools...
               </div>
-              <div><div className="pool-stat">$12,480</div><div className="pool-stat-sub">Testnet only</div></div>
-              <div><div className="pool-stat">$3,210</div></div>
-              <div><div className="pool-stat">$840</div><div className="pool-stat-sub">2.4% share</div></div>
-              <div className="pool-actions">
-                <button type="button" className="btn-xs add">Add</button>
-                <button type="button" className="btn-xs remove">Remove</button>
+            )}
+
+            {poolsQuery.data && poolsQuery.data.length === 0 && (
+              <div style={{ padding: "40px 24px", textAlign: "center", color: "var(--text-muted)" }}>
+                No pools yet. Be the first to create one!
               </div>
-            </div>
-            <div className="pool-row">
-              <div className="pool-pair">
-                <div className="pool-icons">
-                  <div className="token-icon mon">M</div>
-                  <div className="token-icon usdt">T</div>
-                </div>
-                <div>
-                  <div className="pool-pair-name">MON / USDT</div>
-                  <span className="pool-badge">&#10003; Verified</span>
-                </div>
-              </div>
-              <div><div className="pool-stat">$8,920</div><div className="pool-stat-sub">Testnet only</div></div>
-              <div><div className="pool-stat">$1,540</div></div>
-              <div><div className="pool-stat">&mdash;</div></div>
-              <div className="pool-actions">
-                <button type="button" className="btn-xs add">Add</button>
-                <button type="button" className="btn-xs remove">Remove</button>
-              </div>
-            </div>
-            <div className="pool-row">
-              <div className="pool-pair">
-                <div className="pool-icons">
-                  <div className="token-icon usdc">U</div>
-                  <div className="token-icon usdt">T</div>
-                </div>
-                <div>
-                  <div className="pool-pair-name">USDC / USDT</div>
-                  <span className="pool-badge">&#10003; Verified</span>
-                </div>
-              </div>
-              <div><div className="pool-stat">$5,340</div><div className="pool-stat-sub">Testnet only</div></div>
-              <div><div className="pool-stat">$880</div></div>
-              <div><div className="pool-stat">&mdash;</div></div>
-              <div className="pool-actions">
-                <button type="button" className="btn-xs add">Add</button>
-                <button type="button" className="btn-xs remove">Remove</button>
-              </div>
-            </div>
+            )}
+
+            {poolsQuery.data?.map((pool) => (
+              <PoolPreviewRow key={pool.pairAddress} pool={pool} />
+            ))}
           </div>
         </div>
 
@@ -118,27 +174,28 @@ export function BelowFold() {
         <div className="token-registry reveal reveal-delay-2">
           <div className="registry-header">
             <div>
-              <span className="section-label">~ all tokens ~</span>
+              <span className="section-label">~ core tokens ~</span>
               <div className="section-title">Token Registry</div>
-              <p className="section-sub">Anyone can register a token. Verified tokens are reviewed by the Puddle team.</p>
+              <p className="section-sub">Core tokens registered on-chain in the Puddle registry.</p>
             </div>
           </div>
           <div className="registry-grid">
-            <div className="token-card">
-              <div className="token-card-icon" style={{ background: "#836EF9" }}>M</div>
-              <div className="token-card-info"><div className="token-card-symbol">MON</div><div className="token-card-name">Monad Native</div></div>
-              <div className="token-verified">{checkIcon}</div>
-            </div>
-            <div className="token-card">
-              <div className="token-card-icon" style={{ background: "#2775CA" }}>U</div>
-              <div className="token-card-info"><div className="token-card-symbol">USDC</div><div className="token-card-name">USD Coin (Test)</div></div>
-              <div className="token-verified">{checkIcon}</div>
-            </div>
-            <div className="token-card">
-              <div className="token-card-icon" style={{ background: "#26A17B" }}>T</div>
-              <div className="token-card-info"><div className="token-card-symbol">USDT</div><div className="token-card-name">Tether USD (Test)</div></div>
-              <div className="token-verified">{checkIcon}</div>
-            </div>
+            {coreTokenMetaQuery.data?.map((token) => (
+              <div key={token.address} className="token-card">
+                <div className={`token-card-icon token-icon ${tokenIconClass(token.symbol)}`}>{token.symbol.slice(0, 1)}</div>
+                <div className="token-card-info">
+                  <div className="token-card-symbol">{token.symbol}</div>
+                  <div className="token-card-name">{token.name}</div>
+                </div>
+                <div className="token-verified">{checkIcon}</div>
+              </div>
+            ))}
+            {coreTokenMetaQuery.isLoading && (
+              <div style={{ padding: "20px", color: "var(--text-muted)" }}>Loading tokens...</div>
+            )}
+            {coreTokenMetaQuery.data?.length === 0 && (
+              <div style={{ padding: "20px", color: "var(--text-muted)" }}>No core tokens registered yet.</div>
+            )}
           </div>
         </div>
 
