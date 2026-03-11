@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { usePublicClient } from "wagmi";
+import { monadTestnet } from "../config/chain";
 
 import { contractAbis, contractAddresses } from "../lib/contracts";
 import type { TokenView } from "../types";
 
 export function useRegistrySearch(query: string) {
-  const publicClient = usePublicClient();
+  const publicClient = usePublicClient({ chainId: monadTestnet.id });
 
   return useQuery({
     queryKey: ["registry-search", query],

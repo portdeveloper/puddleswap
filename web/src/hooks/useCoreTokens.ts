@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import type { Address } from "viem";
 import { usePublicClient } from "wagmi";
+import { monadTestnet } from "../config/chain";
 
 import { contractAbis, contractAddresses } from "../lib/contracts";
 
 export function useCoreTokens() {
-  const publicClient = usePublicClient();
+  const publicClient = usePublicClient({ chainId: monadTestnet.id });
 
   return useQuery({
     queryKey: ["core-tokens"],

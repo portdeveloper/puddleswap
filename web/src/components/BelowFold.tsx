@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { Address } from "viem";
 import { Link } from "react-router-dom";
 import { usePublicClient } from "wagmi";
+import { monadTestnet } from "../config/chain";
 
 import { useAllPools } from "../hooks/useAllPools";
 import type { PoolInfo } from "../hooks/useAllPools";
@@ -62,7 +63,7 @@ interface CoreTokenInfo {
 }
 
 function useCoreTokenMeta(coreTokens: Address[] | undefined) {
-  const publicClient = usePublicClient();
+  const publicClient = usePublicClient({ chainId: monadTestnet.id });
 
   return useQuery({
     queryKey: ["core-token-meta", coreTokens],

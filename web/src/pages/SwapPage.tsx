@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { formatUnits, isAddress, type Address, type Hash } from "viem";
 import { useAccount, useConnect, usePublicClient, useWriteContract } from "wagmi";
+import { monadTestnet } from "../config/chain";
 
 import { useChainGuard } from "../hooks/useChainGuard";
 import { useCoreTokens } from "../hooks/useCoreTokens";
@@ -29,7 +30,7 @@ function getTokenColorClass(symbol: string) {
 export function SwapPage() {
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
-  const publicClient = usePublicClient();
+  const publicClient = usePublicClient({ chainId: monadTestnet.id });
   const { isCorrectChain } = useChainGuard();
   const { writeContractAsync } = useWriteContract();
 

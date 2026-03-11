@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { formatUnits, isAddress, parseUnits, type Address } from "viem";
 import { Link, useParams } from "react-router-dom";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
+import { monadTestnet } from "../config/chain";
 
 import { useChainGuard } from "../hooks/useChainGuard";
 import { contractAbis, contractAddresses } from "../lib/contracts";
@@ -10,7 +11,7 @@ import { contractAbis, contractAddresses } from "../lib/contracts";
 export function PoolDetailsPage() {
   const { pairAddress = "" } = useParams();
   const { address } = useAccount();
-  const publicClient = usePublicClient();
+  const publicClient = usePublicClient({ chainId: monadTestnet.id });
   const { isCorrectChain } = useChainGuard();
   const { writeContractAsync } = useWriteContract();
 

@@ -13,3 +13,6 @@ export const wagmiConfig = createConfig({
     [monadTestnet.id]: http(monadTestnet.rpcUrls.default.http[0])
   }
 });
+
+/** Re-export so hooks can pass chainId explicitly */
+export const CHAIN_ID = monadTestnet.id;

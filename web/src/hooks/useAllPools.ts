@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { formatUnits, type Address } from "viem";
 import { useAccount, usePublicClient } from "wagmi";
+import { monadTestnet } from "../config/chain";
 
 import { contractAbis, contractAddresses, multicall3Address } from "../lib/contracts";
 
@@ -23,7 +24,7 @@ export interface PoolInfo {
 }
 
 export function useAllPools() {
-  const publicClient = usePublicClient();
+  const publicClient = usePublicClient({ chainId: monadTestnet.id });
   const { address: userAddress } = useAccount();
 
   return useQuery({

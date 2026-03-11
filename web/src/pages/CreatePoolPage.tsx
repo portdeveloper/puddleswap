@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { formatUnits, isAddress, parseUnits, type Address } from "viem";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
+import { monadTestnet } from "../config/chain";
 import { Link } from "react-router-dom";
 
 import { TokenPicker } from "../components/TokenPicker";
@@ -10,7 +11,7 @@ import { contractAbis, contractAddresses } from "../lib/contracts";
 
 export function CreatePoolPage() {
   const { address } = useAccount();
-  const publicClient = usePublicClient();
+  const publicClient = usePublicClient({ chainId: monadTestnet.id });
   const { isCorrectChain } = useChainGuard();
   const { writeContractAsync } = useWriteContract();
 

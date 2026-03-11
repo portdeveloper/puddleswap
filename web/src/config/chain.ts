@@ -1,16 +1,11 @@
+import { monadTestnet as baseMonadTestnet } from "viem/chains";
 import { defineChain } from "viem";
 
 export const monadTestnet = defineChain({
-  id: (() => { const raw = Number(import.meta.env.VITE_CHAIN_ID); return Number.isInteger(raw) && raw > 0 ? raw : 10143; })(),
-  name: "Monad Testnet",
-  nativeCurrency: {
-    decimals: 18,
-    name: "Monad",
-    symbol: "MON"
-  },
+  ...baseMonadTestnet,
   rpcUrls: {
     default: {
-      http: [import.meta.env.VITE_RPC_URL ?? "https://testnet-rpc.monad.xyz"]
+      http: [import.meta.env.VITE_RPC_URL ?? baseMonadTestnet.rpcUrls.default.http[0]]
     }
   },
   blockExplorers: {

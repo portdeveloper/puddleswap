@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { formatUnits, isAddress, type Address } from "viem";
 import { usePublicClient } from "wagmi";
+import { monadTestnet } from "../config/chain";
 
 import { contractAbis } from "../lib/contracts";
 
 export function useTokenMeta(tokenAddress: string | undefined) {
-  const publicClient = usePublicClient();
+  const publicClient = usePublicClient({ chainId: monadTestnet.id });
 
   return useQuery({
     queryKey: ["token-meta", tokenAddress],

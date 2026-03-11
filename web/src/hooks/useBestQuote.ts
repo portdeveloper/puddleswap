@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { isAddress, parseUnits, type Address } from "viem";
 import { usePublicClient } from "wagmi";
+import { monadTestnet } from "../config/chain";
 
 import { contractAbis, contractAddresses, multicall3Address } from "../lib/contracts";
 import { buildCandidateRoutes, selectBestQuote } from "../lib/routing";
@@ -9,7 +10,7 @@ import type { QuoteCandidate } from "../types";
 const MON_TOKEN = "MON";
 
 export function useBestQuote(tokenIn: string, tokenOut: string, amountIn: string, coreTokens: Address[]) {
-  const publicClient = usePublicClient();
+  const publicClient = usePublicClient({ chainId: monadTestnet.id });
   const tokenInIsMon = tokenIn === MON_TOKEN;
   const tokenOutIsMon = tokenOut === MON_TOKEN;
   const tokenInAddress = tokenInIsMon ? contractAddresses.wmon : (tokenIn as Address);

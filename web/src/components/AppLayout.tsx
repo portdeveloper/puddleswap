@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { useAccount, useConnect, useDisconnect, useSwitchChain } from "wagmi";
 
+import { monadTestnet } from "../config/chain";
 import { useChainGuard } from "../hooks/useChainGuard";
 import { AnimatedBackground } from "./AnimatedBackground";
 import { BelowFold } from "./BelowFold";
@@ -22,7 +23,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
+  const { switchChain } = useSwitchChain();
   const { isCorrectChain, expectedChainId } = useChainGuard();
+
+  // Auto-switch to Monad testnet when wallet is on wrong chain
+  useEffect(() => {
+    if (isConnected && !isCorrectChain) {
+      switchChain({ chainId: monadTestnet.id });
+    }
+  }, [isConnected, isCorrectChain, switchChain]);
   const [confirmDisconnect, setConfirmDisconnect] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
 

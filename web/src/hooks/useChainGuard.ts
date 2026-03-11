@@ -1,13 +1,13 @@
-import { useChainId } from "wagmi";
+import { useAccount } from "wagmi";
 
 import { monadTestnet } from "../config/chain";
 
 export function useChainGuard() {
-  const chainId = useChainId();
-  const isCorrectChain = chainId === monadTestnet.id;
+  const { chain } = useAccount();
+  const isCorrectChain = chain?.id === monadTestnet.id;
 
   return {
-    chainId,
+    chainId: chain?.id,
     isCorrectChain,
     expectedChainId: monadTestnet.id
   };
