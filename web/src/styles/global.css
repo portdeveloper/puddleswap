@@ -990,6 +990,7 @@ button:disabled {
   flex-wrap: wrap;
   gap: 6px;
   margin-top: 8px;
+  min-height: 36px;
 }
 
 .token-chip {
