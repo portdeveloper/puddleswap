@@ -4,6 +4,7 @@ import { formatUnits, isAddress, type Address, type Hash } from "viem";
 import { useAccount, useConnect, usePublicClient, useSwitchChain, useWriteContract } from "wagmi";
 import { monadTestnet } from "../config/chain";
 
+import { TxStatus } from "../components/TxStatus";
 import { useChainGuard } from "../hooks/useChainGuard";
 import { useCoreTokens } from "../hooks/useCoreTokens";
 import { useBestQuote } from "../hooks/useBestQuote";
@@ -674,9 +675,7 @@ export function SwapPage() {
 
         {/* Status */}
         {lastAction && (
-          <p className="swap-status" title={lastAction}>
-            {lastAction}
-          </p>
+          <TxStatus message={lastAction} className="swap-status" />
         )}
       </div>
 

@@ -6,6 +6,7 @@ import { monadTestnet } from "../config/chain";
 import { Link } from "react-router-dom";
 
 import { TokenPicker } from "../components/TokenPicker";
+import { TxStatus } from "../components/TxStatus";
 import { useChainGuard } from "../hooks/useChainGuard";
 import { contractAbis, contractAddresses } from "../lib/contracts";
 
@@ -258,7 +259,7 @@ export function CreatePoolPage() {
         Create / Add Liquidity
       </button>
 
-      <p>{status}</p>
+      {status && <TxStatus message={status} />}
 
       {pairAddressQuery.data && pairAddressQuery.data !== "0x0000000000000000000000000000000000000000" ? (
         <p>

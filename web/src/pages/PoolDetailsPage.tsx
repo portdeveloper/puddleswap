@@ -5,6 +5,7 @@ import { Link, useParams } from "react-router-dom";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 import { monadTestnet } from "../config/chain";
 
+import { TxStatus } from "../components/TxStatus";
 import { useChainGuard } from "../hooks/useChainGuard";
 import { contractAbis, contractAddresses } from "../lib/contracts";
 
@@ -367,7 +368,7 @@ export function PoolDetailsPage() {
         </button>
       </div>
 
-      <p>{status}</p>
+      {status && <TxStatus message={status} />}
     </section>
   );
 }
