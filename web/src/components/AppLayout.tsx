@@ -8,7 +8,7 @@ import { BelowFold } from "./BelowFold";
 
 const links = [
   { to: "/", label: "Swap" },
-  { to: "/pool/new", label: "Pools" },
+  { to: "/pools", label: "Pools" },
 ];
 
 function formatAddress(address?: string) {

@@ -141,6 +141,20 @@ export const factoryAbi = [
       { name: "tokenB", type: "address" }
     ],
     outputs: [{ name: "pair", type: "address" }]
+  },
+  {
+    type: "function",
+    name: "allPairsLength",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256" }]
+  },
+  {
+    type: "function",
+    name: "allPairs",
+    stateMutability: "view",
+    inputs: [{ name: "", type: "uint256" }],
+    outputs: [{ name: "", type: "address" }]
   }
 ] as const;
 
