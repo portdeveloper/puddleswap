@@ -40,7 +40,7 @@ contract SeedCorePools is Script {
 
         vm.startBroadcast();
 
-        IERC20Mintable(usdcAddress).mint(lpOwner, usdcAmount + (usdcAmount / 2));
+        // USDC is a real token — wallet must be pre-funded (no mint)
         IERC20Mintable(usdtAddress).mint(lpOwner, usdtAmount + (usdtAmount / 2));
         IWMON(wmonAddress).deposit{value: wmonAmount}();
 

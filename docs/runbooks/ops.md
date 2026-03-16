@@ -20,10 +20,12 @@ cast send <StableFaucet> "setClaimAmounts(uint256,uint256)" <usdcAmount> <usdtAm
 
 Other functions: `setCooldown(uint256)`, `setEnabled(bool)`.
 
-## Emergency admin mint
+## Emergency admin mint (TestUSDT only)
+
+USDC is Circle's real token — use [Circle's faucet](https://faucet.circle.com/) to acquire testnet USDC.
 
 ```bash
-cast send <StableFaucet> "adminMint(address,address,uint256)" <token> <to> <amount> \
+cast send <StableFaucet> "adminMint(address,address,uint256)" <testUSDT> <to> <amount> \
   --account puddleswap --password-file ~/.monad-keystore-password --rpc-url https://testnet-rpc.monad.xyz
 ```
 

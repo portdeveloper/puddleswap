@@ -8,7 +8,7 @@ RPC_URL="${RPC_URL:-https://testnet-rpc.monad.xyz}"
 ACCOUNT_NAME="${ACCOUNT_NAME:-puddleswap}"
 PASSWORD_FILE="${PASSWORD_FILE:-$HOME/.monad-keystore-password}"
 PRIVATE_KEY="${PRIVATE_KEY:-}"
-TARGET_STABLE_PER_WMON="${TARGET_STABLE_PER_WMON:-100000000}"
+TARGET_STABLE_PER_WMON="${TARGET_STABLE_PER_WMON:-1000000000}"
 TARGET_TOLERANCE_BPS="${TARGET_TOLERANCE_BPS:-50}"
 MAX_INPUT_FRACTION_BPS="${MAX_INPUT_FRACTION_BPS:-5000}"
 
@@ -16,7 +16,7 @@ ADDR_FILE="config/addresses/10143.json"
 
 FACTORY_ADDRESS="${FACTORY_ADDRESS:-$(jq -r '.contracts.uniswapV2Factory' "$ADDR_FILE")}"
 ROUTER_ADDRESS="${ROUTER_ADDRESS:-$(jq -r '.contracts.uniswapV2Router02' "$ADDR_FILE")}"
-USDC_ADDRESS="${USDC_ADDRESS:-$(jq -r '.contracts.testUSDC' "$ADDR_FILE")}"
+USDC_ADDRESS="${USDC_ADDRESS:-$(jq -r '.contracts.usdc' "$ADDR_FILE")}"
 USDT_ADDRESS="${USDT_ADDRESS:-$(jq -r '.contracts.testUSDT' "$ADDR_FILE")}"
 WMON_ADDRESS="${WMON_ADDRESS:-$(jq -r '.contracts.wmon' "$ADDR_FILE")}"
 

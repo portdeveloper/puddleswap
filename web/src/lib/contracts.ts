@@ -14,7 +14,7 @@ function asAddress(value: string | undefined): Address | undefined {
 
 export const contractAddresses = {
   wmon: asAddress(deployment.contracts.wmon),
-  testUSDC: asAddress(deployment.contracts.testUSDC),
+  usdc: asAddress(deployment.contracts.usdc),
   testUSDT: asAddress(deployment.contracts.testUSDT),
   stableFaucet: asAddress(deployment.contracts.stableFaucet),
   uniswapV2Factory: asAddress(deployment.contracts.uniswapV2Factory),

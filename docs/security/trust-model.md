@@ -11,7 +11,7 @@ The deployer's keystore account serves as the admin for all contracts. It contro
 - **TokenRegistry**: grant/revoke VERIFIER_ROLE, swap registration gates
 - **OpenRegistrationGate**: set cooldown and max active registrations
 - **StableFaucet**: enable/disable faucet, set cooldown and claim amounts, grant OPERATOR_ROLE
-- **TestUSDC / TestUSDT**: grant/revoke MINTER_ROLE
+- **TestUSDT**: grant/revoke MINTER_ROLE (USDC is Circle's real token — not admin-controlled)
 **Trust assumption:** The deployer keystore is uncompromised and the operator acts in good faith.
 
 ### VERIFIER_ROLE (TokenRegistry)
@@ -20,29 +20,30 @@ Can register verified tokens, set token levels, toggle core status, set image UR
 
 **Trust assumption:** Verifiers act in good faith. A malicious verifier could promote scam tokens to CHECKMARK/TOP_VERIFIED status or deactivate legitimate tokens. Damage is limited to registry data and can be reversed by admin.
 
-### MINTER_ROLE (TestUSDC / TestUSDT)
+### MINTER_ROLE (TestUSDT only)
 
-Can mint unlimited test stablecoins. Currently granted to:
+Can mint unlimited test USDT. Currently granted to:
 
 - Deployer admin
 - StableFaucet contract (for user claims)
-- Rebalancer operator wallet (for pool rebalancing)
 
-**Trust assumption:** All MINTER_ROLE holders are trusted. A compromised minter can mint unlimited tokens, swap them through pools, and drain pool liquidity.
+USDC is Circle's real testnet token — no minting capability. The rebalancer operator must be pre-funded with USDC.
+
+**Trust assumption:** All MINTER_ROLE holders are trusted. A compromised minter can mint unlimited USDT, swap through pools, and drain pool liquidity.
 
 ### Rebalancer Operator
 
 An externally-owned account that runs the automated rebalancing loop. Holds:
 
-- MINTER_ROLE on TestUSDC and TestUSDT
 - Native MON for gas
 - WMON, USDC, USDT balances for swap operations
 
+USDC is a real token — the operator must be pre-funded and cannot mint more.
+
 **Trust assumption:** The rebalancer private key is uncompromised. If compromised, an attacker can:
 
-1. Mint unlimited stablecoins
-2. Drain pool reserves by swapping minted tokens
-3. Spend the operator's MON balance on gas
+1. Drain the operator's USDC/USDT/WMON balances via swaps
+2. Spend the operator's MON balance on gas
 
 **Mitigations:**
 

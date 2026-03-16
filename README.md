@@ -36,11 +36,11 @@ Search works by symbol prefix (up to 4 characters). Higher-tier tokens appear fi
 
 ### Faucet
 
-The StableFaucet contract lets anyone claim testnet USDC and USDT with a per-address cooldown (default 24 hours). An admin can tune claim amounts or disable the faucet.
+The StableFaucet contract lets anyone claim testnet USDT with a per-address cooldown (default 24 hours). An admin can tune claim amounts or disable the faucet. USDC is Circle's real testnet token (acquired via [Circle's faucet](https://faucet.circle.com/)).
 
 ### Rebalancer
 
-An automated service on Railway keeps the core pools (USDC/WMON, USDT/WMON) near a target price. It runs every 5 minutes, can mint stablecoins as needed, and sends Discord alerts on low MON balance.
+An automated service on Railway keeps the core pools (USDC/WMON, USDT/WMON) near a target price. It runs every 5 minutes and sends Discord alerts on low MON balance. The operator wallet must be pre-funded with USDC (real token, no minting).
 
 ## Architecture
 
@@ -59,7 +59,7 @@ The frontend has zero backend dependencies. All data comes from RPC calls to Mon
 | Contract | Address |
 |----------|---------|
 | WMON | `0x97B3070F9Da6C002343862b35E68Bd8e22608943` |
-| TestUSDC | `0xc152fE819323913e478Cab556BE9e24a81790eAF` |
+| USDC | `0x534b2f3A21130d7a60830c2Df862319e593943A3` |
 | TestUSDT | `0x1314b22df27BDcD4F8D11a0f4185943e55748917` |
 | StableFaucet | `0x50959dd2a4ef310f9aa2df9498cE9aC0aB956276` |
 | UniswapV2Factory | `0xd498f5beBD0C9f1FE0135a0Cf942dA67Ee6e8A9B` |

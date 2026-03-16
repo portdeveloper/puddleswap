@@ -57,7 +57,7 @@ contract RebalanceCorePools is Script {
         _wmonToken = vm.envAddress("WMON_ADDRESS");
         _operator = vm.envAddress("OPERATOR_ADDRESS");
 
-        _targetStablePerWmon = vm.envOr("TARGET_STABLE_PER_WMON", uint256(100 * 1e6)); // 100 USDC/USDT
+        _targetStablePerWmon = vm.envOr("TARGET_STABLE_PER_WMON", uint256(1000 * 1e6)); // 1000 USDC/USDT
         _toleranceBps = vm.envOr("TARGET_TOLERANCE_BPS", uint256(50)); // 0.50%
         _maxInputFractionBps = vm.envOr("MAX_INPUT_FRACTION_BPS", uint256(5000)); // 50% reserve cap
 
@@ -130,11 +130,9 @@ contract RebalanceCorePools is Script {
         }
     }
 
-    function _ensureStableBalance(address stableToken, address operator, uint256 requiredAmount) internal {
+    function _ensureStableBalance(address stableToken, address operator, uint256 requiredAmount) internal view {
         uint256 stableBalance = IERC20Mintable(stableToken).balanceOf(operator);
-        if (stableBalance < requiredAmount) {
-            IERC20Mintable(stableToken).mint(operator, requiredAmount - stableBalance);
-        }
+        require(stableBalance >= requiredAmount, "insufficient stable balance - pre-fund operator wallet");
     }
 
     function _ensureWmonBalance(address wmonToken, address operator, uint256 requiredAmount) internal {

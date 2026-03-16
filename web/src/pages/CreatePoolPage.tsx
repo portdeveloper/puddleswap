@@ -16,7 +16,7 @@ export function CreatePoolPage() {
   const { isCorrectChain } = useChainGuard();
   const { writeContractAsync } = useWriteContract();
 
-  const [tokenA, setTokenA] = useState(contractAddresses.testUSDC ?? "");
+  const [tokenA, setTokenA] = useState(contractAddresses.usdc ?? "");
   const [tokenB, setTokenB] = useState(contractAddresses.testUSDT ?? "");
   const [amountA, setAmountA] = useState("100");
   const [amountB, setAmountB] = useState("100");

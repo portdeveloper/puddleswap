@@ -36,7 +36,7 @@ export function SwapPage() {
   const { switchChain } = useSwitchChain();
   const { writeContractAsync } = useWriteContract();
 
-  const [tokenIn, setTokenIn] = useState(contractAddresses.testUSDC ?? "");
+  const [tokenIn, setTokenIn] = useState(contractAddresses.usdc ?? "");
   const [tokenOut, setTokenOut] = useState(contractAddresses.testUSDT ?? "");
   const [amountIn, setAmountIn] = useState("1");
   const [slippagePercent, setSlippagePercent] = useState("1");
@@ -67,7 +67,7 @@ export function SwapPage() {
   const tokenOutMeta = useTokenMeta(tokenOut);
 
   const quickTokenAddresses = useMemo(() => {
-    const values = [contractAddresses.testUSDC, contractAddresses.testUSDT, ...coreTokens];
+    const values = [contractAddresses.usdc, contractAddresses.testUSDT, ...coreTokens];
     const deduped: Address[] = [];
 
     for (const value of values) {
@@ -83,7 +83,7 @@ export function SwapPage() {
 
   const fallbackCores = useMemo(
     () =>
-      [contractAddresses.testUSDC, contractAddresses.testUSDT, contractAddresses.wmon].filter(
+      [contractAddresses.usdc, contractAddresses.testUSDT, contractAddresses.wmon].filter(
         Boolean
       ) as Address[],
     []
@@ -332,8 +332,8 @@ export function SwapPage() {
   const symbolByAddress = useMemo(() => {
     const map = new Map<string, string>();
 
-    if (contractAddresses.testUSDC) {
-      map.set(contractAddresses.testUSDC.toLowerCase(), "USDC");
+    if (contractAddresses.usdc) {
+      map.set(contractAddresses.usdc.toLowerCase(), "USDC");
     }
     if (contractAddresses.testUSDT) {
       map.set(contractAddresses.testUSDT.toLowerCase(), "USDT");

@@ -7,7 +7,7 @@ const ADDRESS_FILE = path.join(ROOT, "config/addresses/10143.json");
 const OUTPUT_FILE = path.join(ROOT, "web/src/config/generated.ts");
 
 const artifacts = {
-  testUSDC: ["contracts/out/TestUSDC.sol/TestUSDC.json"],
+  usdc: [],
   testUSDT: ["contracts/out/TestUSDT.sol/TestUSDT.json"],
   stableFaucet: ["contracts/out/StableFaucet.sol/StableFaucet.json"],
   tokenRegistry: ["contracts/out/TokenRegistry.sol/TokenRegistry.json"],

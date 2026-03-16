@@ -30,7 +30,7 @@ This deploys WMON (if not set), UniswapV2Factory, and UniswapV2Router02 in a sin
 TARGET_SCRIPT=DeployDexCore make deploy-testnet
 ```
 
-Deploys TestUSDC, TestUSDT, StableFaucet, OpenRegistrationGate, and TokenRegistry. The deployer (`msg.sender`) becomes the admin.
+Deploys TestUSDT, StableFaucet, OpenRegistrationGate, and TokenRegistry. USDC is Circle's real testnet token (`0x534b2f3A21130d7a60830c2Df862319e593943A3`) — not deployed by us. The deployer (`msg.sender`) becomes the admin.
 
 ## Step 4: Register core tokens
 

@@ -17,7 +17,7 @@ contract RegisterCoreTokens is Script {
         registry.registerVerified(
             usdc,
             "USDC",
-            "USD Coin (Testnet)",
+            "USDC",
             6,
             TokenRegistry.TokenLevel.TOP_VERIFIED,
             true,

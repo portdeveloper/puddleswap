@@ -123,7 +123,7 @@ verify_contract() {
 
 # Read addresses
 WMON="$(jq -r '.contracts.wmon' "$ADDR_FILE")"
-USDC="$(jq -r '.contracts.testUSDC' "$ADDR_FILE")"
+USDC="$(jq -r '.contracts.usdc' "$ADDR_FILE")"
 USDT="$(jq -r '.contracts.testUSDT' "$ADDR_FILE")"
 FAUCET="$(jq -r '.contracts.stableFaucet' "$ADDR_FILE")"
 FACTORY="$(jq -r '.contracts.uniswapV2Factory' "$ADDR_FILE")"
@@ -158,9 +158,7 @@ echo "Detected feeToSetter: $FEE_TO_SETTER"
 # WMON: no constructor args
 verify_contract "$WMON" "src/WMON.sol:WMON" ""
 
-# TestUSDC: constructor(address admin_)
-USDC_ARGS="$(cast abi-encode 'constructor(address)' "$ADMIN_ADDRESS" | sed 's/^0x//')"
-verify_contract "$USDC" "src/TestUSDC.sol:TestUSDC" "$USDC_ARGS"
+# USDC: real Circle token — not ours to verify
 
 # TestUSDT: constructor(address admin_)
 USDT_ARGS="$(cast abi-encode 'constructor(address)' "$ADMIN_ADDRESS" | sed 's/^0x//')"

@@ -5,7 +5,7 @@ import type { PoolInfo } from "../hooks/useAllPools";
 
 function tokenIconClass(symbol: string): string {
   const s = symbol.toLowerCase();
-  if (s === "usdc" || s === "tusdc") return "usdc";
+  if (s === "usdc") return "usdc";
   if (s === "usdt" || s === "tusdt") return "usdt";
   if (s === "mon") return "mon";
   if (s === "wmon") return "wmon";
