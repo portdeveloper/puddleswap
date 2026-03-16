@@ -5,7 +5,7 @@ This service continuously runs the core pool rebalancer on Monad testnet.
 ## Service behavior
 
 - Runs `scripts/rebalance-testnet-core.sh` in a loop
-- Rebalances `USDC/WMON` and `USDT/WMON` around target `100` stable per `1 WMON`
+- Rebalances `USDC/WMON` and `USDT/WMON` around target `1000` stable per `1 WMON`
 - Sleeps `REBALANCE_INTERVAL_SECONDS` between runs with optional `REBALANCE_JITTER_SECONDS`
 
 ## Required variables
