@@ -162,13 +162,18 @@ contract RebalanceCorePools is Script {
         uint256 targetStablePerWmon,
         uint256 maxInputFractionBps
     ) internal pure returns (uint256) {
-        uint256 lo = 0;
-        uint256 hi = (reserveStable * maxInputFractionBps) / 10_000;
-
-        if (hi == 0) {
+        uint256 cap = (reserveStable * maxInputFractionBps) / 10_000;
+        if (cap == 0) {
             return 0;
         }
 
+        // If even the max allowed input can't push price up to target, take a partial correction at cap.
+        if (_priceAfterStableIn(reserveStable, reserveWmon, cap) < targetStablePerWmon) {
+            return cap;
+        }
+
+        uint256 lo = 0;
+        uint256 hi = cap;
         for (uint256 i = 0; i < 80; i++) {
             uint256 mid = (lo + hi + 1) / 2;
             uint256 priceAfter = _priceAfterStableIn(reserveStable, reserveWmon, mid);
@@ -180,8 +185,8 @@ contract RebalanceCorePools is Script {
         }
 
         uint256 candidate = lo + 1;
-        if (candidate > (reserveStable * maxInputFractionBps) / 10_000) {
-            return 0;
+        if (candidate > cap) {
+            return cap;
         }
         return candidate;
     }
@@ -192,13 +197,18 @@ contract RebalanceCorePools is Script {
         uint256 targetStablePerWmon,
         uint256 maxInputFractionBps
     ) internal pure returns (uint256) {
-        uint256 lo = 0;
-        uint256 hi = (reserveWmon * maxInputFractionBps) / 10_000;
-
-        if (hi == 0) {
+        uint256 cap = (reserveWmon * maxInputFractionBps) / 10_000;
+        if (cap == 0) {
             return 0;
         }
 
+        // If even the max allowed input can't push price down to target, take a partial correction at cap.
+        if (_priceAfterWmonIn(reserveStable, reserveWmon, cap) > targetStablePerWmon) {
+            return cap;
+        }
+
+        uint256 lo = 0;
+        uint256 hi = cap;
         for (uint256 i = 0; i < 80; i++) {
             uint256 mid = (lo + hi + 1) / 2;
             uint256 priceAfter = _priceAfterWmonIn(reserveStable, reserveWmon, mid);
@@ -210,8 +220,8 @@ contract RebalanceCorePools is Script {
         }
 
         uint256 candidate = lo + 1;
-        if (candidate > (reserveWmon * maxInputFractionBps) / 10_000) {
-            return 0;
+        if (candidate > cap) {
+            return cap;
         }
         return candidate;
     }
