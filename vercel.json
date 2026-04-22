@@ -66,6 +66,6 @@
     }
   ],
   "rewrites": [
-    { "source": "/pool/:pairAddress", "destination": "/index.html" }
+    { "source": "/pool/:addr(0x[a-fA-F0-9]+)", "destination": "/index.html" }
   ]
 }
