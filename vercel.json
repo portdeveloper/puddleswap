@@ -3,7 +3,7 @@
   "framework": "vite",
   "installCommand": "pnpm install",
   "buildCommand": "pnpm build",
-  "outputDirectory": "dist",
+  "outputDirectory": "web/dist",
   "headers": [
     {
       "source": "/(.*)",
