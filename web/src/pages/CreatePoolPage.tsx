@@ -145,7 +145,7 @@ export function CreatePoolPage() {
     }
 
     setPending(true);
-    setStatus(`Approving ${token}...`);
+    setStatus(`Approving ${token}…`);
     try {
       const hash = await writeContractAsync({
         address: token,
@@ -180,7 +180,7 @@ export function CreatePoolPage() {
     }
 
     setPending(true);
-    setStatus("Submitting add liquidity tx...");
+    setStatus("Submitting add liquidity tx…");
 
     try {
       const hash = await writeContractAsync({
@@ -221,11 +221,23 @@ export function CreatePoolPage() {
 
       <label>
         Amount A
-        <input value={amountA} onChange={(event) => { const v = event.target.value; if (v === "" || /^\d*\.?\d*$/.test(v)) setAmountA(v); }} />
+        <input
+          value={amountA}
+          onChange={(event) => { const v = event.target.value; if (v === "" || /^\d*\.?\d*$/.test(v)) setAmountA(v); }}
+          inputMode="decimal"
+          autoComplete="off"
+          spellCheck={false}
+        />
       </label>
       <label>
         Amount B
-        <input value={amountB} onChange={(event) => { const v = event.target.value; if (v === "" || /^\d*\.?\d*$/.test(v)) setAmountB(v); }} />
+        <input
+          value={amountB}
+          onChange={(event) => { const v = event.target.value; if (v === "" || /^\d*\.?\d*$/.test(v)) setAmountB(v); }}
+          inputMode="decimal"
+          autoComplete="off"
+          spellCheck={false}
+        />
       </label>
 
       <div className="info-row">
@@ -263,7 +275,7 @@ export function CreatePoolPage() {
 
       {pairAddressQuery.data && pairAddressQuery.data !== "0x0000000000000000000000000000000000000000" ? (
         <p>
-          Pair found: <code>{pairAddressQuery.data}</code>{" "}
+          Pair found: <code translate="no">{pairAddressQuery.data}</code>{" "}
           <Link to={`/pool/${pairAddressQuery.data}`}>Open pool details</Link>
         </p>
       ) : (

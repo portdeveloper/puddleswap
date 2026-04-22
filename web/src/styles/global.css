@@ -19,6 +19,7 @@
   --radius-pill: 999px;
   --font-ui: 'Outfit', sans-serif;
   --font-hand: 'Caveat', cursive;
+  color-scheme: light;
 }
 
 * {
@@ -45,11 +46,14 @@ body {
 a {
   color: var(--brand-green);
   text-decoration: none;
+  touch-action: manipulation;
 }
 
 a:hover {
   color: var(--brand-green-hover);
 }
+
+h1, h2, h3 { scroll-margin-top: 180px; }
 
 /* ── Animated background ── */
 
@@ -482,7 +486,14 @@ svg.puddle-char {
   width: 100%;
   outline: none;
   font-family: inherit;
+  font-variant-numeric: tabular-nums;
   padding: 0;
+}
+
+.amount-input:focus-visible {
+  outline: 2px solid var(--brand-green);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 .amount-input::placeholder {
@@ -519,6 +530,7 @@ svg.puddle-char {
   color: var(--text-dark);
   text-transform: none;
   letter-spacing: 0;
+  touch-action: manipulation;
 }
 
 .token-selector:hover {
@@ -598,6 +610,7 @@ svg.puddle-char {
   display: flex;
   align-items: center;
   gap: 4px;
+  font-variant-numeric: tabular-nums;
 }
 
 .route-path {
@@ -641,7 +654,7 @@ svg.puddle-char {
   font-family: inherit;
 }
 
-.slippage-input-inline:focus {
+.slippage-input-inline:focus-visible {
   outline: 2px solid var(--brand-green);
   outline-offset: -1px;
 }
@@ -659,7 +672,7 @@ svg.puddle-char {
   font-weight: 700;
   font-family: inherit;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.2s, color 0.2s, transform 0.2s, opacity 0.2s;
   margin-top: 4px;
   text-transform: none;
   letter-spacing: 0;
@@ -739,6 +752,7 @@ svg.puddle-char {
   padding: 8px 0;
   border-top: 1px solid var(--border-light);
   font-size: 13px;
+  font-variant-numeric: tabular-nums;
 }
 
 .diagnostic-row code {
@@ -788,7 +802,7 @@ svg.puddle-char {
   background: var(--bg-cream);
 }
 
-.advanced-panel input:focus {
+.advanced-panel input:focus-visible {
   outline: 2px solid var(--brand-green);
   outline-offset: -1px;
 }
@@ -821,7 +835,7 @@ svg.puddle-char {
   font-weight: 500;
   color: var(--text-dark);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
   font-family: inherit;
   text-transform: none;
   letter-spacing: 0;
@@ -896,7 +910,7 @@ input, select {
   transition: border-color 0.2s;
 }
 
-input:focus, select:focus {
+input:focus-visible, select:focus-visible {
   outline: 2px solid var(--brand-green);
   outline-offset: -1px;
   border-color: var(--brand-green);
@@ -913,7 +927,8 @@ button {
   padding: 12px 20px;
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s;
+  touch-action: manipulation;
 }
 
 button:hover:not(:disabled) {
@@ -946,6 +961,7 @@ button:disabled {
 .info-row strong {
   color: var(--text-dark);
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .info-row code {
@@ -1150,7 +1166,7 @@ code {
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.2s, color 0.2s;
   text-decoration: none;
   display: inline-block;
 }
@@ -1227,6 +1243,7 @@ code {
   font-size: 15px;
   font-weight: 600;
   color: var(--text-dark);
+  font-variant-numeric: tabular-nums;
 }
 
 .pool-stat-sub {
@@ -1249,7 +1266,7 @@ code {
   font-family: inherit;
   cursor: pointer;
   border: none;
-  transition: all 0.15s;
+  transition: background-color 0.15s, color 0.15s;
 }
 .btn-xs.add { background: var(--bubble-green); color: var(--brand-green-hover); }
 .btn-xs.add:hover { background: var(--brand-green); color: white; }
@@ -1492,4 +1509,17 @@ code {
   .btn-connect { padding: 8px 14px; font-size: 13px; }
 
   .amount-input { font-size: 28px; }
+}
+
+/* ── Reduced motion ── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -171,7 +171,7 @@ export function PoolDetailsPage() {
     }
 
     setPending(true);
-    setStatus("Approving LP token...");
+    setStatus("Approving LP token…");
     try {
       const hash = await writeContractAsync({
         address: pairAddress,
@@ -206,7 +206,7 @@ export function PoolDetailsPage() {
     }
 
     setPending(true);
-    setStatus("Submitting add-liquidity tx...");
+    setStatus("Submitting add-liquidity tx…");
 
     try {
       const hash = await writeContractAsync({
@@ -250,7 +250,7 @@ export function PoolDetailsPage() {
     }
 
     setPending(true);
-    setStatus("Submitting remove-liquidity tx...");
+    setStatus("Submitting remove-liquidity tx…");
 
     try {
       const totalSupply = lpTotalSupplyQuery.data ?? 0n;
@@ -309,16 +309,16 @@ export function PoolDetailsPage() {
 
       <div className="info-row">
         <span>Pair</span>
-        <code>{pairAddress}</code>
+        <code translate="no">{pairAddress}</code>
       </div>
 
       <div className="info-row">
         <span>Token0</span>
-        <code>{pairMetaQuery.data?.token0 ?? "-"}</code>
+        <code translate="no">{pairMetaQuery.data?.token0 ?? "-"}</code>
       </div>
       <div className="info-row">
         <span>Token1</span>
-        <code>{pairMetaQuery.data?.token1 ?? "-"}</code>
+        <code translate="no">{pairMetaQuery.data?.token1 ?? "-"}</code>
       </div>
       <div className="info-row">
         <span>Reserve0</span>
@@ -340,11 +340,23 @@ export function PoolDetailsPage() {
       <h3>Add Liquidity</h3>
       <label>
         Token0 amount
-        <input value={addAmountToken0} onChange={(event) => { const v = event.target.value; if (v === "" || /^\d*\.?\d*$/.test(v)) setAddAmountToken0(v); }} />
+        <input
+          value={addAmountToken0}
+          onChange={(event) => { const v = event.target.value; if (v === "" || /^\d*\.?\d*$/.test(v)) setAddAmountToken0(v); }}
+          inputMode="decimal"
+          autoComplete="off"
+          spellCheck={false}
+        />
       </label>
       <label>
         Token1 amount
-        <input value={addAmountToken1} onChange={(event) => { const v = event.target.value; if (v === "" || /^\d*\.?\d*$/.test(v)) setAddAmountToken1(v); }} />
+        <input
+          value={addAmountToken1}
+          onChange={(event) => { const v = event.target.value; if (v === "" || /^\d*\.?\d*$/.test(v)) setAddAmountToken1(v); }}
+          inputMode="decimal"
+          autoComplete="off"
+          spellCheck={false}
+        />
       </label>
       <button type="button" disabled={!isCorrectChain || pending} onClick={addLiquidity}>
         Add Liquidity
@@ -353,7 +365,13 @@ export function PoolDetailsPage() {
       <h3>Remove Liquidity</h3>
       <label>
         LP amount
-        <input value={removeLpAmount} onChange={(event) => { const v = event.target.value; if (v === "" || /^\d*\.?\d*$/.test(v)) setRemoveLpAmount(v); }} />
+        <input
+          value={removeLpAmount}
+          onChange={(event) => { const v = event.target.value; if (v === "" || /^\d*\.?\d*$/.test(v)) setRemoveLpAmount(v); }}
+          inputMode="decimal"
+          autoComplete="off"
+          spellCheck={false}
+        />
       </label>
       <div className="button-row">
         <button type="button" disabled={!isCorrectChain || pending || !needsLpApproval} onClick={approveLp}>

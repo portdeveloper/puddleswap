@@ -79,13 +79,13 @@ export function PoolsPage() {
         </div>
 
         {poolsQuery.isLoading && (
-          <div style={{ padding: "40px 24px", textAlign: "center", color: "var(--text-muted)" }}>
-            Loading pools...
+          <div style={{ padding: "40px 24px", textAlign: "center", color: "var(--text-muted)" }} role="status">
+            Loading pools…
           </div>
         )}
 
         {poolsQuery.isError && (
-          <div style={{ padding: "40px 24px", textAlign: "center", color: "var(--text-muted)" }}>
+          <div style={{ padding: "40px 24px", textAlign: "center", color: "var(--text-muted)" }} role="alert">
             Failed to load pools.
           </div>
         )}

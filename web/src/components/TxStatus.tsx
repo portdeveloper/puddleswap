@@ -7,18 +7,18 @@ export function TxStatus({ message, className }: { message: string; className?: 
   const match = message.match(TX_HASH_RE);
 
   if (!match) {
-    return <p className={className}>{message}</p>;
+    return <p className={className} aria-live="polite">{message}</p>;
   }
 
   const hash = match[1];
   const before = message.slice(0, match.index);
   const after = message.slice(match.index! + hash.length);
-  const shortHash = `${hash.slice(0, 6)}...${hash.slice(-4)}`;
+  const shortHash = `${hash.slice(0, 6)}…${hash.slice(-4)}`;
 
   return (
-    <p className={className}>
+    <p className={className} aria-live="polite">
       {before}
-      <a href={`${explorerUrl}/tx/${hash}`} target="_blank" rel="noopener noreferrer">
+      <a href={`${explorerUrl}/tx/${hash}`} target="_blank" rel="noopener noreferrer" translate="no">
         {shortHash}
       </a>
       {after}

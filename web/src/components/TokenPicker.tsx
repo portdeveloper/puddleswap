@@ -18,7 +18,13 @@ export function TokenPicker({ label, value, onChange, onSelect }: TokenPickerPro
     <section className="token-picker">
       <label>
         {label}
-        <input value={value} onChange={(event) => onChange(event.target.value)} placeholder="0x..." />
+        <input
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder="0x…"
+          autoComplete="off"
+          spellCheck={false}
+        />
       </label>
 
       <label>
@@ -26,12 +32,14 @@ export function TokenPicker({ label, value, onChange, onSelect }: TokenPickerPro
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value.slice(0, 4))}
-          placeholder="symbol prefix"
+          placeholder="USDC…"
+          autoComplete="off"
+          spellCheck={false}
         />
       </label>
 
       <div className="token-results">
-        {isFetching && <small>Searching...</small>}
+        {isFetching && <small>Searching…</small>}
         {results.map((token) => (
           <button
             key={token.token}

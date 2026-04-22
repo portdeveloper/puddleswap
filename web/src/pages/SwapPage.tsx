@@ -13,7 +13,7 @@ import { useTokenMeta } from "../hooks/useTokenMeta";
 import { contractAbis, contractAddresses } from "../lib/contracts";
 
 function shortAddress(value: string) {
-  return `${value.slice(0, 6)}...${value.slice(-4)}`;
+  return `${value.slice(0, 6)}…${value.slice(-4)}`;
 }
 
 const MON_TOKEN = "MON";
@@ -188,7 +188,7 @@ export function SwapPage() {
 
     setPending(true);
     setPendingAction("approve");
-    setLastAction("Approving token...");
+    setLastAction("Approving token…");
 
     try {
       const hash = await writeContractAsync({
@@ -225,7 +225,7 @@ export function SwapPage() {
 
     setPending(true);
     setPendingAction("swap");
-    setLastAction("Submitting swap...");
+    setLastAction("Submitting swap…");
 
     try {
       const rawSlippage = Number(slippagePercent);
@@ -385,10 +385,10 @@ export function SwapPage() {
 
   const primaryButtonLabel = pending
     ? pendingAction === "approve"
-      ? `Approving ${tokenInSymbol}...`
+      ? `Approving ${tokenInSymbol}…`
       : pendingAction === "swap"
-        ? "Swapping..."
-        : "Waiting for wallet..."
+        ? "Swapping…"
+        : "Waiting for wallet…"
     : !isConnected
       ? "Connect Wallet"
       : !isCorrectChain
@@ -421,13 +421,13 @@ export function SwapPage() {
       }) ?? [];
 
   const chevronDown = (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <polyline points="6 9 12 15 18 9" />
     </svg>
   );
 
   const arrowRight = (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <line x1="5" y1="12" x2="19" y2="12" />
       <polyline points="12 5 19 12 12 19" />
     </svg>
@@ -436,7 +436,7 @@ export function SwapPage() {
   return (
     <>
       {/* Mascot */}
-      <div className="character-container" ref={mascotRef}>
+      <div className="character-container" ref={mascotRef} aria-hidden="true">
         <div className="speech-bubble warning">
           Testnet tokens have no real value!
         </div>
@@ -463,10 +463,10 @@ export function SwapPage() {
             <button
               type="button"
               className="icon-btn"
-              title="Settings"
+              aria-label="Settings"
               onClick={() => setShowSettings(v => !v)}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <circle cx="12" cy="12" r="3" />
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
               </svg>
@@ -479,6 +479,11 @@ export function SwapPage() {
               <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                 <input
                   className="slippage-input-inline"
+                  type="text"
+                  inputMode="decimal"
+                  autoComplete="off"
+                  spellCheck={false}
+                  aria-label="Slippage tolerance percent"
                   value={slippagePercent}
                   onChange={(event) => setSlippagePercent(event.target.value)}
                   placeholder="1"
@@ -497,6 +502,10 @@ export function SwapPage() {
               <input
                 type="text"
                 className="amount-input"
+                inputMode="decimal"
+                autoComplete="off"
+                spellCheck={false}
+                aria-label="You pay amount"
                 value={amountIn}
                 onChange={(event) => {
                   const v = event.target.value;
@@ -525,7 +534,7 @@ export function SwapPage() {
               onClick={handleSwapDirection}
               aria-label="Switch tokens"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <polyline points="19 12 12 19 5 12" />
               </svg>
@@ -541,6 +550,10 @@ export function SwapPage() {
               <input
                 type="text"
                 className="amount-input"
+                inputMode="decimal"
+                autoComplete="off"
+                spellCheck={false}
+                aria-label="You receive amount"
                 value={bestQuoteValue}
                 readOnly
                 placeholder="0"
@@ -636,11 +649,23 @@ export function SwapPage() {
           <div className="advanced-panel">
             <label>
               Sell token address
-              <input value={tokenIn} onChange={(event) => setTokenIn(event.target.value)} placeholder="0x..." />
+              <input
+                value={tokenIn}
+                onChange={(event) => setTokenIn(event.target.value)}
+                placeholder="0x…"
+                autoComplete="off"
+                spellCheck={false}
+              />
             </label>
             <label>
               Buy token address
-              <input value={tokenOut} onChange={(event) => setTokenOut(event.target.value)} placeholder="0x..." />
+              <input
+                value={tokenOut}
+                onChange={(event) => setTokenOut(event.target.value)}
+                placeholder="0x…"
+                autoComplete="off"
+                spellCheck={false}
+              />
             </label>
           </div>
         )}

@@ -109,7 +109,7 @@ export function BelowFold() {
   }, []);
 
   const checkIcon = (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4E9A55" strokeWidth="3">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4E9A55" strokeWidth="3" aria-hidden="true">
       <polyline points="20 6 9 17 4 12" />
     </svg>
   );
@@ -144,8 +144,8 @@ export function BelowFold() {
             </div>
 
             {poolsQuery.isLoading && (
-              <div style={{ padding: "40px 24px", textAlign: "center", color: "var(--text-muted)" }}>
-                Loading pools...
+              <div style={{ padding: "40px 24px", textAlign: "center", color: "var(--text-muted)" }} role="status">
+                Loading pools…
               </div>
             )}
 
@@ -184,7 +184,7 @@ export function BelowFold() {
               </div>
             ))}
             {coreTokenMetaQuery.isLoading && (
-              <div style={{ padding: "20px", color: "var(--text-muted)" }}>Loading tokens...</div>
+              <div style={{ padding: "20px", color: "var(--text-muted)" }} role="status">Loading tokens…</div>
             )}
             {coreTokenMetaQuery.data?.length === 0 && (
               <div style={{ padding: "20px", color: "var(--text-muted)" }}>No core tokens registered yet.</div>
@@ -195,7 +195,7 @@ export function BelowFold() {
         {/* Footer */}
         <div className="reveal reveal-delay-3" style={{ width: "100%", maxWidth: 900, display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 32, borderTop: "1px solid var(--border-light)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <svg className="logo-mark" width="20" height="20" viewBox="0 0 32 32" fill="none">
+            <svg className="logo-mark" width="20" height="20" viewBox="0 0 32 32" fill="none" aria-hidden="true">
               <ellipse cx="16" cy="18" rx="12" ry="9" fill="#4E9A55" transform="rotate(-3 16 18)" />
               <ellipse cx="13" cy="16.5" rx="1.2" ry="2.2" fill="#1E201E" />
               <ellipse cx="19" cy="16.5" rx="1.2" ry="2.2" fill="#1E201E" />
@@ -205,7 +205,7 @@ export function BelowFold() {
             <span style={{ fontSize: 13, color: "var(--text-muted)", marginLeft: 4 }}>Monad Testnet</span>
           </div>
           <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
-            Contact dev on <a href="https://x.com/port_dev" target="_blank" rel="noopener noreferrer" style={{ color: "var(--brand-green)", fontWeight: 600 }}>@port_dev</a>
+            Contact dev on <a href="https://x.com/port_dev" target="_blank" rel="noopener noreferrer" style={{ color: "var(--brand-green)", fontWeight: 600 }} translate="no">@port_dev</a>
           </div>
         </div>
       </div>
