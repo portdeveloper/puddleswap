@@ -5,19 +5,11 @@ import { Link } from "react-router-dom";
 import { usePublicClient } from "wagmi";
 import { monadTestnet } from "../config/chain";
 
+import { TokenIcon } from "./TokenIcon";
 import { useAllPools } from "../hooks/useAllPools";
 import type { PoolInfo } from "../hooks/useAllPools";
 import { useCoreTokens } from "../hooks/useCoreTokens";
 import { contractAbis, multicall3Address } from "../lib/contracts";
-
-function tokenIconClass(symbol: string): string {
-  const s = symbol.toLowerCase();
-  if (s === "usdc") return "usdc";
-  if (s === "usdt" || s === "tusdt") return "usdt";
-  if (s === "mon") return "mon";
-  if (s === "wmon") return "wmon";
-  return "";
-}
 
 function abbreviate(n: string): string {
   const num = Number(n);
@@ -33,8 +25,8 @@ function PoolPreviewRow({ pool }: { pool: PoolInfo }) {
     <Link to={`/pool/${pool.pairAddress}`} className="pool-row">
       <div className="pool-pair">
         <div className="pool-icons">
-          <div className={`token-icon ${tokenIconClass(pool.symbol0)}`}>{pool.symbol0.slice(0, 1)}</div>
-          <div className={`token-icon ${tokenIconClass(pool.symbol1)}`}>{pool.symbol1.slice(0, 1)}</div>
+          <TokenIcon symbol={pool.symbol0} size={32} className="pool-token-icon" />
+          <TokenIcon symbol={pool.symbol1} size={32} className="pool-token-icon" />
         </div>
         <div>
           <div className="pool-pair-name">{pool.symbol0} / {pool.symbol1}</div>
@@ -183,7 +175,7 @@ export function BelowFold() {
           <div className="registry-grid">
             {coreTokenMetaQuery.data?.map((token) => (
               <div key={token.address} className="token-card">
-                <div className={`token-card-icon token-icon ${tokenIconClass(token.symbol)}`}>{token.symbol.slice(0, 1)}</div>
+                <TokenIcon symbol={token.symbol} size={44} className="token-card-icon" />
                 <div className="token-card-info">
                   <div className="token-card-symbol">{token.symbol}</div>
                   <div className="token-card-name">{token.name}</div>

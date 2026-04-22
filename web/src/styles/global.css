@@ -529,24 +529,6 @@ svg.puddle-char {
   color: var(--text-muted);
 }
 
-.token-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background-color: var(--nav-dark);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 11px;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.token-icon.usdc { background-color: #2775CA; }
-.token-icon.usdt { background-color: #26A17B; }
-.token-icon.mon { background-color: #836EF9; }
-.token-icon.wmon { background-color: #6B5CE7; }
 
 .token-balance {
   font-size: 13px;
@@ -1216,13 +1198,16 @@ code {
 .pool-icons {
   display: flex;
 }
-.pool-icons .token-icon {
+.pool-icons .token-icon,
+.pool-icons .pool-token-icon {
   width: 32px;
   height: 32px;
   font-size: 13px;
   border: 2px solid var(--surface-white);
+  box-sizing: content-box;
+  background: var(--surface-white);
 }
-.pool-icons .token-icon:nth-child(2) { margin-left: -8px; }
+.pool-icons > :nth-child(2) { margin-left: -8px; }
 
 .pool-pair-name {
   font-weight: 700;

@@ -4,6 +4,7 @@ import { formatUnits, isAddress, type Address, type Hash } from "viem";
 import { useAccount, useConnect, usePublicClient, useSwitchChain, useWriteContract } from "wagmi";
 import { monadTestnet } from "../config/chain";
 
+import { TokenIcon } from "../components/TokenIcon";
 import { TxStatus } from "../components/TxStatus";
 import { useChainGuard } from "../hooks/useChainGuard";
 import { useCoreTokens } from "../hooks/useCoreTokens";
@@ -16,17 +17,6 @@ function shortAddress(value: string) {
 }
 
 const MON_TOKEN = "MON";
-
-const TOKEN_COLORS: Record<string, string> = {
-  MON: "mon",
-  WMON: "wmon",
-  USDC: "usdc",
-  USDT: "usdt",
-};
-
-function getTokenColorClass(symbol: string) {
-  return TOKEN_COLORS[symbol] ?? "";
-}
 
 export function SwapPage() {
   const { address, isConnected } = useAccount();
@@ -519,7 +509,6 @@ export function SwapPage() {
                 value={tokenIn}
                 onChange={setTokenIn}
                 getLabel={getTokenLabel}
-                getColorClass={getTokenColorClass}
                 chevron={chevronDown}
               />
             </div>
@@ -561,7 +550,6 @@ export function SwapPage() {
                 value={tokenOut}
                 onChange={setTokenOut}
                 getLabel={getTokenLabel}
-                getColorClass={getTokenColorClass}
                 chevron={chevronDown}
               />
             </div>
@@ -689,23 +677,20 @@ function TokenSelectorButton({
   value,
   onChange,
   getLabel,
-  getColorClass,
   chevron,
 }: {
   tokens: string[];
   value: string;
   onChange: (v: string) => void;
   getLabel: (v: string) => string;
-  getColorClass: (symbol: string) => string;
   chevron: React.ReactNode;
 }) {
   const label = getLabel(value);
-  const colorClass = getColorClass(label);
 
   return (
     <div style={{ position: "relative", flexShrink: 0 }}>
       <div className="token-selector">
-        <div className={`token-icon ${colorClass}`}>{label.charAt(0)}</div>
+        <TokenIcon symbol={label} size={28} />
         {label}
         {chevron}
       </div>
