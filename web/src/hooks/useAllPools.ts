@@ -37,11 +37,22 @@ export function useAllPools() {
         return [];
       }
 
-      const length = await publicClient.readContract({
-        address: contractAddresses.uniswapV2Factory,
-        abi: contractAbis.factory,
-        functionName: "allPairsLength",
-      });
+      const [length, coreTokensRaw] = await Promise.all([
+        publicClient.readContract({
+          address: contractAddresses.uniswapV2Factory,
+          abi: contractAbis.factory,
+          functionName: "allPairsLength",
+        }),
+        contractAddresses.tokenRegistry
+          ? publicClient.readContract({
+              address: contractAddresses.tokenRegistry,
+              abi: contractAbis.registry,
+              functionName: "listCoreTokens",
+            }) as Promise<Address[]>
+          : Promise.resolve([] as Address[]),
+      ]);
+
+      const coreTokens = new Set(coreTokensRaw.map((t) => t.toLowerCase()));
 
       const count = Number(length);
       if (count === 0) return [];
@@ -116,6 +127,11 @@ export function useAllPools() {
         const reserves = reservesResult.result as [bigint, bigint, number];
         const totalSupply = totalSupplyResult.result as bigint;
         const lpBalance = lpBalanceResult?.status === "success" ? (lpBalanceResult.result as bigint) : 0n;
+
+        // Skip pools that reference tokens not in the registry (e.g. retired testUSDC).
+        if (coreTokens.size > 0 && (!coreTokens.has(token0.toLowerCase()) || !coreTokens.has(token1.toLowerCase()))) {
+          continue;
+        }
 
         tokenSet.add(token0);
         tokenSet.add(token1);
