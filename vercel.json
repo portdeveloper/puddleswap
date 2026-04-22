@@ -21,15 +21,33 @@
   ],
   "redirects": [
     {
+      "source": "/",
+      "has": [{ "type": "host", "value": "puddleswap.org" }],
+      "destination": "https://app.puddleswap.org/",
+      "permanent": true
+    },
+    {
       "source": "/:path*",
       "has": [{ "type": "host", "value": "puddleswap.org" }],
       "destination": "https://app.puddleswap.org/:path*",
       "permanent": true
     },
     {
+      "source": "/",
+      "has": [{ "type": "host", "value": "www.puddleswap.org" }],
+      "destination": "https://app.puddleswap.org/",
+      "permanent": true
+    },
+    {
       "source": "/:path*",
       "has": [{ "type": "host", "value": "www.puddleswap.org" }],
       "destination": "https://app.puddleswap.org/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "www.app.puddleswap.org" }],
+      "destination": "https://app.puddleswap.org/",
       "permanent": true
     },
     {
