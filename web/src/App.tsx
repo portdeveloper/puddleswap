@@ -13,6 +13,12 @@ const CreatePoolPage = lazy(() =>
 const PoolDetailsPage = lazy(() =>
   import("./pages/PoolDetailsPage").then((m) => ({ default: m.PoolDetailsPage }))
 );
+const LearnHub = lazy(() =>
+  import("./pages/LearnHub").then((m) => ({ default: m.LearnHub }))
+);
+const LearnPage = lazy(() =>
+  import("./pages/LearnPage").then((m) => ({ default: m.LearnPage }))
+);
 
 const routeFallback = (
   <div
@@ -32,6 +38,8 @@ export default function App() {
           <Route path="/pools" element={<PoolsPage />} />
           <Route path="/pool/new" element={<CreatePoolPage />} />
           <Route path="/pool/:pairAddress" element={<PoolDetailsPage />} />
+          <Route path="/learn" element={<LearnHub />} />
+          <Route path="/learn/:slug" element={<LearnPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>

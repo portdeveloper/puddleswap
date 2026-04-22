@@ -1549,6 +1549,108 @@ code {
   .amount-input { font-size: 28px; }
 }
 
+/* ── Learn pages ── */
+
+.breadcrumb {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.breadcrumb a {
+  color: var(--brand-green);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.learn-meta {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+  font-style: italic;
+}
+
+.learn-body h2 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-top: 24px;
+  margin-bottom: 8px;
+}
+
+.learn-body ul {
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.learn-body a {
+  color: var(--brand-green);
+  font-weight: 600;
+}
+
+.learn-hub-list,
+.learn-related-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.learn-hub-list a,
+.learn-related-list a {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  background: rgba(255, 255, 255, 0.6);
+  text-decoration: none;
+  color: var(--text-dark);
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.learn-hub-list a:hover,
+.learn-related-list a:hover {
+  border-color: var(--brand-green);
+  transform: translateY(-1px);
+}
+
+.learn-hub-list strong,
+.learn-related-list strong {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.learn-hub-list span,
+.learn-related-list span {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.learn-hub-list .learn-meta,
+.learn-related-list .learn-meta {
+  font-size: 12px;
+  margin-bottom: 0;
+  margin-top: 2px;
+}
+
+.learn-related {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-light);
+}
+
 /* ── Reduced motion ── */
 
 @media (prefers-reduced-motion: reduce) {

@@ -67,6 +67,8 @@
   "rewrites": [
     { "source": "/pools", "destination": "/pools/index.html" },
     { "source": "/pool/new", "destination": "/pool/new/index.html" },
-    { "source": "/pool/:addr", "destination": "/pool/_fallback/index.html" }
+    { "source": "/pool/:addr", "destination": "/pool/_fallback/index.html" },
+    { "source": "/learn", "destination": "/learn/index.html" },
+    { "source": "/learn/:slug", "destination": "/learn/:slug/index.html" }
   ]
 }

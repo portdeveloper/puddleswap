@@ -133,10 +133,11 @@ export function BelowFold() {
             <p>
               Want to swap tokens on Monad Testnet without waiting for a mainnet DEX? PuddleSwap is a static,
               no-backend DEX that lets builders trade test tokens and seed their own liquidity pools directly
-              on Monad&apos;s public testnet (chain ID <code translate="no">10143</code>).
+              on <Link to="/learn/monad-testnet">Monad&apos;s public testnet (chain ID <code translate="no">10143</code>)</Link>.
             </p>
             <p>
-              Every swap runs through <strong>star routing</strong>: core tokens (USDC, USDT, and WMON) act as hubs,
+              Every swap runs through <Link to="/learn/star-routing"><strong>star routing</strong></Link>:
+              core tokens (USDC, USDT, and <Link to="/learn/wmon">WMON</Link>) act as hubs,
               so any token with a pool against one of them is tradeable against any other. You can swap MON, WMON,
               USDC, USDT, or any registered ERC-20 in a few clicks &mdash; no account, no signup, just a wallet
               connected to Monad Testnet.
@@ -150,7 +151,7 @@ export function BelowFold() {
               PuddleSwap is <strong>unaudited</strong>. Testnet tokens have no real value, but the usual warning
               applies: use at your own risk, and inspect any pool or token you haven&apos;t registered yourself.
               Ready to swap on Monad Testnet? Use the widget above &mdash; or browse active pools and create your
-              own below.
+              own below. New here? <Link to="/learn">Read the Learn guides</Link>.
             </p>
           </div>
         </section>
@@ -236,8 +237,9 @@ export function BelowFold() {
             <span style={{ fontWeight: 800, fontSize: 18 }}>Puddle</span>
             <span style={{ fontSize: 13, color: "var(--text-muted)", marginLeft: 4 }}>Monad Testnet</span>
           </div>
-          <div style={{ fontSize: 13, color: "var(--text-muted)" }}>
-            Contact dev on <a href="https://x.com/port_dev" target="_blank" rel="noopener noreferrer" style={{ color: "var(--brand-green)", fontWeight: 600 }} translate="no">@port_dev</a>
+          <div style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", gap: 16, alignItems: "center" }}>
+            <Link to="/learn" style={{ color: "var(--brand-green)", fontWeight: 600 }}>Learn</Link>
+            <span>Contact dev on <a href="https://x.com/port_dev" target="_blank" rel="noopener noreferrer" style={{ color: "var(--brand-green)", fontWeight: 600 }} translate="no">@port_dev</a></span>
           </div>
         </div>
       </div>

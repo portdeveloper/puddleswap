@@ -2,6 +2,8 @@ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { blocksToHtml, learnEntries } from "../src/content/learn.mjs";
+
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = join(ROOT, "dist");
 const BASE = "https://app.puddleswap.org";
@@ -59,6 +61,48 @@ function faqLd(faqs) {
   };
 }
 
+function articleLd(entry) {
+  const url = `${BASE}/learn/${entry.slug}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    headline: entry.h1,
+    description: entry.description,
+    datePublished: entry.datePublished,
+    dateModified: entry.datePublished,
+    url,
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    image: `${BASE}/og.png`,
+    author: {
+      "@type": "Organization",
+      name: "PuddleSwap",
+      url: `${BASE}/`,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "PuddleSwap",
+      url: `${BASE}/`,
+      logo: { "@type": "ImageObject", url: `${BASE}/og.png` },
+    },
+  };
+}
+
+function collectionLd(url, name, description, items) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    url,
+    name,
+    description,
+    hasPart: items.map((i) => ({
+      "@type": "TechArticle",
+      headline: i.h1,
+      url: `${BASE}/learn/${i.slug}`,
+      description: i.summary,
+    })),
+  };
+}
+
 function renderLd(...objects) {
   return objects
     .map(
@@ -98,10 +142,10 @@ const homeFaqs = [
 const homeBody = `
       <section class="prerender-intro" aria-label="About PuddleSwap">
         <h1>About PuddleSwap — the Monad Testnet DEX</h1>
-        <p>Want to swap tokens on Monad Testnet without waiting for a mainnet DEX? PuddleSwap is a static, no-backend DEX that lets builders trade test tokens and seed their own liquidity pools directly on Monad's public testnet (chain ID 10143).</p>
-        <p>Every swap runs through <strong>star routing</strong>: core tokens (USDC, USDT, and WMON) act as hubs, so any token with a pool against one of them is tradeable against any other. You can swap MON, WMON, USDC, USDT, or any registered ERC-20 in a few clicks — no account, no signup, just a wallet connected to Monad Testnet.</p>
+        <p>Want to swap tokens on Monad Testnet without waiting for a mainnet DEX? PuddleSwap is a static, no-backend DEX that lets builders trade test tokens and seed their own liquidity pools directly on <a href="/learn/monad-testnet">Monad's public testnet (chain ID 10143)</a>.</p>
+        <p>Every swap runs through <a href="/learn/star-routing"><strong>star routing</strong></a>: core tokens (USDC, USDT, and <a href="/learn/wmon">WMON</a>) act as hubs, so any token with a pool against one of them is tradeable against any other. You can swap MON, WMON, USDC, USDT, or any registered ERC-20 in a few clicks — no account, no signup, just a wallet connected to Monad Testnet.</p>
         <p>Under the hood, PuddleSwap is a stock UniswapV2 fork deployed on Monad Testnet. The frontend talks to the blockchain directly via RPC — zero backend means zero downtime risk, zero KYC, zero data collection. All contracts are verified on MonadVision, Socialscan, and Monadscan.</p>
-        <p>PuddleSwap is <strong>unaudited</strong>. Testnet tokens have no real value, but the usual warning applies: use at your own risk, and inspect any pool or token you haven't registered yourself.</p>
+        <p>PuddleSwap is <strong>unaudited</strong>. Testnet tokens have no real value, but the usual warning applies: use at your own risk, and inspect any pool or token you haven't registered yourself. New here? <a href="/learn">Read the Learn guides</a>.</p>
       </section>
 `;
 
@@ -120,6 +164,36 @@ const createPoolBody = `
         <p>Pools are permissionless: anyone can create any pair. PuddleSwap is unaudited; use at your own risk on testnet only.</p>
       </section>
 `;
+
+const learnHubTitle = "Learn — Monad Testnet DEX Concepts";
+const learnHubDescription =
+  "Plain-language guides to Monad Testnet, star routing, WMON, and the other moving parts behind PuddleSwap. Written for builders.";
+
+const learnHubBody = `
+      <section class="prerender-intro" aria-label="PuddleSwap Learn">
+        <h1>PuddleSwap Learn</h1>
+        <p>Plain-language guides to the moving parts behind a Monad Testnet DEX.</p>
+        <ul>
+${learnEntries
+  .map(
+    (e) =>
+      `          <li><a href="/learn/${e.slug}"><strong>${e.h1}</strong> — ${e.summary} <em>(${e.readingTime})</em></a></li>`
+  )
+  .join("\n")}
+        </ul>
+      </section>
+`;
+
+function learnBody(entry) {
+  return `
+      <article class="prerender-intro" aria-label="${entry.h1}">
+        <nav aria-label="Breadcrumb"><a href="/">PuddleSwap</a> / <a href="/learn">Learn</a> / <span>${entry.h1}</span></nav>
+        <h1>${entry.h1}</h1>
+        <p><em>${entry.readingTime} · Updated ${entry.datePublished}</em></p>
+${blocksToHtml(entry.blocks)}
+      </article>
+`;
+}
 
 const routes = [
   {
@@ -168,6 +242,44 @@ const routes = [
     priority: "0.6",
     changefreq: "monthly",
   },
+  {
+    path: "/learn",
+    file: "learn/index.html",
+    title: `${learnHubTitle} · PuddleSwap`,
+    description: learnHubDescription,
+    body: learnHubBody,
+    ld: renderLd(
+      collectionLd(
+        `${BASE}/learn`,
+        learnHubTitle,
+        learnHubDescription,
+        learnEntries
+      ),
+      breadcrumbLd([
+        { name: "PuddleSwap", path: "/" },
+        { name: "Learn", path: "/learn" },
+      ])
+    ),
+    priority: "0.7",
+    changefreq: "monthly",
+  },
+  ...learnEntries.map((entry) => ({
+    path: `/learn/${entry.slug}`,
+    file: `learn/${entry.slug}/index.html`,
+    title: `${entry.title} · PuddleSwap`,
+    description: entry.description,
+    body: learnBody(entry),
+    ld: renderLd(
+      articleLd(entry),
+      breadcrumbLd([
+        { name: "PuddleSwap", path: "/" },
+        { name: "Learn", path: "/learn" },
+        { name: entry.h1, path: `/learn/${entry.slug}` },
+      ])
+    ),
+    priority: "0.6",
+    changefreq: "monthly",
+  })),
 ];
 
 const template = readFileSync(join(DIST, "index.html"), "utf8");
