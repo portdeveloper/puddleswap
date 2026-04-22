@@ -19,6 +19,12 @@ const LearnHub = lazy(() =>
 const LearnPage = lazy(() =>
   import("./pages/LearnPage").then((m) => ({ default: m.LearnPage }))
 );
+const TokenHub = lazy(() =>
+  import("./pages/TokenHub").then((m) => ({ default: m.TokenHub }))
+);
+const TokenPage = lazy(() =>
+  import("./pages/TokenPage").then((m) => ({ default: m.TokenPage }))
+);
 
 const routeFallback = (
   <div
@@ -40,6 +46,8 @@ export default function App() {
           <Route path="/pool/:pairAddress" element={<PoolDetailsPage />} />
           <Route path="/learn" element={<LearnHub />} />
           <Route path="/learn/:slug" element={<LearnPage />} />
+          <Route path="/tokens" element={<TokenHub />} />
+          <Route path="/tokens/:slug" element={<TokenPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>

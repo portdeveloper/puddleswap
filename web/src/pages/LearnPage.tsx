@@ -1,51 +1,11 @@
-import { Fragment } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link, Navigate, useParams } from "react-router-dom";
 
-import type { Block, LearnEntry, Part } from "../content/learn.mjs";
+import { BlocksRenderer } from "../components/BlocksRenderer";
+import type { LearnEntry } from "../content/learn.mjs";
 import { learnBySlug, learnEntries } from "../content/learn.mjs";
 
 const BASE = "https://app.puddleswap.org";
-
-function renderParts(parts: Part[]) {
-  return parts.map((part, i) => {
-    if (typeof part === "string") return <Fragment key={i}>{part}</Fragment>;
-    if ("b" in part) return <strong key={i}>{part.b}</strong>;
-    if ("code" in part)
-      return (
-        <code key={i} translate="no">
-          {part.code}
-        </code>
-      );
-    if ("a" in part) {
-      const isInternal = part.a.href.startsWith("/");
-      return isInternal ? (
-        <Link key={i} to={part.a.href}>
-          {part.a.text}
-        </Link>
-      ) : (
-        <a key={i} href={part.a.href} target="_blank" rel="noopener noreferrer">
-          {part.a.text}
-        </a>
-      );
-    }
-    return null;
-  });
-}
-
-function renderBlock(block: Block, i: number) {
-  if (block.type === "p") return <p key={i}>{renderParts(block.parts)}</p>;
-  if (block.type === "h2") return <h2 key={i}>{block.text}</h2>;
-  if (block.type === "ul")
-    return (
-      <ul key={i}>
-        {block.items.map((item, j) => (
-          <li key={j}>{renderParts(item.parts)}</li>
-        ))}
-      </ul>
-    );
-  return null;
-}
 
 function LearnArticle({ entry }: { entry: LearnEntry }) {
   const canonical = `${BASE}/learn/${entry.slug}`;
@@ -81,7 +41,7 @@ function LearnArticle({ entry }: { entry: LearnEntry }) {
       </p>
 
       <div className="intro-copy learn-body">
-        {entry.blocks.map((block, i) => renderBlock(block, i))}
+        <BlocksRenderer blocks={entry.blocks} />
       </div>
 
       {related.length > 0 && (

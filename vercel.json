@@ -69,6 +69,8 @@
     { "source": "/pool/new", "destination": "/pool/new/index.html" },
     { "source": "/pool/:addr", "destination": "/pool/_fallback/index.html" },
     { "source": "/learn", "destination": "/learn/index.html" },
-    { "source": "/learn/:slug", "destination": "/learn/:slug/index.html" }
+    { "source": "/learn/:slug", "destination": "/learn/:slug/index.html" },
+    { "source": "/tokens", "destination": "/tokens/index.html" },
+    { "source": "/tokens/:slug", "destination": "/tokens/:slug/index.html" }
   ]
 }

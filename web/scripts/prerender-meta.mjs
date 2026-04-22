@@ -3,6 +3,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { blocksToHtml, learnEntries } from "../src/content/learn.mjs";
+import { tokenBlocksToHtml, tokenEntries } from "../src/content/tokens.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = join(ROOT, "dist");
@@ -87,7 +88,7 @@ function articleLd(entry) {
   };
 }
 
-function collectionLd(url, name, description, items) {
+function collectionLd(url, name, description, items, basePath) {
   return {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
@@ -97,9 +98,56 @@ function collectionLd(url, name, description, items) {
     hasPart: items.map((i) => ({
       "@type": "TechArticle",
       headline: i.h1,
-      url: `${BASE}/learn/${i.slug}`,
+      url: `${BASE}${basePath}/${i.slug}`,
       description: i.summary,
     })),
+  };
+}
+
+function tokenLd(entry) {
+  const url = `${BASE}/tokens/${entry.slug}`;
+  const ld = {
+    "@context": "https://schema.org",
+    "@type": "DefinedTerm",
+    name: entry.symbol,
+    alternateName: entry.name,
+    description: entry.description,
+    url,
+    inDefinedTermSet: {
+      "@type": "DefinedTermSet",
+      name: "PuddleSwap Core Tokens",
+      url: `${BASE}/tokens`,
+    },
+  };
+  if (entry.address) {
+    ld.identifier = entry.address;
+  }
+  return ld;
+}
+
+function tokenArticleLd(entry) {
+  const url = `${BASE}/tokens/${entry.slug}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "TechArticle",
+    headline: entry.h1,
+    description: entry.description,
+    datePublished: TODAY,
+    dateModified: TODAY,
+    url,
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    image: `${BASE}/og.png`,
+    author: {
+      "@type": "Organization",
+      name: "PuddleSwap",
+      url: `${BASE}/`,
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "PuddleSwap",
+      url: `${BASE}/`,
+      logo: { "@type": "ImageObject", url: `${BASE}/og.png` },
+    },
   };
 }
 
@@ -195,6 +243,37 @@ ${blocksToHtml(entry.blocks)}
 `;
 }
 
+const tokensHubTitle = "Core Tokens on Monad Testnet — PuddleSwap";
+const tokensHubDescription =
+  "The four core tokens on PuddleSwap: MON, WMON, USDC, USDT. Addresses, decimals, and what each token is for on Monad Testnet.";
+
+const tokensHubBody = `
+      <section class="prerender-intro" aria-label="Core tokens">
+        <h1>Core Tokens on Monad Testnet</h1>
+        <p>The four tokens at the center of PuddleSwap's routing graph. Every pool pairs against one of these.</p>
+        <ul>
+${tokenEntries
+  .map(
+    (t) =>
+      `          <li><a href="/tokens/${t.slug}"><strong>${t.symbol} — ${t.name}</strong>: ${t.summary}</a></li>`
+  )
+  .join("\n")}
+        </ul>
+      </section>
+`;
+
+function tokenBody(entry) {
+  const meta = `${entry.name} · ${entry.decimals} decimals${entry.isCore ? " · core routing token" : ""}`;
+  return `
+      <article class="prerender-intro" aria-label="${entry.h1}">
+        <nav aria-label="Breadcrumb"><a href="/">PuddleSwap</a> / <a href="/tokens">Tokens</a> / <span>${entry.symbol}</span></nav>
+        <h1>${entry.h1}</h1>
+        <p><em>${meta}</em></p>
+${tokenBlocksToHtml(entry.blocks)}
+      </article>
+`;
+}
+
 const routes = [
   {
     path: "/",
@@ -253,7 +332,8 @@ const routes = [
         `${BASE}/learn`,
         learnHubTitle,
         learnHubDescription,
-        learnEntries
+        learnEntries,
+        "/learn"
       ),
       breadcrumbLd([
         { name: "PuddleSwap", path: "/" },
@@ -275,6 +355,46 @@ const routes = [
         { name: "PuddleSwap", path: "/" },
         { name: "Learn", path: "/learn" },
         { name: entry.h1, path: `/learn/${entry.slug}` },
+      ])
+    ),
+    priority: "0.6",
+    changefreq: "monthly",
+  })),
+  {
+    path: "/tokens",
+    file: "tokens/index.html",
+    title: tokensHubTitle,
+    description: tokensHubDescription,
+    body: tokensHubBody,
+    ld: renderLd(
+      collectionLd(
+        `${BASE}/tokens`,
+        tokensHubTitle,
+        tokensHubDescription,
+        tokenEntries,
+        "/tokens"
+      ),
+      breadcrumbLd([
+        { name: "PuddleSwap", path: "/" },
+        { name: "Tokens", path: "/tokens" },
+      ])
+    ),
+    priority: "0.7",
+    changefreq: "monthly",
+  },
+  ...tokenEntries.map((entry) => ({
+    path: `/tokens/${entry.slug}`,
+    file: `tokens/${entry.slug}/index.html`,
+    title: `${entry.title} · PuddleSwap`,
+    description: entry.description,
+    body: tokenBody(entry),
+    ld: renderLd(
+      tokenLd(entry),
+      tokenArticleLd(entry),
+      breadcrumbLd([
+        { name: "PuddleSwap", path: "/" },
+        { name: "Tokens", path: "/tokens" },
+        { name: entry.symbol, path: `/tokens/${entry.slug}` },
       ])
     ),
     priority: "0.6",

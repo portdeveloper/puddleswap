@@ -275,7 +275,9 @@ export const learnEntries = [
         type: "p",
         parts: [
           { a: { href: "/", text: "Swap MON on PuddleSwap" } },
-          " — the router wraps and unwraps automatically.",
+          " — the router wraps and unwraps automatically. For contract details and live pools, see the ",
+          { a: { href: "/tokens/wmon", text: "WMON token page" } },
+          ".",
         ],
       },
     ],

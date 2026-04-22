@@ -6,10 +6,16 @@ import { usePublicClient } from "wagmi";
 import { monadTestnet } from "../config/chain";
 
 import { TokenIcon } from "./TokenIcon";
+import { tokenBySlug } from "../content/tokens.mjs";
 import { useAllPools } from "../hooks/useAllPools";
 import type { PoolInfo } from "../hooks/useAllPools";
 import { useCoreTokens } from "../hooks/useCoreTokens";
 import { contractAbis, multicall3Address } from "../lib/contracts";
+
+function tokenPageSlug(symbol: string): string | null {
+  const candidate = symbol.toLowerCase();
+  return tokenBySlug[candidate] ? candidate : null;
+}
 
 function abbreviate(n: string): string {
   const num = Number(n);
@@ -206,16 +212,32 @@ export function BelowFold() {
             </div>
           </div>
           <div className="registry-grid">
-            {coreTokenMetaQuery.data?.map((token) => (
-              <div key={token.address} className="token-card">
-                <TokenIcon symbol={token.symbol} size={44} className="token-card-icon" />
-                <div className="token-card-info">
-                  <div className="token-card-symbol">{token.symbol}</div>
-                  <div className="token-card-name">{token.name}</div>
+            {coreTokenMetaQuery.data?.map((token) => {
+              const slug = tokenPageSlug(token.symbol);
+              const inner = (
+                <>
+                  <TokenIcon symbol={token.symbol} size={44} className="token-card-icon" />
+                  <div className="token-card-info">
+                    <div className="token-card-symbol">{token.symbol}</div>
+                    <div className="token-card-name">{token.name}</div>
+                  </div>
+                  <div className="token-verified">{checkIcon}</div>
+                </>
+              );
+              return slug ? (
+                <Link
+                  key={token.address}
+                  to={`/tokens/${slug}`}
+                  className="token-card token-card-link"
+                >
+                  {inner}
+                </Link>
+              ) : (
+                <div key={token.address} className="token-card">
+                  {inner}
                 </div>
-                <div className="token-verified">{checkIcon}</div>
-              </div>
-            ))}
+              );
+            })}
             {coreTokenMetaQuery.isLoading && (
               <div style={{ padding: "20px", color: "var(--text-muted)" }} role="status">Loading tokens…</div>
             )}
@@ -238,6 +260,7 @@ export function BelowFold() {
             <span style={{ fontSize: 13, color: "var(--text-muted)", marginLeft: 4 }}>Monad Testnet</span>
           </div>
           <div style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", gap: 16, alignItems: "center" }}>
+            <Link to="/tokens" style={{ color: "var(--brand-green)", fontWeight: 600 }}>Tokens</Link>
             <Link to="/learn" style={{ color: "var(--brand-green)", fontWeight: 600 }}>Learn</Link>
             <span>Contact dev on <a href="https://x.com/port_dev" target="_blank" rel="noopener noreferrer" style={{ color: "var(--brand-green)", fontWeight: 600 }} translate="no">@port_dev</a></span>
           </div>
