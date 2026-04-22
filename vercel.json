@@ -19,10 +19,29 @@
       ]
     }
   ],
-  "rewrites": [
+  "redirects": [
     {
-      "source": "/((?!assets/|.*\\..*).*)",
-      "destination": "/index.html"
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "puddleswap.org" }],
+      "destination": "https://app.puddleswap.org/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.puddleswap.org" }],
+      "destination": "https://app.puddleswap.org/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.app.puddleswap.org" }],
+      "destination": "https://app.puddleswap.org/:path*",
+      "permanent": true
     }
+  ],
+  "rewrites": [
+    { "source": "/pools", "destination": "/index.html" },
+    { "source": "/pool/new", "destination": "/index.html" },
+    { "source": "/pool/:pairAddress", "destination": "/index.html" }
   ]
 }

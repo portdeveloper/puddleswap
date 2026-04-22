@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Helmet } from "react-helmet-async";
 import { formatUnits, isAddress, type Address, type Hash } from "viem";
 import { useAccount, useConnect, usePublicClient, useSwitchChain, useWriteContract } from "wagmi";
 import { monadTestnet } from "../config/chain";
@@ -435,6 +436,17 @@ export function SwapPage() {
 
   return (
     <>
+      <Helmet>
+        <title>Monad Testnet Swap · PuddleSwap DEX</title>
+        <meta name="description" content="Swap tokens on Monad Testnet free. PuddleSwap is an unaudited DEX with a built-in USDT faucet for builders testing on Monad." />
+        <link rel="canonical" href="https://app.puddleswap.org/" />
+        <meta property="og:url" content="https://app.puddleswap.org/" />
+        <meta property="og:title" content="Monad Testnet Swap · PuddleSwap DEX" />
+        <meta property="og:description" content="Swap tokens on Monad Testnet free. PuddleSwap is an unaudited DEX with a built-in USDT faucet for builders testing on Monad." />
+      </Helmet>
+
+      <h1 className="sr-only">Monad Testnet Swap</h1>
+
       {/* Mascot */}
       <div className="character-container" ref={mascotRef} aria-hidden="true">
         <div className="speech-bubble warning">

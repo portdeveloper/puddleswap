@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Helmet } from "react-helmet-async";
 import { formatUnits, isAddress, parseUnits, type Address } from "viem";
 import { Link, useParams } from "react-router-dom";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
@@ -8,6 +9,11 @@ import { monadTestnet } from "../config/chain";
 import { TxStatus } from "../components/TxStatus";
 import { useChainGuard } from "../hooks/useChainGuard";
 import { contractAbis, contractAddresses } from "../lib/contracts";
+
+function shortPair(value: string) {
+  if (value.length < 10) return value;
+  return `${value.slice(0, 6)}…${value.slice(-4)}`;
+}
 
 export function PoolDetailsPage() {
   const { pairAddress = "" } = useParams();
@@ -296,6 +302,10 @@ export function PoolDetailsPage() {
   if (!isAddress(pairAddress)) {
     return (
       <section className="card">
+        <Helmet>
+          <title>Pool Not Found · PuddleSwap</title>
+          <meta name="robots" content="noindex" />
+        </Helmet>
         <h2>Pool Details</h2>
         <p>Invalid pair address.</p>
         <Link to="/pool/new">Go to Create Pool</Link>
@@ -305,6 +315,11 @@ export function PoolDetailsPage() {
 
   return (
     <section className="card">
+      <Helmet>
+        <title>{`Pool ${shortPair(pairAddress)} · Monad Testnet · PuddleSwap`}</title>
+        <meta name="description" content="Liquidity pool details on Monad Testnet. View reserves, add or remove liquidity." />
+        <meta name="robots" content="noindex" />
+      </Helmet>
       <h2>Pool Details</h2>
 
       <div className="info-row">

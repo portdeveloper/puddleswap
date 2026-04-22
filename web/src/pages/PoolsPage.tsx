@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 
 import { TokenIcon } from "../components/TokenIcon";
@@ -57,6 +58,15 @@ export function PoolsPage() {
 
   return (
     <section className="pools-section">
+      <Helmet>
+        <title>Monad Testnet Liquidity Pools · PuddleSwap</title>
+        <meta name="description" content="Browse active liquidity pools on Monad Testnet. PuddleSwap routes swaps through USDC, USDT, and WMON." />
+        <link rel="canonical" href="https://app.puddleswap.org/pools" />
+        <meta property="og:url" content="https://app.puddleswap.org/pools" />
+        <meta property="og:title" content="Monad Testnet Liquidity Pools · PuddleSwap" />
+        <meta property="og:description" content="Browse active liquidity pools on Monad Testnet. PuddleSwap routes swaps through USDC, USDT, and WMON." />
+      </Helmet>
+
       <div className="pools-header">
         <div>
           <p className="section-label">~ liquidity ~</p>

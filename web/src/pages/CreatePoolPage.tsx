@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Helmet } from "react-helmet-async";
 import { formatUnits, isAddress, parseUnits, type Address } from "viem";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 import { monadTestnet } from "../config/chain";
@@ -214,6 +215,15 @@ export function CreatePoolPage() {
 
   return (
     <section className="card">
+      <Helmet>
+        <title>Create Liquidity Pool · PuddleSwap · Monad Testnet</title>
+        <meta name="description" content="Deploy a new Uniswap V2 pair and seed initial liquidity on Monad Testnet with PuddleSwap." />
+        <link rel="canonical" href="https://app.puddleswap.org/pool/new" />
+        <meta property="og:url" content="https://app.puddleswap.org/pool/new" />
+        <meta property="og:title" content="Create Liquidity Pool · PuddleSwap · Monad Testnet" />
+        <meta property="og:description" content="Deploy a new Uniswap V2 pair and seed initial liquidity on Monad Testnet with PuddleSwap." />
+      </Helmet>
+
       <h2>Create Pool</h2>
 
       <TokenPicker label="Token A" value={tokenA} onChange={setTokenA} />
