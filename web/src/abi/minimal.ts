@@ -39,6 +39,13 @@ export const erc20Abi = [
     stateMutability: "view",
     inputs: [],
     outputs: [{ name: "", type: "string" }]
+  },
+  {
+    type: "function",
+    name: "name",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ name: "", type: "string" }]
   }
 ] as const;
 
