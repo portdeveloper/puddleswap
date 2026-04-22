@@ -438,11 +438,11 @@ export function SwapPage() {
     <>
       <Helmet>
         <title>Monad Testnet Swap · PuddleSwap DEX</title>
-        <meta name="description" content="Swap tokens on Monad Testnet free. PuddleSwap is an unaudited DEX with a built-in USDT faucet for builders testing on Monad." />
+        <meta name="description" content="Swap tokens on Monad Testnet free. PuddleSwap is an unaudited DEX with star routing through USDC, USDT, and WMON — built for builders testing on Monad." />
         <link rel="canonical" href="https://app.puddleswap.org/" />
         <meta property="og:url" content="https://app.puddleswap.org/" />
         <meta property="og:title" content="Monad Testnet Swap · PuddleSwap DEX" />
-        <meta property="og:description" content="Swap tokens on Monad Testnet free. PuddleSwap is an unaudited DEX with a built-in USDT faucet for builders testing on Monad." />
+        <meta property="og:description" content="Swap tokens on Monad Testnet free. PuddleSwap is an unaudited DEX with star routing through USDC, USDT, and WMON — built for builders testing on Monad." />
       </Helmet>
 
       <h1 className="sr-only">Monad Testnet Swap</h1>

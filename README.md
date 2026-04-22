@@ -34,10 +34,6 @@ An onchain registry lets the UI autocomplete token names without maintaining a l
 
 Search works by symbol prefix (up to 4 characters). Higher-tier tokens appear first.
 
-### Faucet
-
-The StableFaucet contract lets anyone claim testnet USDT with a per-address cooldown (default 24 hours). An admin can tune claim amounts or disable the faucet. USDC is Circle's real testnet token (acquired via [Circle's faucet](https://faucet.circle.com/)).
-
 ### Rebalancer
 
 An automated service on Railway keeps the core pools (USDC/WMON, USDT/WMON) near a target price. It runs every 5 minutes and sends Discord alerts on low MON balance. The operator wallet must be pre-funded with USDC (real token, no minting).
