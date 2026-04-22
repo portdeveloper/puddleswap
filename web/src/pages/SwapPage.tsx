@@ -445,8 +445,6 @@ export function SwapPage() {
         <meta property="og:description" content="Swap tokens on Monad Testnet free. PuddleSwap is an unaudited DEX with star routing through USDC, USDT, and WMON — built for builders testing on Monad." />
       </Helmet>
 
-      <h1 className="sr-only">Monad Testnet Swap</h1>
-
       {/* Mascot */}
       <div className="character-container" ref={mascotRef} aria-hidden="true">
         <div className="speech-bubble warning">

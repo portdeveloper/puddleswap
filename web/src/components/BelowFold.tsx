@@ -128,7 +128,7 @@ export function BelowFold() {
         {/* About / SEO intro */}
         <section className="intro-section reveal" aria-labelledby="intro-heading">
           <span className="section-label">~ about ~</span>
-          <h2 id="intro-heading" className="section-title">About PuddleSwap — the Monad Testnet DEX</h2>
+          <h1 id="intro-heading" className="section-title">About PuddleSwap — the Monad Testnet DEX</h1>
           <div className="intro-copy">
             <p>
               Want to swap tokens on Monad Testnet without waiting for a mainnet DEX? PuddleSwap is a static,

@@ -70,7 +70,7 @@ export function PoolsPage() {
       <div className="pools-header">
         <div>
           <p className="section-label">~ liquidity ~</p>
-          <h1 style={{ fontSize: 32, fontWeight: 800, margin: 0 }}>Active Pools</h1>
+          <h1 style={{ fontSize: 32, fontWeight: 800, margin: 0 }}>Monad Testnet Liquidity Pools</h1>
           <p style={{ color: "var(--text-muted)", marginTop: 4 }}>
             Small but mighty. These are the puddles powering every swap.
           </p>

@@ -224,7 +224,7 @@ export function CreatePoolPage() {
         <meta property="og:description" content="Deploy a new Uniswap V2 pair and seed initial liquidity on Monad Testnet with PuddleSwap." />
       </Helmet>
 
-      <h2>Create Pool</h2>
+      <h1>Create a Liquidity Pool on Monad Testnet</h1>
 
       <TokenPicker label="Token A" value={tokenA} onChange={setTokenA} />
       <TokenPicker label="Token B" value={tokenB} onChange={setTokenB} />
