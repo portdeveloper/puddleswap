@@ -5,7 +5,6 @@
   "buildCommand": "pnpm build",
   "outputDirectory": "web/dist",
   "trailingSlash": false,
-  "cleanUrls": true,
   "headers": [
     {
       "source": "/(.*)",
@@ -66,6 +65,8 @@
     }
   ],
   "rewrites": [
-    { "source": "/pool/:addr(0x[a-fA-F0-9]+)", "destination": "/index.html" }
+    { "source": "/pools", "destination": "/pools/index.html" },
+    { "source": "/pool/new", "destination": "/pool/new/index.html" },
+    { "source": "/pool/:addr", "destination": "/index.html" }
   ]
 }
