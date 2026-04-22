@@ -8,6 +8,7 @@
   "scripts": {
     "test": "make test",
     "dev": "make dev",
+    "build": "pnpm -C web build",
     "setup": "make setup",
     "sync-artifacts": "make sync-artifacts"
   }
