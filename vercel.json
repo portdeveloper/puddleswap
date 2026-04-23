@@ -29,26 +29,20 @@
   "redirects": [
     {
       "source": "/",
-      "has": [{ "type": "host", "value": "puddleswap.org" }],
-      "destination": "https://app.puddleswap.org/",
-      "permanent": true
-    },
-    {
-      "source": "/:path*",
-      "has": [{ "type": "host", "value": "puddleswap.org" }],
-      "destination": "https://app.puddleswap.org/:path*",
-      "permanent": true
-    },
-    {
-      "source": "/",
       "has": [{ "type": "host", "value": "www.puddleswap.org" }],
-      "destination": "https://app.puddleswap.org/",
+      "destination": "https://puddleswap.org/",
       "permanent": true
     },
     {
-      "source": "/:path*",
+      "source": "/:path((?!favicon\\.svg$|og\\.png$|robots\\.txt$|sitemap\\.xml$|landing\\.html$).+)",
       "has": [{ "type": "host", "value": "www.puddleswap.org" }],
-      "destination": "https://app.puddleswap.org/:path*",
+      "destination": "https://app.puddleswap.org/:path",
+      "permanent": true
+    },
+    {
+      "source": "/:path((?!favicon\\.svg$|og\\.png$|robots\\.txt$|sitemap\\.xml$|landing\\.html$).+)",
+      "has": [{ "type": "host", "value": "puddleswap.org" }],
+      "destination": "https://app.puddleswap.org/:path",
       "permanent": true
     },
     {
@@ -65,6 +59,11 @@
     }
   ],
   "rewrites": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "puddleswap.org" }],
+      "destination": "/landing.html"
+    },
     { "source": "/pools", "destination": "/pools/index.html" },
     { "source": "/pool/new", "destination": "/pool/new/index.html" },
     { "source": "/pool/:addr", "destination": "/pool/_fallback/index.html" },
