@@ -11,5 +11,8 @@
     "build": "pnpm -C web build",
     "setup": "make setup",
     "sync-artifacts": "make sync-artifacts"
+  },
+  "dependencies": {
+    "@vercel/edge": "^1.2.2"
   }
 }
