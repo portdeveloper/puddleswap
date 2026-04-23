@@ -34,15 +34,9 @@
       "permanent": true
     },
     {
-      "source": "/:path((?!favicon\\.svg$|og\\.png$|robots\\.txt$|sitemap\\.xml$|landing\\.html$).+)",
+      "source": "/:path+",
       "has": [{ "type": "host", "value": "www.puddleswap.org" }],
-      "destination": "https://app.puddleswap.org/:path",
-      "permanent": true
-    },
-    {
-      "source": "/:path((?!favicon\\.svg$|og\\.png$|robots\\.txt$|sitemap\\.xml$|landing\\.html$).+)",
-      "has": [{ "type": "host", "value": "puddleswap.org" }],
-      "destination": "https://app.puddleswap.org/:path",
+      "destination": "https://app.puddleswap.org/:path+",
       "permanent": true
     },
     {
@@ -52,9 +46,9 @@
       "permanent": true
     },
     {
-      "source": "/:path*",
+      "source": "/:path+",
       "has": [{ "type": "host", "value": "www.app.puddleswap.org" }],
-      "destination": "https://app.puddleswap.org/:path*",
+      "destination": "https://app.puddleswap.org/:path+",
       "permanent": true
     }
   ],
