@@ -54,9 +54,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <AnimatedBackground />
 
       <nav className="topbar">
-        <NavLink to="/" className="logo">
+        <a href="https://puddleswap.org/" className="logo">
           <span translate="no">puddleswap</span>
-        </NavLink>
+        </a>
         <div className="nav-links">
           {links.map((link) => (
             <NavLink
