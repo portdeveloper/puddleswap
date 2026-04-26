@@ -1168,6 +1168,11 @@ code {
   padding: 8px 24px 0;
 }
 
+.intro-section.token-hub,
+.intro-section.learn-hub {
+  max-width: 900px;
+}
+
 .intro-copy {
   display: flex;
   flex-direction: column;
