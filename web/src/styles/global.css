@@ -32,6 +32,10 @@ html, body, #root {
   min-height: 100%;
 }
 
+#root {
+  width: 100%;
+}
+
 body {
   background-color: var(--bg-cream);
   color: var(--text-dark);
@@ -1196,6 +1200,35 @@ code {
   margin-bottom: 24px;
 }
 
+.pools-page-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: stretch;
+  gap: 16px;
+}
+
+.pools-header-copy {
+  min-width: 0;
+}
+
+.pools-page-title {
+  color: var(--text-dark);
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1.1;
+  margin: 0;
+  overflow-wrap: break-word;
+}
+
+.pools-page-subtitle {
+  color: var(--text-muted);
+  margin: 4px 0 0;
+}
+
+.pools-page-header .btn-green-outline {
+  justify-self: end;
+}
+
 .btn-green-outline {
   background: transparent;
   border: 1.5px solid var(--brand-green);
@@ -1208,7 +1241,9 @@ code {
   cursor: pointer;
   transition: background-color 0.2s, color 0.2s;
   text-decoration: none;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .btn-green-outline:hover {
   background: var(--bubble-green);
@@ -1504,6 +1539,10 @@ code {
     margin-top: 100px;
   }
 
+  .network-warning + main {
+    margin-top: 140px;
+  }
+
   .character-container {
     display: none;
   }
@@ -1554,6 +1593,46 @@ code {
   .nav-links::-webkit-scrollbar { display: none; }
   .nav-links a { font-size: 13px; }
   .btn-connect { padding: 8px 14px; font-size: 13px; }
+
+  .pools-page-header .btn-green-outline {
+    justify-self: stretch;
+  }
+
+  .pools-page-title {
+    font-size: 24px;
+    max-width: 18ch;
+  }
+
+  .pools-page-subtitle {
+    max-width: 30ch;
+  }
+
+  .pools-table-header,
+  .pool-row {
+    grid-template-columns: minmax(120px, 1.4fr) minmax(72px, 0.8fr) minmax(72px, 0.8fr);
+    column-gap: 12px;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .pool-pair {
+    gap: 8px;
+  }
+
+  .pool-icons .token-icon,
+  .pool-icons .pool-token-icon {
+    width: 28px;
+    height: 28px;
+  }
+
+  .pool-pair-name,
+  .pool-stat {
+    font-size: 14px;
+  }
+
+  .pool-stat-sub {
+    font-size: 12px;
+  }
 
   .amount-input { font-size: 28px; }
 }

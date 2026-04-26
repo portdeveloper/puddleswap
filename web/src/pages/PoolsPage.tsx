@@ -88,13 +88,11 @@ export function PoolsPage() {
         />
       </Helmet>
 
-      <div className="pools-header">
-        <div>
+      <div className="pools-header pools-page-header">
+        <div className="pools-header-copy">
           <p className="section-label">~ liquidity ~</p>
-          <h1 style={{ fontSize: 32, fontWeight: 800, margin: 0 }}>
-            Monad Testnet Liquidity Pools
-          </h1>
-          <p style={{ color: "var(--text-muted)", marginTop: 4 }}>
+          <h1 className="pools-page-title">Monad Testnet Liquidity Pools</h1>
+          <p className="pools-page-subtitle">
             Small but mighty. These are the puddles powering every swap.
           </p>
         </div>
