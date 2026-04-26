@@ -31,23 +31,43 @@ function PoolPreviewRow({ pool }: { pool: PoolInfo }) {
     <Link to={`/pool/${pool.pairAddress}`} className="pool-row">
       <div className="pool-pair">
         <div className="pool-icons">
-          <TokenIcon symbol={pool.symbol0} size={32} className="pool-token-icon" />
-          <TokenIcon symbol={pool.symbol1} size={32} className="pool-token-icon" />
+          <TokenIcon
+            symbol={pool.symbol0}
+            size={32}
+            className="pool-token-icon"
+          />
+          <TokenIcon
+            symbol={pool.symbol1}
+            size={32}
+            className="pool-token-icon"
+          />
         </div>
         <div>
-          <div className="pool-pair-name">{pool.symbol0} / {pool.symbol1}</div>
+          <div className="pool-pair-name">
+            {pool.symbol0} / {pool.symbol1}
+          </div>
         </div>
       </div>
-      <div><div className="pool-stat">{abbreviate(pool.reserve0Formatted)}</div><div className="pool-stat-sub">{pool.symbol0}</div></div>
-      <div><div className="pool-stat">{abbreviate(pool.reserve1Formatted)}</div><div className="pool-stat-sub">{pool.symbol1}</div></div>
+      <div>
+        <div className="pool-stat">{abbreviate(pool.reserve0Formatted)}</div>
+        <div className="pool-stat-sub">{pool.symbol0}</div>
+      </div>
+      <div>
+        <div className="pool-stat">{abbreviate(pool.reserve1Formatted)}</div>
+        <div className="pool-stat-sub">{pool.symbol1}</div>
+      </div>
       <div>
         {pool.lpBalance > 0n ? (
           <>
-            <div className="pool-stat">{abbreviate(pool.lpBalanceFormatted)}</div>
+            <div className="pool-stat">
+              {abbreviate(pool.lpBalanceFormatted)}
+            </div>
             <div className="pool-stat-sub">{pool.sharePercent}% share</div>
           </>
         ) : (
-          <div className="pool-stat" style={{ color: "var(--text-muted)" }}>&mdash;</div>
+          <div className="pool-stat" style={{ color: "var(--text-muted)" }}>
+            N/A
+          </div>
         )}
       </div>
     </Link>
@@ -71,8 +91,16 @@ function useCoreTokenMeta(coreTokens: Address[] | undefined) {
       if (!publicClient || !coreTokens || coreTokens.length === 0) return [];
 
       const calls = coreTokens.flatMap((addr) => [
-        { address: addr, abi: contractAbis.erc20, functionName: "symbol" as const },
-        { address: addr, abi: contractAbis.erc20, functionName: "name" as const },
+        {
+          address: addr,
+          abi: contractAbis.erc20,
+          functionName: "symbol" as const,
+        },
+        {
+          address: addr,
+          abi: contractAbis.erc20,
+          functionName: "name" as const,
+        },
       ]);
 
       const results = await publicClient.multicall({
@@ -85,8 +113,14 @@ function useCoreTokenMeta(coreTokens: Address[] | undefined) {
         const nameResult = results[i * 2 + 1];
         return {
           address: addr,
-          symbol: symbolResult?.status === "success" ? (symbolResult.result as string) : "???",
-          name: nameResult?.status === "success" ? (nameResult.result as string) : "Unknown",
+          symbol:
+            symbolResult?.status === "success"
+              ? (symbolResult.result as string)
+              : "???",
+          name:
+            nameResult?.status === "success"
+              ? (nameResult.result as string)
+              : "Unknown",
         };
       });
     },
@@ -107,7 +141,7 @@ export function BelowFold() {
           }
         }
       },
-      { threshold: 0.12 }
+      { threshold: 0.12 },
     );
     const els = document.querySelectorAll(".reveal");
     for (const el of els) observer.observe(el);
@@ -115,7 +149,15 @@ export function BelowFold() {
   }, []);
 
   const checkIcon = (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4E9A55" strokeWidth="3" aria-hidden="true">
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="#4E9A55"
+      strokeWidth="3"
+      aria-hidden="true"
+    >
       <polyline points="20 6 9 17 4 12" />
     </svg>
   );
@@ -124,7 +166,9 @@ export function BelowFold() {
     <>
       {/* Scroll hint */}
       <div className="scroll-hint">
-        <div className="scroll-mouse"><div className="scroll-mouse-dot" /></div>
+        <div className="scroll-mouse">
+          <div className="scroll-mouse-dot" />
+        </div>
         <span className="scroll-hint-label">scroll to explore</span>
       </div>
 
@@ -132,32 +176,49 @@ export function BelowFold() {
         <div className="divider-wave" />
 
         {/* About / SEO intro */}
-        <section className="intro-section reveal" aria-labelledby="intro-heading">
+        <section
+          className="intro-section reveal"
+          aria-labelledby="intro-heading"
+        >
           <span className="section-label">~ about ~</span>
-          <h1 id="intro-heading" className="section-title">About PuddleSwap — the Monad Testnet DEX</h1>
+          <h1 id="intro-heading" className="section-title">
+            About PuddleSwap: the Monad Testnet DEX
+          </h1>
           <div className="intro-copy">
             <p>
-              Want to swap tokens on Monad Testnet without waiting for a mainnet DEX? PuddleSwap is a static,
-              no-backend DEX that lets builders trade test tokens and seed their own liquidity pools directly
-              on <Link to="/learn/monad-testnet">Monad&apos;s public testnet (chain ID <code translate="no">10143</code>)</Link>.
+              Want to swap tokens on Monad Testnet without waiting for a mainnet
+              DEX? PuddleSwap is a static, no-backend DEX that lets builders
+              trade test tokens and seed their own liquidity pools directly on{" "}
+              <Link to="/learn/monad-testnet">
+                Monad&apos;s public testnet (chain ID{" "}
+                <code translate="no">10143</code>)
+              </Link>
+              .
             </p>
             <p>
-              Every swap runs through <Link to="/learn/star-routing"><strong>star routing</strong></Link>:
-              core tokens (USDC, USDT, and <Link to="/learn/wmon">WMON</Link>) act as hubs,
-              so any token with a pool against one of them is tradeable against any other. You can swap MON, WMON,
-              USDC, USDT, or any registered ERC-20 in a few clicks &mdash; no account, no signup, just a wallet
-              connected to Monad Testnet.
+              Every swap runs through{" "}
+              <Link to="/learn/star-routing">
+                <strong>star routing</strong>
+              </Link>
+              : core tokens (USDC, USDT, and <Link to="/learn/wmon">WMON</Link>)
+              act as hubs, so any token with a pool against one of them is
+              tradeable against any other. You can swap MON, WMON, USDC, USDT,
+              or any registered ERC-20 in a few clicks. No account, no signup,
+              just a wallet connected to Monad Testnet.
             </p>
             <p>
-              Under the hood, PuddleSwap is a stock UniswapV2 fork deployed on Monad Testnet. The frontend talks
-              to the blockchain directly via RPC &mdash; zero backend means zero downtime risk, zero KYC, zero data
-              collection. All contracts are verified on MonadVision, Socialscan, and Monadscan.
+              Under the hood, PuddleSwap is a stock UniswapV2 fork deployed on
+              Monad Testnet. The frontend talks to the blockchain directly via
+              RPC. There is no app backend, no KYC, and no data collection. All
+              contracts are verified on MonadVision, Socialscan, and Monadscan.
             </p>
             <p>
-              PuddleSwap is <strong>unaudited</strong>. Testnet tokens have no real value, but the usual warning
-              applies: use at your own risk, and inspect any pool or token you haven&apos;t registered yourself.
-              Ready to swap on Monad Testnet? Use the widget above &mdash; or browse active pools and create your
-              own below. New here? <Link to="/learn">Read the Learn guides</Link>.
+              PuddleSwap is <strong>unaudited</strong>. Testnet tokens have no
+              real value, but the usual warning applies: use at your own risk,
+              and inspect any pool or token you haven&apos;t registered
+              yourself. Ready to swap on Monad Testnet? Use the widget above,
+              browse active pools, or create your own below. New here?{" "}
+              <Link to="/learn">Read the Learn guides</Link>.
             </p>
           </div>
         </section>
@@ -170,9 +231,13 @@ export function BelowFold() {
             <div>
               <span className="section-label">~ liquidity ~</span>
               <div className="section-title">Active Pools</div>
-              <p className="section-sub">Small but mighty. These are the puddles powering every swap.</p>
+              <p className="section-sub">
+                Small but mighty. These are the puddles powering every swap.
+              </p>
             </div>
-            <Link to="/pools" className="btn-green-outline">View All Pools</Link>
+            <Link to="/pools" className="btn-green-outline">
+              View All Pools
+            </Link>
           </div>
           <div className="pools-table">
             <div className="pools-table-header">
@@ -183,13 +248,26 @@ export function BelowFold() {
             </div>
 
             {poolsQuery.isLoading && (
-              <div style={{ padding: "40px 24px", textAlign: "center", color: "var(--text-muted)" }} role="status">
+              <div
+                style={{
+                  padding: "40px 24px",
+                  textAlign: "center",
+                  color: "var(--text-muted)",
+                }}
+                role="status"
+              >
                 Loading pools…
               </div>
             )}
 
             {poolsQuery.data && poolsQuery.data.length === 0 && (
-              <div style={{ padding: "40px 24px", textAlign: "center", color: "var(--text-muted)" }}>
+              <div
+                style={{
+                  padding: "40px 24px",
+                  textAlign: "center",
+                  color: "var(--text-muted)",
+                }}
+              >
                 No pools yet. Be the first to create one!
               </div>
             )}
@@ -208,7 +286,9 @@ export function BelowFold() {
             <div>
               <span className="section-label">~ core tokens ~</span>
               <div className="section-title">Token Registry</div>
-              <p className="section-sub">Core tokens registered on-chain in the Puddle registry.</p>
+              <p className="section-sub">
+                Core tokens registered on-chain in the Puddle registry.
+              </p>
             </div>
           </div>
           <div className="registry-grid">
@@ -216,7 +296,11 @@ export function BelowFold() {
               const slug = tokenPageSlug(token.symbol);
               const inner = (
                 <>
-                  <TokenIcon symbol={token.symbol} size={44} className="token-card-icon" />
+                  <TokenIcon
+                    symbol={token.symbol}
+                    size={44}
+                    className="token-card-icon"
+                  />
                   <div className="token-card-info">
                     <div className="token-card-symbol">{token.symbol}</div>
                     <div className="token-card-name">{token.name}</div>
@@ -239,30 +323,105 @@ export function BelowFold() {
               );
             })}
             {coreTokenMetaQuery.isLoading && (
-              <div style={{ padding: "20px", color: "var(--text-muted)" }} role="status">Loading tokens…</div>
+              <div
+                style={{ padding: "20px", color: "var(--text-muted)" }}
+                role="status"
+              >
+                Loading tokens…
+              </div>
             )}
             {coreTokenMetaQuery.data?.length === 0 && (
-              <div style={{ padding: "20px", color: "var(--text-muted)" }}>No core tokens registered yet.</div>
+              <div style={{ padding: "20px", color: "var(--text-muted)" }}>
+                No core tokens registered yet.
+              </div>
             )}
           </div>
         </div>
 
         {/* Footer */}
-        <div className="reveal reveal-delay-3" style={{ width: "100%", maxWidth: 900, display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 32, borderTop: "1px solid var(--border-light)" }}>
+        <div
+          className="reveal reveal-delay-3"
+          style={{
+            width: "100%",
+            maxWidth: 900,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            paddingTop: 32,
+            borderTop: "1px solid var(--border-light)",
+          }}
+        >
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <svg className="logo-mark" width="20" height="20" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-              <ellipse cx="16" cy="18" rx="12" ry="9" fill="#4E9A55" transform="rotate(-3 16 18)" />
+            <svg
+              className="logo-mark"
+              width="20"
+              height="20"
+              viewBox="0 0 32 32"
+              fill="none"
+              aria-hidden="true"
+            >
+              <ellipse
+                cx="16"
+                cy="18"
+                rx="12"
+                ry="9"
+                fill="#4E9A55"
+                transform="rotate(-3 16 18)"
+              />
               <ellipse cx="13" cy="16.5" rx="1.2" ry="2.2" fill="#1E201E" />
               <ellipse cx="19" cy="16.5" rx="1.2" ry="2.2" fill="#1E201E" />
-              <path d="M13.5 21q2.5 2 5 0" stroke="#1E201E" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+              <path
+                d="M13.5 21q2.5 2 5 0"
+                stroke="#1E201E"
+                strokeWidth="1.2"
+                fill="none"
+                strokeLinecap="round"
+              />
             </svg>
             <span style={{ fontWeight: 800, fontSize: 18 }}>Puddle</span>
-            <span style={{ fontSize: 13, color: "var(--text-muted)", marginLeft: 4 }}>Monad Testnet</span>
+            <span
+              style={{
+                fontSize: 13,
+                color: "var(--text-muted)",
+                marginLeft: 4,
+              }}
+            >
+              Monad Testnet
+            </span>
           </div>
-          <div style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", gap: 16, alignItems: "center" }}>
-            <Link to="/tokens" style={{ color: "var(--brand-green)", fontWeight: 600 }}>Tokens</Link>
-            <Link to="/learn" style={{ color: "var(--brand-green)", fontWeight: 600 }}>Learn</Link>
-            <span>Contact dev on <a href="https://x.com/port_dev" target="_blank" rel="noopener noreferrer" style={{ color: "var(--brand-green)", fontWeight: 600 }} translate="no">@port_dev</a></span>
+          <div
+            style={{
+              fontSize: 13,
+              color: "var(--text-muted)",
+              display: "flex",
+              gap: 16,
+              alignItems: "center",
+            }}
+          >
+            <Link
+              to="/tokens"
+              style={{ color: "var(--brand-green)", fontWeight: 600 }}
+            >
+              Tokens
+            </Link>
+            <Link
+              to="/learn"
+              style={{ color: "var(--brand-green)", fontWeight: 600 }}
+            >
+              Learn
+            </Link>
+            <span>
+              Contact dev on{" "}
+              <a
+                href="https://x.com/port_dev"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "var(--brand-green)", fontWeight: 600 }}
+                translate="no"
+              >
+                @port_dev
+              </a>
+            </span>
           </div>
         </div>
       </div>

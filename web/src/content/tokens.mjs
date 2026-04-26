@@ -1,5 +1,5 @@
 // Static content for the core-token pages. The token metadata below (symbol,
-// decimals, address) is the source of truth for prerender — runtime React code
+// decimals, address) is the source of truth for prerender. Runtime React code
 // still reads the chain for live state. Keep addresses in sync with
 // src/config/generated.ts.
 
@@ -14,10 +14,10 @@ export const tokenEntries = [
     decimals: 18,
     isNative: true,
     isCore: true,
-    title: "MON — Monad Testnet Native Token",
+    title: "MON: Monad Testnet Native Token",
     description:
       "MON is Monad's native gas token. On testnet, MON is free from the faucet and pays for every transaction. Wrap to WMON for ERC-20 interop.",
-    h1: "MON — Native Gas Token of Monad Testnet",
+    h1: "MON: Native Gas Token of Monad Testnet",
     summary:
       "Monad's native token. Pays for gas on every transaction. Wrap to WMON to use it in ERC-20 contexts.",
     blocks: [
@@ -29,7 +29,7 @@ export const tokenEntries = [
           { a: { href: "/learn/monad-testnet", text: "Monad Testnet" } },
           " (chain ID ",
           { code: "10143" },
-          "), test MON has no real economic value but is still required to pay transaction gas. Every contract call — including swaps on PuddleSwap — burns a small amount of test MON as gas.",
+          "), test MON has no real economic value but is still required to pay transaction gas. Every contract call, including swaps on PuddleSwap, burns a small amount of test MON as gas.",
         ],
       },
       { type: "h2", text: "MON at a glance" },
@@ -40,11 +40,7 @@ export const tokenEntries = [
           { parts: [{ b: "Decimals:" }, " ", { code: "18" }] },
           { parts: [{ b: "Type:" }, " native gas asset (not ERC-20)"] },
           {
-            parts: [
-              { b: "Testnet chain ID:" },
-              " ",
-              { code: "10143" },
-            ],
+            parts: [{ b: "Testnet chain ID:" }, " ", { code: "10143" }],
           },
           { parts: [{ b: "Value:" }, " test MON has no economic value"] },
         ],
@@ -60,9 +56,9 @@ export const tokenEntries = [
       {
         type: "p",
         parts: [
-          "Native gas tokens aren't ERC-20s — they predate the standard and are handled by the protocol directly. Most DeFi primitives (DEX pools, lending markets, bridges) expect ERC-20 interfaces, so native MON has to be ",
+          "Native gas tokens aren't ERC-20s. They predate the standard and are handled by the protocol directly. Most DeFi primitives (DEX pools, lending markets, bridges) expect ERC-20 interfaces, so native MON has to be ",
           { a: { href: "/learn/wmon", text: "wrapped to WMON" } },
-          " before it can enter those contracts. PuddleSwap's router wraps and unwraps automatically as part of each swap — you never have to touch WMON directly unless you want to.",
+          " before it can enter those contracts. PuddleSwap's router wraps and unwraps automatically as part of each swap, so you never have to touch WMON directly unless you want to.",
         ],
       },
       { type: "h2", text: "Swapping with MON on PuddleSwap" },
@@ -71,7 +67,7 @@ export const tokenEntries = [
         parts: [
           "Select MON as the input or output on the ",
           { a: { href: "/", text: "swap widget" } },
-          ". If you're selling MON, the router wraps it to WMON mid-transaction. If you're buying MON, the router unwraps WMON back to native MON at the end. The route shown in the UI will display WMON as the hop — that's the wrapped form passing through a pool.",
+          ". If you're selling MON, the router wraps it to WMON mid-transaction. If you're buying MON, the router unwraps WMON back to native MON at the end. If the route shows WMON as the hop, that is the wrapped form passing through a pool.",
         ],
       },
       {
@@ -92,10 +88,10 @@ export const tokenEntries = [
     decimals: 18,
     isNative: false,
     isCore: true,
-    title: "WMON — Wrapped Monad on Monad Testnet",
+    title: "WMON: Wrapped Monad on Monad Testnet",
     description:
       "WMON is Wrapped Monad, an ERC-20 version of native MON on Monad Testnet. 1:1 redeemable. Core routing token on PuddleSwap.",
-    h1: "WMON — Wrapped Monad on Monad Testnet",
+    h1: "WMON: Wrapped Monad on Monad Testnet",
     summary:
       "ERC-20 wrapper for native MON, 1:1 redeemable. Acts as a core routing hub on PuddleSwap.",
     blocks: [
@@ -103,9 +99,9 @@ export const tokenEntries = [
         type: "p",
         parts: [
           { b: "WMON" },
-          " is Wrapped Monad — an ERC-20 token that represents 1 MON, exchangeable 1:1 at any time. On PuddleSwap, WMON is one of the three ",
+          " is Wrapped Monad, an ERC-20 token that represents 1 MON, exchangeable 1:1 at any time. On PuddleSwap, WMON is one of the three ",
           { a: { href: "/learn/star-routing", text: "core routing tokens" } },
-          " that sit at the center of the star — every pool must pair against WMON, USDC, or USDT to be reachable by the router.",
+          " that sit at the center of the star. Every pool must pair against WMON, USDC, or USDT to be reachable by the router.",
         ],
       },
       { type: "h2", text: "WMON at a glance" },
@@ -140,7 +136,7 @@ export const tokenEntries = [
       {
         type: "p",
         parts: [
-          "UniswapV2 pools — the primitive PuddleSwap is built on — require both sides of a pair to be ERC-20 tokens. Native MON can't be put into a pool directly, so the router wraps MON to WMON mid-transaction whenever MON appears as an input or output. For a longer explanation, see ",
+          "UniswapV2 pools require both sides of a pair to be ERC-20 tokens. Native MON can't be put into a pool directly, so the router wraps MON to WMON mid-transaction whenever MON appears as an input or output. For a longer explanation, see ",
           { a: { href: "/learn/wmon", text: "the Learn article on WMON" } },
           ".",
         ],
@@ -173,10 +169,10 @@ export const tokenEntries = [
     decimals: 6,
     isNative: false,
     isCore: true,
-    title: "USDC — Test USD Coin on Monad Testnet",
+    title: "USDC: Test USD Coin on Monad Testnet",
     description:
       "USDC is a test USD-pegged stablecoin on Monad Testnet, used as a core routing token on PuddleSwap. 6 decimals, free from the faucet.",
-    h1: "USDC — Test USD Coin on Monad Testnet",
+    h1: "USDC: Test USD Coin on Monad Testnet",
     summary:
       "Test USD-pegged stablecoin. One of three core routing tokens on PuddleSwap. 6 decimals.",
     blocks: [
@@ -184,7 +180,7 @@ export const tokenEntries = [
         type: "p",
         parts: [
           { b: "USDC" },
-          " on Monad Testnet is a test stablecoin — a USD-pegged ERC-20 deployed specifically for the testnet environment. It is ",
+          " on Monad Testnet is a test stablecoin, a USD-pegged ERC-20 deployed specifically for the testnet environment. It is ",
           { b: "not" },
           " the same contract as mainnet USDC and has no real economic value. On PuddleSwap, test USDC is one of three ",
           { a: { href: "/learn/star-routing", text: "core routing tokens" } },
@@ -212,7 +208,7 @@ export const tokenEntries = [
       {
         type: "p",
         parts: [
-          "Test USDC can be minted through the stable faucet contract, or received via swaps on PuddleSwap. Since it's a core token, plenty of pairs are available — swap MON for USDC in one transaction from the ",
+          "Test USDC can be minted through the stable faucet contract, or received via swaps on PuddleSwap. Since it's a core token, many pairs are available. You can swap MON for USDC in one transaction from the ",
           { a: { href: "/", text: "swap widget" } },
           ".",
         ],
@@ -223,7 +219,7 @@ export const tokenEntries = [
         parts: [
           "USDC uses ",
           { code: "6" },
-          " decimals instead of the usual 18 — consistent with mainnet USDC. When you quote or add liquidity, PuddleSwap handles the decimal conversion automatically, but if you're writing your own contract or script, make sure to read ",
+          " decimals instead of the usual 18, matching mainnet USDC. When you quote or add liquidity, PuddleSwap handles the decimal conversion automatically, but if you're writing your own contract or script, make sure to read ",
           { code: "decimals()" },
           " from the token rather than assuming 18.",
         ],
@@ -256,10 +252,10 @@ export const tokenEntries = [
     decimals: 6,
     isNative: false,
     isCore: true,
-    title: "USDT — Test Tether USD on Monad Testnet",
+    title: "USDT: Test Tether USD on Monad Testnet",
     description:
       "USDT is a test USD-pegged stablecoin on Monad Testnet, used as a core routing token on PuddleSwap. 6 decimals, free from the faucet.",
-    h1: "USDT — Test Tether USD on Monad Testnet",
+    h1: "USDT: Test Tether USD on Monad Testnet",
     summary:
       "Test USD-pegged stablecoin (testUSDT). One of three core routing tokens on PuddleSwap. 6 decimals.",
     blocks: [
@@ -271,7 +267,7 @@ export const tokenEntries = [
           { code: "testUSDT" },
           ") is a USD-pegged ERC-20 deployed for the testnet environment. Like the other stablecoin on the testnet, it is ",
           { b: "not" },
-          " connected to mainnet USDT — it's a separate contract with no economic value. USDT is one of PuddleSwap's three ",
+          " connected to mainnet USDT. It is a separate contract with no economic value. USDT is one of PuddleSwap's three ",
           { a: { href: "/learn/star-routing", text: "core routing tokens" } },
           ".",
         ],
@@ -297,7 +293,7 @@ export const tokenEntries = [
       {
         type: "p",
         parts: [
-          "Test USDT can be minted from the stable faucet on the testnet, or received via swaps on PuddleSwap. Since USDT is a core token, liquidity is usually available in both directions — swap MON for USDT or USDC for USDT in one transaction.",
+          "Test USDT can be minted from the stable faucet on the testnet, or received via swaps on PuddleSwap. Since USDT is a core token, liquidity is usually available in both directions. You can swap MON for USDT or USDC for USDT in one transaction.",
         ],
       },
       { type: "h2", text: "Decimals caveat" },
@@ -306,7 +302,7 @@ export const tokenEntries = [
         parts: [
           "USDT uses ",
           { code: "6" },
-          " decimals. If you're reading balances or computing amounts in your own code, don't assume 18 — read ",
+          " decimals. If you're reading balances or computing amounts in your own code, don't assume 18. Read ",
           { code: "decimals()" },
           " from the token contract. PuddleSwap handles this transparently in the UI.",
         ],
@@ -315,7 +311,7 @@ export const tokenEntries = [
       {
         type: "p",
         parts: [
-          "Both are test stablecoins with 6 decimals and core-token status. Pick whichever matches the pool you want to trade against — the router will choose the best routing path between the core tokens automatically. ",
+          "Both are test stablecoins with 6 decimals and core-token status. Pick whichever matches the pool you want to trade against. The router will choose the best routing path between the core tokens automatically. ",
           { a: { href: "/tokens/usdc", text: "See the USDC page" } },
           " for the counterpart.",
         ],
@@ -334,7 +330,7 @@ export const tokenEntries = [
 ];
 
 export const tokenBySlug = Object.fromEntries(
-  tokenEntries.map((e) => [e.slug, e])
+  tokenEntries.map((e) => [e.slug, e]),
 );
 
 // ---------- HTML serialization (shared with learn.mjs) ----------
@@ -363,8 +359,10 @@ function partsToHtml(parts) {
 export function tokenBlocksToHtml(blocks) {
   return blocks
     .map((block) => {
-      if (block.type === "p") return `        <p>${partsToHtml(block.parts)}</p>`;
-      if (block.type === "h2") return `        <h2>${escapeHtml(block.text)}</h2>`;
+      if (block.type === "p")
+        return `        <p>${partsToHtml(block.parts)}</p>`;
+      if (block.type === "h2")
+        return `        <h2>${escapeHtml(block.text)}</h2>`;
       if (block.type === "ul") {
         const items = block.items
           .map((item) => `          <li>${partsToHtml(item.parts)}</li>`)

@@ -23,18 +23,18 @@ export const learnEntries = [
       "Monad Testnet is Monad's public test network, chain ID 10143. Free test MON, full EVM, open RPC. Everything you need to start testing dapps.",
     h1: "What is Monad Testnet?",
     summary:
-      "Monad's public test network — chain ID 10143, free MON from the faucet, full EVM compatibility.",
+      "Monad's public test network: chain ID 10143, free MON from the faucet, full EVM compatibility.",
     readingTime: "3 min read",
     datePublished: "2026-04-22",
     blocks: [
       {
         type: "p",
         parts: [
-          "Monad is a high-performance parallel-EVM Layer 1 blockchain. ",
+          "Monad is a parallel-EVM Layer 1 blockchain. ",
           { b: "Monad Testnet" },
-          " is its public test network — chain ID ",
+          " is its public test network. Its chain ID is ",
           { code: "10143" },
-          " — where anyone can deploy contracts, run dapps, and move test tokens before Monad mainnet launches.",
+          ", and anyone can deploy contracts, run dapps, and move test tokens before Monad mainnet launches.",
         ],
       },
       { type: "h2", text: "Chain details" },
@@ -42,11 +42,7 @@ export const learnEntries = [
         type: "ul",
         items: [
           {
-            parts: [
-              { b: "Chain ID:" },
-              " ",
-              { code: "10143" },
-            ],
+            parts: [{ b: "Chain ID:" }, " ", { code: "10143" }],
           },
           {
             parts: [
@@ -64,15 +60,12 @@ export const learnEntries = [
             ],
           },
           {
-            parts: [
-              { b: "Explorers:" },
-              " Monadscan, MonadVision, Socialscan",
-            ],
+            parts: [{ b: "Explorers:" }, " Monadscan, MonadVision, Socialscan"],
           },
           {
             parts: [
               { b: "EVM equivalence:" },
-              " full — anything that runs on Ethereum runs on Monad",
+              " full. Anything that runs on Ethereum runs on Monad",
             ],
           },
         ],
@@ -108,8 +101,13 @@ export const learnEntries = [
       {
         type: "p",
         parts: [
-          { a: { href: "/", text: "Start swapping on Monad Testnet with PuddleSwap" } },
-          " — the testnet DEX built for builders.",
+          {
+            a: {
+              href: "/",
+              text: "Start swapping on Monad Testnet with PuddleSwap",
+            },
+          },
+          ", a testnet DEX for builders.",
         ],
       },
     ],
@@ -121,7 +119,7 @@ export const learnEntries = [
       "Star routing is PuddleSwap's approach: every token pool must pair with a core token (USDC, USDT, or WMON), which lets any pair swap in one hop.",
     h1: "What is Star Routing?",
     summary:
-      "PuddleSwap's routing model — every pool pairs with a core token, so any two tokens can swap in one hop.",
+      "PuddleSwap's routing model: every pool pairs with a core token, so any two tokens can swap in one hop.",
     readingTime: "3 min read",
     datePublished: "2026-04-22",
     blocks: [
@@ -131,10 +129,10 @@ export const learnEntries = [
           { b: "Star routing" },
           " is PuddleSwap's approach to swap routing on Monad Testnet. Instead of supporting arbitrary pools between arbitrary tokens, PuddleSwap designates a small set of ",
           { b: "core tokens" },
-          " as hubs — USDC, USDT, and WMON — and requires every liquidity pool to pair against at least one of them.",
+          " as hubs: USDC, USDT, and WMON. Every liquidity pool must pair against at least one of them.",
         ],
       },
-      { type: "h2", text: "Why \"star\"?" },
+      { type: "h2", text: 'Why "star"?' },
       {
         type: "p",
         parts: [
@@ -169,7 +167,7 @@ export const learnEntries = [
       {
         type: "p",
         parts: [
-          "The winning path is shown in the Route row of the swap widget, and you can expand the \"Routing table\" diagnostic to see quotes from every path — live, failed, or absent.",
+          'The winning path is shown in the Route row of the swap widget, and you can expand the "Routing table" diagnostic to see quotes from every path: live, failed, or absent.',
         ],
       },
       { type: "h2", text: "What this means for liquidity providers" },
@@ -194,10 +192,10 @@ export const learnEntries = [
     slug: "wmon",
     title: "What is WMON? Wrapped MON on Monad Testnet",
     description:
-      "WMON is Wrapped MON — an ERC-20 version of Monad's native token, 1:1 redeemable. UniswapV2 pools need ERC-20s, so WMON bridges native MON into them.",
+      "WMON is Wrapped MON, an ERC-20 version of Monad's native token, 1:1 redeemable. UniswapV2 pools need ERC-20s, so WMON bridges native MON into them.",
     h1: "What is WMON (Wrapped Monad)?",
     summary:
-      "Wrapped MON — an ERC-20 wrapper for native MON so it can participate in ERC-20-only smart contracts like UniswapV2 pools.",
+      "Wrapped MON, an ERC-20 wrapper for native MON so it can participate in ERC-20-only smart contracts like UniswapV2 pools.",
     readingTime: "2 min read",
     datePublished: "2026-04-22",
     blocks: [
@@ -205,14 +203,14 @@ export const learnEntries = [
         type: "p",
         parts: [
           { b: "WMON" },
-          " is Wrapped MON — an ERC-20 token that represents 1 MON, one-to-one, redeemable any time. It exists because most smart contract interfaces, including UniswapV2, expect ERC-20 tokens, while Monad's native gas token (MON) is not an ERC-20.",
+          " is Wrapped MON, an ERC-20 token that represents 1 MON, one-to-one, redeemable any time. It exists because most smart contract interfaces, including UniswapV2, expect ERC-20 tokens, while Monad's native gas token (MON) is not an ERC-20.",
         ],
       },
       { type: "h2", text: "Why wrapping exists" },
       {
         type: "p",
         parts: [
-          "Native tokens like MON (or ETH on Ethereum) are handled by the protocol itself, not by an ERC-20 contract. Many DeFi primitives — routers, pools, lending markets — are built around the ERC-20 interface. Wrapping converts native MON into an ERC-20 equivalent so those contracts can hold, transfer, and approve it like any other token.",
+          "Native tokens like MON (or ETH on Ethereum) are handled by the protocol itself, not by an ERC-20 contract. Many DeFi primitives, including routers, pools, and lending markets, are built around the ERC-20 interface. Wrapping converts native MON into an ERC-20 equivalent so those contracts can hold, transfer, and approve it like any other token.",
         ],
       },
       { type: "h2", text: "Wrapping and unwrapping" },
@@ -226,13 +224,13 @@ export const learnEntries = [
           {
             parts: [
               { code: "deposit()" },
-              " — send N native MON, receive N WMON.",
+              ": send N native MON, receive N WMON.",
             ],
           },
           {
             parts: [
               { code: "withdraw(uint256)" },
-              " — burn N WMON, receive N native MON.",
+              ": burn N WMON, receive N native MON.",
             ],
           },
         ],
@@ -261,13 +259,11 @@ export const learnEntries = [
           },
           {
             parts: [
-              "You're adding liquidity to a MON-based pool — the underlying pair is WMON, so you deposit WMON alongside the other token.",
+              "You're adding liquidity to a MON-based pool. The underlying pair is WMON, so you deposit WMON alongside the other token.",
             ],
           },
           {
-            parts: [
-              "You're building a contract that expects ERC-20 inputs.",
-            ],
+            parts: ["You're building a contract that expects ERC-20 inputs."],
           },
         ],
       },
@@ -275,7 +271,7 @@ export const learnEntries = [
         type: "p",
         parts: [
           { a: { href: "/", text: "Swap MON on PuddleSwap" } },
-          " — the router wraps and unwraps automatically. For contract details and live pools, see the ",
+          ". The router wraps and unwraps automatically. For contract details and live pools, see the ",
           { a: { href: "/tokens/wmon", text: "WMON token page" } },
           ".",
         ],
@@ -285,7 +281,7 @@ export const learnEntries = [
 ];
 
 export const learnBySlug = Object.fromEntries(
-  learnEntries.map((e) => [e.slug, e])
+  learnEntries.map((e) => [e.slug, e]),
 );
 
 // ---------- HTML serialization (used by the prerender script) ----------
@@ -314,8 +310,10 @@ function partsToHtml(parts) {
 export function blocksToHtml(blocks) {
   return blocks
     .map((block) => {
-      if (block.type === "p") return `        <p>${partsToHtml(block.parts)}</p>`;
-      if (block.type === "h2") return `        <h2>${escapeHtml(block.text)}</h2>`;
+      if (block.type === "p")
+        return `        <p>${partsToHtml(block.parts)}</p>`;
+      if (block.type === "h2")
+        return `        <h2>${escapeHtml(block.text)}</h2>`;
       if (block.type === "ul") {
         const items = block.items
           .map((item) => `          <li>${partsToHtml(item.parts)}</li>`)

@@ -7,9 +7,9 @@ const BASE = "https://app.puddleswap.org";
 
 export function LearnHub() {
   const canonical = `${BASE}/learn`;
-  const title = "Learn — Monad Testnet DEX Concepts";
+  const title = "Learn: Monad Testnet DEX Concepts";
   const description =
-    "Plain-language guides to Monad Testnet, star routing, WMON, and the other moving parts behind PuddleSwap. Written for builders.";
+    "Short guides to Monad Testnet, star routing, WMON, and the parts behind PuddleSwap.";
 
   return (
     <section className="intro-section learn-hub">
@@ -33,7 +33,7 @@ export function LearnHub() {
       <span className="section-label">~ learn ~</span>
       <h1 className="section-title">PuddleSwap Learn</h1>
       <p className="section-sub">
-        Plain-language guides to the moving parts behind a Monad Testnet DEX.
+        Short guides to the parts behind a Monad Testnet DEX.
       </p>
 
       <ul className="learn-hub-list">

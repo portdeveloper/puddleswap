@@ -31,21 +31,24 @@ function PoolListRow({ pool }: { pool: PoolInfo }) {
         </span>
       </div>
       <span className="token-pool-stat">
-        {abbreviate(pool.reserve0Formatted)} {pool.symbol0} · {abbreviate(pool.reserve1Formatted)}{" "}
-        {pool.symbol1}
+        {abbreviate(pool.reserve0Formatted)} {pool.symbol0} ·{" "}
+        {abbreviate(pool.reserve1Formatted)} {pool.symbol1}
       </span>
     </Link>
   );
 }
 
-function filterPoolsForToken(pools: PoolInfo[] | undefined, entry: TokenEntry): PoolInfo[] {
+function filterPoolsForToken(
+  pools: PoolInfo[] | undefined,
+  entry: TokenEntry,
+): PoolInfo[] {
   if (!pools) return [];
   // Native MON has no ERC-20 address; show WMON pools since that's what it routes through.
   const targetAddress = entry.isNative ? WMON_ADDRESS : entry.address;
   if (!targetAddress) return [];
   const lower = targetAddress.toLowerCase();
   return pools.filter(
-    (p) => p.token0.toLowerCase() === lower || p.token1.toLowerCase() === lower
+    (p) => p.token0.toLowerCase() === lower || p.token1.toLowerCase() === lower,
   );
 }
 
@@ -54,7 +57,7 @@ function TokenArticle({ entry }: { entry: TokenEntry }) {
   const poolsQuery = useAllPools();
   const pools = useMemo(
     () => filterPoolsForToken(poolsQuery.data, entry),
-    [poolsQuery.data, entry]
+    [poolsQuery.data, entry],
   );
 
   const related = tokenEntries.filter((t) => t.slug !== entry.slug);
@@ -97,8 +100,15 @@ function TokenArticle({ entry }: { entry: TokenEntry }) {
         <BlocksRenderer blocks={entry.blocks} />
       </div>
 
-      <section className="token-live-pools" aria-labelledby="live-pools-heading">
-        <h2 id="live-pools-heading" className="section-title" style={{ fontSize: 20 }}>
+      <section
+        className="token-live-pools"
+        aria-labelledby="live-pools-heading"
+      >
+        <h2
+          id="live-pools-heading"
+          className="section-title"
+          style={{ fontSize: 20 }}
+        >
           Live pools with {entry.symbol}
         </h2>
         {poolsQuery.isLoading && (
@@ -109,8 +119,10 @@ function TokenArticle({ entry }: { entry: TokenEntry }) {
         {!poolsQuery.isLoading && pools.length === 0 && (
           <p className="learn-meta">
             No active pools found containing{" "}
-            {entry.isNative ? "WMON (native MON routes through WMON)" : entry.symbol}.{" "}
-            <Link to="/pool/new">Create one</Link>?
+            {entry.isNative
+              ? "WMON (native MON routes through WMON)"
+              : entry.symbol}
+            . <Link to="/pool/new">Create one</Link>?
           </p>
         )}
         {pools.length > 0 && (
@@ -131,7 +143,9 @@ function TokenArticle({ entry }: { entry: TokenEntry }) {
             {related.map((t) => (
               <li key={t.slug}>
                 <Link to={`/tokens/${t.slug}`}>
-                  <strong>{t.symbol} — {t.name}</strong>
+                  <strong>
+                    {t.symbol} - {t.name}
+                  </strong>
                   <span>{t.summary}</span>
                 </Link>
               </li>

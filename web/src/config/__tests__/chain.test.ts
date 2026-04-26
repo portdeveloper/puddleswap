@@ -18,7 +18,7 @@ describe("chain config", () => {
   });
 
   it("is NOT Monad mainnet", () => {
-    // Monad mainnet ID is 143 — we must be on testnet
+    // Monad mainnet ID is 143, so we must be on testnet
     expect(monadTestnet.id).not.toBe(143);
   });
 });
@@ -55,7 +55,9 @@ describe("wagmi config", () => {
   it("configures transport only for Monad testnet", async () => {
     const { wagmiConfig } = await import("../wagmi");
     // Transport keys should only have our chain
-    const transportChainIds = Object.keys(wagmiConfig._internal.transports).map(Number);
+    const transportChainIds = Object.keys(wagmiConfig._internal.transports).map(
+      Number,
+    );
     expect(transportChainIds).toEqual([monadTestnet.id]);
   });
 });

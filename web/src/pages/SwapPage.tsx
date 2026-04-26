@@ -2,7 +2,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Helmet } from "react-helmet-async";
 import { formatUnits, isAddress, type Address, type Hash } from "viem";
-import { useAccount, useConnect, usePublicClient, useSwitchChain, useWriteContract } from "wagmi";
+import {
+  useAccount,
+  useConnect,
+  usePublicClient,
+  useSwitchChain,
+  useWriteContract,
+} from "wagmi";
 import { monadTestnet } from "../config/chain";
 
 import { TokenIcon } from "../components/TokenIcon";
@@ -35,7 +41,9 @@ export function SwapPage() {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [pending, setPending] = useState(false);
-  const [pendingAction, setPendingAction] = useState<"approve" | "swap" | null>(null);
+  const [pendingAction, setPendingAction] = useState<"approve" | "swap" | null>(
+    null,
+  );
   const [showSettings, setShowSettings] = useState(false);
   const mascotRef = useRef<HTMLDivElement>(null);
 
@@ -45,7 +53,12 @@ export function SwapPage() {
       const fadeStart = 300;
       const fadeEnd = 600;
       const y = window.scrollY;
-      const opacity = y <= fadeStart ? 1 : y >= fadeEnd ? 0 : 1 - (y - fadeStart) / (fadeEnd - fadeStart);
+      const opacity =
+        y <= fadeStart
+          ? 1
+          : y >= fadeEnd
+            ? 0
+            : 1 - (y - fadeStart) / (fadeEnd - fadeStart);
       mascotRef.current.style.opacity = String(opacity);
       mascotRef.current.style.pointerEvents = opacity === 0 ? "none" : "";
     }
@@ -58,11 +71,19 @@ export function SwapPage() {
   const tokenOutMeta = useTokenMeta(tokenOut);
 
   const quickTokenAddresses = useMemo(() => {
-    const values = [contractAddresses.usdc, contractAddresses.testUSDT, ...coreTokens];
+    const values = [
+      contractAddresses.usdc,
+      contractAddresses.testUSDT,
+      ...coreTokens,
+    ];
     const deduped: Address[] = [];
 
     for (const value of values) {
-      if (!value || value === contractAddresses.wmon || deduped.includes(value)) {
+      if (
+        !value ||
+        value === contractAddresses.wmon ||
+        deduped.includes(value)
+      ) {
         continue;
       }
 
@@ -74,10 +95,12 @@ export function SwapPage() {
 
   const fallbackCores = useMemo(
     () =>
-      [contractAddresses.usdc, contractAddresses.testUSDT, contractAddresses.wmon].filter(
-        Boolean
-      ) as Address[],
-    []
+      [
+        contractAddresses.usdc,
+        contractAddresses.testUSDT,
+        contractAddresses.wmon,
+      ].filter(Boolean) as Address[],
+    [],
   );
 
   const routesCores = coreTokens.length > 0 ? coreTokens : fallbackCores;
@@ -87,7 +110,7 @@ export function SwapPage() {
       MON_TOKEN,
       ...quickTokenAddresses,
       tokenIn || undefined,
-      tokenOut || undefined
+      tokenOut || undefined,
     ];
     const deduped: string[] = [];
 
@@ -103,17 +126,27 @@ export function SwapPage() {
   }, [quickTokenAddresses, tokenIn, tokenOut]);
 
   const allowanceQuery = useQuery({
-    queryKey: ["allowance", address, tokenIn, contractAddresses.uniswapV2Router02],
+    queryKey: [
+      "allowance",
+      address,
+      tokenIn,
+      contractAddresses.uniswapV2Router02,
+    ],
     enabled: Boolean(
       publicClient &&
-        address &&
-        contractAddresses.uniswapV2Router02 &&
-        isAddress(tokenIn) &&
-        quoteQuery.data?.amountInRaw !== undefined
+      address &&
+      contractAddresses.uniswapV2Router02 &&
+      isAddress(tokenIn) &&
+      quoteQuery.data?.amountInRaw !== undefined,
     ),
     refetchInterval: 10_000,
     queryFn: async () => {
-      if (!publicClient || !address || !contractAddresses.uniswapV2Router02 || !isAddress(tokenIn)) {
+      if (
+        !publicClient ||
+        !address ||
+        !contractAddresses.uniswapV2Router02 ||
+        !isAddress(tokenIn)
+      ) {
         return 0n;
       }
 
@@ -121,11 +154,11 @@ export function SwapPage() {
         address: tokenIn,
         abi: contractAbis.erc20,
         functionName: "allowance",
-        args: [address, contractAddresses.uniswapV2Router02]
+        args: [address, contractAddresses.uniswapV2Router02],
       });
 
       return allowance as bigint;
-    }
+    },
   });
   const balanceInQuery = useQuery({
     queryKey: ["balance", address, tokenIn],
@@ -139,11 +172,11 @@ export function SwapPage() {
         address: tokenIn as Address,
         abi: contractAbis.erc20,
         functionName: "balanceOf",
-        args: [address]
+        args: [address],
       });
 
       return balance as bigint;
-    }
+    },
   });
   const balanceOutQuery = useQuery({
     queryKey: ["balance", address, tokenOut],
@@ -157,11 +190,11 @@ export function SwapPage() {
         address: tokenOut as Address,
         abi: contractAbis.erc20,
         functionName: "balanceOf",
-        args: [address]
+        args: [address],
       });
 
       return balance as bigint;
-    }
+    },
   });
   const monBalanceQuery = useQuery({
     queryKey: ["balance", "native-mon", address],
@@ -173,7 +206,7 @@ export function SwapPage() {
       }
 
       return publicClient.getBalance({ address });
-    }
+    },
   });
 
   const needsApproval =
@@ -183,7 +216,12 @@ export function SwapPage() {
     (quoteQuery.data?.amountInRaw ?? 0n) > 0n;
 
   async function handleApprove() {
-    if (!isCorrectChain || !contractAddresses.uniswapV2Router02 || !isAddress(tokenIn) || !publicClient) {
+    if (
+      !isCorrectChain ||
+      !contractAddresses.uniswapV2Router02 ||
+      !isAddress(tokenIn) ||
+      !publicClient
+    ) {
       return;
     }
 
@@ -196,11 +234,16 @@ export function SwapPage() {
         address: tokenIn,
         abi: contractAbis.erc20,
         functionName: "approve",
-        args: [contractAddresses.uniswapV2Router02, quoteQuery.data?.amountInRaw ?? 0n]
+        args: [
+          contractAddresses.uniswapV2Router02,
+          quoteQuery.data?.amountInRaw ?? 0n,
+        ],
       });
 
       setLastAction(`Approval sent: ${hash}`);
-      const approvalReceipt = await publicClient.waitForTransactionReceipt({ hash });
+      const approvalReceipt = await publicClient.waitForTransactionReceipt({
+        hash,
+      });
       if (approvalReceipt.status === "reverted") {
         setLastAction(`Approval reverted: ${hash}`);
         return;
@@ -209,9 +252,10 @@ export function SwapPage() {
       await allowanceQuery.refetch();
     } catch (error) {
       console.error("Approval failed", error);
-      const msg = error instanceof Error && error.message.includes("User rejected")
-        ? "Transaction rejected by wallet."
-        : "Approval failed. Please try again.";
+      const msg =
+        error instanceof Error && error.message.includes("User rejected")
+          ? "Transaction rejected by wallet."
+          : "Approval failed. Please try again.";
       setLastAction(msg);
     } finally {
       setPending(false);
@@ -220,7 +264,13 @@ export function SwapPage() {
   }
 
   async function handleSwap() {
-    if (!isCorrectChain || !address || !contractAddresses.uniswapV2Router02 || !quoteQuery.data?.best || !publicClient) {
+    if (
+      !isCorrectChain ||
+      !address ||
+      !contractAddresses.uniswapV2Router02 ||
+      !quoteQuery.data?.best ||
+      !publicClient
+    ) {
       return;
     }
 
@@ -230,9 +280,14 @@ export function SwapPage() {
 
     try {
       const rawSlippage = Number(slippagePercent);
-      const slippage = Number.isFinite(rawSlippage) && rawSlippage > 0 ? Math.min(rawSlippage, 50) : 1;
+      const slippage =
+        Number.isFinite(rawSlippage) && rawSlippage > 0
+          ? Math.min(rawSlippage, 50)
+          : 1;
       const bps = Math.floor(slippage * 100);
-      const minOut = quoteQuery.data.best.amountOut - (quoteQuery.data.best.amountOut * BigInt(bps)) / 10_000n;
+      const minOut =
+        quoteQuery.data.best.amountOut -
+        (quoteQuery.data.best.amountOut * BigInt(bps)) / 10_000n;
       const deadline = BigInt(Math.floor(Date.now() / 1000) + 60 * 20);
       const isTokenInMon = tokenIn === MON_TOKEN;
       const isTokenOutMon = tokenOut === MON_TOKEN;
@@ -245,26 +300,40 @@ export function SwapPage() {
           abi: contractAbis.router,
           functionName: "swapExactETHForTokens",
           args: [minOut, quoteQuery.data.best.path, address, deadline],
-          value: quoteQuery.data.amountInRaw
+          value: quoteQuery.data.amountInRaw,
         });
       } else if (!isTokenInMon && isTokenOutMon) {
         hash = await writeContractAsync({
           address: contractAddresses.uniswapV2Router02,
           abi: contractAbis.router,
           functionName: "swapExactTokensForETH",
-          args: [quoteQuery.data.amountInRaw, minOut, quoteQuery.data.best.path, address, deadline]
+          args: [
+            quoteQuery.data.amountInRaw,
+            minOut,
+            quoteQuery.data.best.path,
+            address,
+            deadline,
+          ],
         });
       } else {
         hash = await writeContractAsync({
           address: contractAddresses.uniswapV2Router02,
           abi: contractAbis.router,
           functionName: "swapExactTokensForTokens",
-          args: [quoteQuery.data.amountInRaw, minOut, quoteQuery.data.best.path, address, deadline]
+          args: [
+            quoteQuery.data.amountInRaw,
+            minOut,
+            quoteQuery.data.best.path,
+            address,
+            deadline,
+          ],
         });
       }
 
       setLastAction(`Swap sent: ${hash}`);
-      const swapReceipt = await publicClient.waitForTransactionReceipt({ hash });
+      const swapReceipt = await publicClient.waitForTransactionReceipt({
+        hash,
+      });
       if (swapReceipt.status === "reverted") {
         setLastAction(`Swap reverted: ${hash}`);
         return;
@@ -275,13 +344,14 @@ export function SwapPage() {
         balanceInQuery.refetch(),
         balanceOutQuery.refetch(),
         monBalanceQuery.refetch(),
-        quoteQuery.refetch()
+        quoteQuery.refetch(),
       ]);
     } catch (error) {
       console.error("Swap failed", error);
-      const msg = error instanceof Error && error.message.includes("User rejected")
-        ? "Transaction rejected by wallet."
-        : "Swap failed. Check your balance and try again.";
+      const msg =
+        error instanceof Error && error.message.includes("User rejected")
+          ? "Transaction rejected by wallet."
+          : "Swap failed. Check your balance and try again.";
       setLastAction(msg);
     } finally {
       setPending(false);
@@ -336,7 +406,10 @@ export function SwapPage() {
       map.set(tokenInMeta.data.address.toLowerCase(), tokenInMeta.data.symbol);
     }
     if (tokenOutMeta.data) {
-      map.set(tokenOutMeta.data.address.toLowerCase(), tokenOutMeta.data.symbol);
+      map.set(
+        tokenOutMeta.data.address.toLowerCase(),
+        tokenOutMeta.data.symbol,
+      );
     }
 
     return map;
@@ -348,7 +421,10 @@ export function SwapPage() {
     }
 
     if (isAddress(tokenAddress)) {
-      return symbolByAddress.get(tokenAddress.toLowerCase()) ?? shortAddress(tokenAddress);
+      return (
+        symbolByAddress.get(tokenAddress.toLowerCase()) ??
+        shortAddress(tokenAddress)
+      );
     }
 
     return tokenAddress;
@@ -366,17 +442,26 @@ export function SwapPage() {
   const bestQuoteValue = bestQuoteReadable || "0";
 
   const amountInRawPreview =
-    quoteQuery.data?.amountInRaw !== undefined && quoteQuery.data.decimalsIn !== undefined
+    quoteQuery.data?.amountInRaw !== undefined &&
+    quoteQuery.data.decimalsIn !== undefined
       ? formatUnits(quoteQuery.data.amountInRaw, quoteQuery.data.decimalsIn)
       : "-";
-  const balanceInRaw = isTokenInMon ? monBalanceQuery.data : balanceInQuery.data;
-  const balanceOutRaw = isTokenOutMon ? monBalanceQuery.data : balanceOutQuery.data;
+  const balanceInRaw = isTokenInMon
+    ? monBalanceQuery.data
+    : balanceInQuery.data;
+  const balanceOutRaw = isTokenOutMon
+    ? monBalanceQuery.data
+    : balanceOutQuery.data;
   const balanceInDecimals = isTokenInMon ? 18 : tokenInMeta.data?.decimals;
   const balanceOutDecimals = isTokenOutMon ? 18 : tokenOutMeta.data?.decimals;
   const balanceInReadable =
-    balanceInRaw !== undefined && balanceInDecimals !== undefined ? formatUnits(balanceInRaw, balanceInDecimals) : "-";
+    balanceInRaw !== undefined && balanceInDecimals !== undefined
+      ? formatUnits(balanceInRaw, balanceInDecimals)
+      : "-";
   const balanceOutReadable =
-    balanceOutRaw !== undefined && balanceOutDecimals !== undefined ? formatUnits(balanceOutRaw, balanceOutDecimals) : "-";
+    balanceOutRaw !== undefined && balanceOutDecimals !== undefined
+      ? formatUnits(balanceOutRaw, balanceOutDecimals)
+      : "-";
   const hasInsufficientBalance =
     isConnected &&
     balanceInRaw !== undefined &&
@@ -394,41 +479,69 @@ export function SwapPage() {
       ? "Connect Wallet"
       : !isCorrectChain
         ? "Switch to Monad Testnet"
-      : hasInsufficientBalance
-        ? `Insufficient ${tokenInSymbol} balance`
-      : needsApproval
-        ? `Approve ${tokenInSymbol}`
-        : "Swap";
+        : hasInsufficientBalance
+          ? `Insufficient ${tokenInSymbol} balance`
+          : needsApproval
+            ? `Approve ${tokenInSymbol}`
+            : "Swap";
   const primaryDisabled =
     pending ||
     (!isConnected
       ? connectors.length === 0
-      : isCorrectChain && (hasInsufficientBalance || (!needsApproval && !quoteQuery.data?.best)));
+      : isCorrectChain &&
+        (hasInsufficientBalance || (!needsApproval && !quoteQuery.data?.best)));
 
-  const isReady = isConnected && isCorrectChain && !hasInsufficientBalance && (needsApproval || Boolean(quoteQuery.data?.best));
+  const isReady =
+    isConnected &&
+    isCorrectChain &&
+    !hasInsufficientBalance &&
+    (needsApproval || Boolean(quoteQuery.data?.best));
 
   const routeLabels =
-    quoteQuery.data?.best?.path
-      .map((pathAddress, index, path) => {
-        if (
-          contractAddresses.wmon &&
-          pathAddress.toLowerCase() === contractAddresses.wmon.toLowerCase() &&
-          ((isTokenInMon && index === 0) || (isTokenOutMon && index === path.length - 1))
-        ) {
-          return MON_TOKEN;
-        }
+    quoteQuery.data?.best?.path.map((pathAddress, index, path) => {
+      if (
+        contractAddresses.wmon &&
+        pathAddress.toLowerCase() === contractAddresses.wmon.toLowerCase() &&
+        ((isTokenInMon && index === 0) ||
+          (isTokenOutMon && index === path.length - 1))
+      ) {
+        return MON_TOKEN;
+      }
 
-        return symbolByAddress.get(pathAddress.toLowerCase()) ?? shortAddress(pathAddress);
-      }) ?? [];
+      return (
+        symbolByAddress.get(pathAddress.toLowerCase()) ??
+        shortAddress(pathAddress)
+      );
+    }) ?? [];
 
   const chevronDown = (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       <polyline points="6 9 12 15 18 9" />
     </svg>
   );
 
   const arrowRight = (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
       <line x1="5" y1="12" x2="19" y2="12" />
       <polyline points="12 5 19 12 12 19" />
     </svg>
@@ -438,11 +551,20 @@ export function SwapPage() {
     <>
       <Helmet>
         <title>Monad Testnet Swap · PuddleSwap DEX</title>
-        <meta name="description" content="Swap tokens on Monad Testnet free. PuddleSwap is an unaudited DEX with star routing through USDC, USDT, and WMON — built for builders testing on Monad." />
+        <meta
+          name="description"
+          content="Swap tokens on Monad Testnet. PuddleSwap is an unaudited DEX with star routing through USDC, USDT, and WMON for builders testing on Monad."
+        />
         <link rel="canonical" href="https://app.puddleswap.org/" />
         <meta property="og:url" content="https://app.puddleswap.org/" />
-        <meta property="og:title" content="Monad Testnet Swap · PuddleSwap DEX" />
-        <meta property="og:description" content="Swap tokens on Monad Testnet free. PuddleSwap is an unaudited DEX with star routing through USDC, USDT, and WMON — built for builders testing on Monad." />
+        <meta
+          property="og:title"
+          content="Monad Testnet Swap · PuddleSwap DEX"
+        />
+        <meta
+          property="og:description"
+          content="Swap tokens on Monad Testnet. PuddleSwap is an unaudited DEX with star routing through USDC, USDT, and WMON for builders testing on Monad."
+        />
       </Helmet>
 
       {/* Mascot */}
@@ -450,33 +572,68 @@ export function SwapPage() {
         <div className="speech-bubble warning">
           Testnet tokens have no real value!
         </div>
-        <div className="speech-bubble">
-          Ready to make a splash?
-        </div>
+        <div className="speech-bubble">Ready to make a splash?</div>
         <div className="puddle-char-wrapper">
-          <svg className="puddle-char" viewBox="0 0 140 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <ellipse cx="70" cy="55" rx="55" ry="38" fill="#4E9A55" transform="rotate(-3 70 55)" />
+          <svg
+            className="puddle-char"
+            viewBox="0 0 140 100"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <ellipse
+              cx="70"
+              cy="55"
+              rx="55"
+              ry="38"
+              fill="#4E9A55"
+              transform="rotate(-3 70 55)"
+            />
             <ellipse cx="57" cy="48" rx="4" ry="8" fill="#1E201E" />
             <ellipse cx="83" cy="48" rx="4" ry="8" fill="#1E201E" />
-            <path d="M60 68q10 8 20 0" stroke="#1E201E" strokeWidth="3" fill="none" strokeLinecap="round" />
+            <path
+              d="M60 68q10 8 20 0"
+              stroke="#1E201E"
+              strokeWidth="3"
+              fill="none"
+              strokeLinecap="round"
+            />
           </svg>
         </div>
       </div>
 
       {/* Swap widget */}
-      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          width: "100%",
+        }}
+      >
         <div className="swap-widget">
           <div className="widget-header">
             <div className="widget-tabs">
-              <button type="button" className="widget-tab active">Swap</button>
+              <button type="button" className="widget-tab active">
+                Swap
+              </button>
             </div>
             <button
               type="button"
               className="icon-btn"
               aria-label="Settings"
-              onClick={() => setShowSettings(v => !v)}
+              onClick={() => setShowSettings((v) => !v)}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
                 <circle cx="12" cy="12" r="3" />
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
               </svg>
@@ -498,7 +655,9 @@ export function SwapPage() {
                   onChange={(event) => setSlippagePercent(event.target.value)}
                   placeholder="1"
                 />
-                <span style={{ fontWeight: 600, color: "var(--text-dark)" }}>%</span>
+                <span style={{ fontWeight: 600, color: "var(--text-dark)" }}>
+                  %
+                </span>
               </div>
             </div>
           )}
@@ -532,7 +691,9 @@ export function SwapPage() {
               />
             </div>
             {isConnected && (
-              <span className="token-balance">Balance: {balanceInReadable}</span>
+              <span className="token-balance">
+                Balance: {balanceInReadable}
+              </span>
             )}
           </div>
 
@@ -544,7 +705,17 @@ export function SwapPage() {
               onClick={handleSwapDirection}
               aria-label="Switch tokens"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <polyline points="19 12 12 19 5 12" />
               </svg>
@@ -577,26 +748,41 @@ export function SwapPage() {
               />
             </div>
             {isConnected && (
-              <span className="token-balance">Balance: {balanceOutReadable}</span>
+              <span className="token-balance">
+                Balance: {balanceOutReadable}
+              </span>
             )}
           </div>
 
           {/* Route info */}
           {quoteQuery.data?.best && (
             <div className="route-info">
-              {quoteQuery.data.decimalsIn !== undefined && quoteQuery.data.decimalsOut !== undefined && quoteQuery.data.amountInRaw > 0n && (
-                <div className="route-row">
-                  <span>Exchange Rate</span>
-                  <span className="route-value">
-                    1 {tokenInSymbol} = {(Number(bestQuoteValue) / Number(amountIn || "1")).toFixed(4)} {tokenOutSymbol}
-                  </span>
-                </div>
-              )}
+              {quoteQuery.data.decimalsIn !== undefined &&
+                quoteQuery.data.decimalsOut !== undefined &&
+                quoteQuery.data.amountInRaw > 0n && (
+                  <div className="route-row">
+                    <span>Exchange Rate</span>
+                    <span className="route-value">
+                      1 {tokenInSymbol} ={" "}
+                      {(
+                        Number(bestQuoteValue) / Number(amountIn || "1")
+                      ).toFixed(4)}{" "}
+                      {tokenOutSymbol}
+                    </span>
+                  </div>
+                )}
               <div className="route-row">
                 <span>Route</span>
                 <span className="route-path">
                   {routeLabels.map((label, i) => (
-                    <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                    <span
+                      key={i}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 4,
+                      }}
+                    >
                       {i > 0 && arrowRight}
                       {label}
                     </span>
@@ -618,16 +804,25 @@ export function SwapPage() {
 
           {/* Debug links */}
           <div className="debug-links">
-            <button type="button" className="debug-link" onClick={() => setShowDiagnostics((v) => !v)}>
+            <button
+              type="button"
+              className="debug-link"
+              onClick={() => setShowDiagnostics((v) => !v)}
+            >
               {showDiagnostics ? "Hide diagnostics" : "Routing table"}
             </button>
-            <button type="button" className="debug-link" onClick={() => setShowAdvanced((v) => !v)}>
+            <button
+              type="button"
+              className="debug-link"
+              onClick={() => setShowAdvanced((v) => !v)}
+            >
               {showAdvanced ? "Hide advanced" : "Advanced"}
             </button>
           </div>
 
           <div className="disclaimer-inline">
-            Unaudited software provided "as is." Use at your own risk — may contain bugs resulting in loss of funds. Not financial advice.
+            Unaudited software provided "as is." Use at your own risk. Bugs may
+            result in loss of funds. Not financial advice.
           </div>
         </div>
 
@@ -641,9 +836,25 @@ export function SwapPage() {
             </div>
             {quoteQuery.data?.quotes.map((quote) => (
               <div key={quote.path.join("-")} className="diagnostic-row">
-                <code>{quote.path.map(a => symbolByAddress.get(a.toLowerCase()) ?? shortAddress(a)).join(" > ")}</code>
-                <span className={quote.success ? "diag-ok" : "diag-fail"}>{quote.success ? "LIVE" : "FAIL"}</span>
-                <span>{quote.success ? formatUnits(quote.amountOut, quoteQuery.data?.decimalsOut ?? 18) : "-"}</span>
+                <code>
+                  {quote.path
+                    .map(
+                      (a) =>
+                        symbolByAddress.get(a.toLowerCase()) ?? shortAddress(a),
+                    )
+                    .join(" > ")}
+                </code>
+                <span className={quote.success ? "diag-ok" : "diag-fail"}>
+                  {quote.success ? "LIVE" : "FAIL"}
+                </span>
+                <span>
+                  {quote.success
+                    ? formatUnits(
+                        quote.amountOut,
+                        quoteQuery.data?.decimalsOut ?? 18,
+                      )
+                    : "-"}
+                </span>
               </div>
             ))}
             <div className="diagnostic-row">
@@ -683,14 +894,27 @@ export function SwapPage() {
         {/* Quick tokens */}
         <div className="quick-tokens">
           <span className="quick-tokens-label">Quick:</span>
-          <button type="button" className="quick-pill" onClick={() => setTokenIn(MON_TOKEN)}>
+          <button
+            type="button"
+            className="quick-pill"
+            onClick={() => setTokenIn(MON_TOKEN)}
+          >
             Sell MON
           </button>
-          <button type="button" className="quick-pill" onClick={() => setTokenOut(MON_TOKEN)}>
+          <button
+            type="button"
+            className="quick-pill"
+            onClick={() => setTokenOut(MON_TOKEN)}
+          >
             Buy MON
           </button>
           {quickTokenAddresses.map((token) => (
-            <button key={`sell-${token}`} type="button" className="quick-pill" onClick={() => setTokenIn(token)}>
+            <button
+              key={`sell-${token}`}
+              type="button"
+              className="quick-pill"
+              onClick={() => setTokenIn(token)}
+            >
               Sell {getTokenLabel(token)}
             </button>
           ))}
@@ -701,7 +925,6 @@ export function SwapPage() {
           <TxStatus message={lastAction} className="swap-status" />
         )}
       </div>
-
     </>
   );
 }

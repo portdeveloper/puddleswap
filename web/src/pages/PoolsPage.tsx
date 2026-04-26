@@ -19,8 +19,16 @@ function PoolRow({ pool }: { pool: PoolInfo }) {
     <Link to={`/pool/${pool.pairAddress}`} className="pool-row">
       <div className="pool-pair">
         <div className="pool-icons">
-          <TokenIcon symbol={pool.symbol0} size={32} className="pool-token-icon" />
-          <TokenIcon symbol={pool.symbol1} size={32} className="pool-token-icon" />
+          <TokenIcon
+            symbol={pool.symbol0}
+            size={32}
+            className="pool-token-icon"
+          />
+          <TokenIcon
+            symbol={pool.symbol1}
+            size={32}
+            className="pool-token-icon"
+          />
         </div>
         <div>
           <div className="pool-pair-name">
@@ -42,11 +50,15 @@ function PoolRow({ pool }: { pool: PoolInfo }) {
       <div>
         {pool.lpBalance > 0n ? (
           <>
-            <div className="pool-stat">{abbreviate(pool.lpBalanceFormatted)}</div>
+            <div className="pool-stat">
+              {abbreviate(pool.lpBalanceFormatted)}
+            </div>
             <div className="pool-stat-sub">{pool.sharePercent}% share</div>
           </>
         ) : (
-          <div className="pool-stat" style={{ color: "var(--text-muted)" }}>—</div>
+          <div className="pool-stat" style={{ color: "var(--text-muted)" }}>
+            N/A
+          </div>
         )}
       </div>
     </Link>
@@ -60,17 +72,28 @@ export function PoolsPage() {
     <section className="pools-section">
       <Helmet>
         <title>Monad Testnet Liquidity Pools · PuddleSwap</title>
-        <meta name="description" content="Browse active liquidity pools on Monad Testnet. PuddleSwap routes swaps through USDC, USDT, and WMON." />
+        <meta
+          name="description"
+          content="Browse active liquidity pools on Monad Testnet. PuddleSwap routes swaps through USDC, USDT, and WMON."
+        />
         <link rel="canonical" href="https://app.puddleswap.org/pools" />
         <meta property="og:url" content="https://app.puddleswap.org/pools" />
-        <meta property="og:title" content="Monad Testnet Liquidity Pools · PuddleSwap" />
-        <meta property="og:description" content="Browse active liquidity pools on Monad Testnet. PuddleSwap routes swaps through USDC, USDT, and WMON." />
+        <meta
+          property="og:title"
+          content="Monad Testnet Liquidity Pools · PuddleSwap"
+        />
+        <meta
+          property="og:description"
+          content="Browse active liquidity pools on Monad Testnet. PuddleSwap routes swaps through USDC, USDT, and WMON."
+        />
       </Helmet>
 
       <div className="pools-header">
         <div>
           <p className="section-label">~ liquidity ~</p>
-          <h1 style={{ fontSize: 32, fontWeight: 800, margin: 0 }}>Monad Testnet Liquidity Pools</h1>
+          <h1 style={{ fontSize: 32, fontWeight: 800, margin: 0 }}>
+            Monad Testnet Liquidity Pools
+          </h1>
           <p style={{ color: "var(--text-muted)", marginTop: 4 }}>
             Small but mighty. These are the puddles powering every swap.
           </p>
@@ -89,19 +112,39 @@ export function PoolsPage() {
         </div>
 
         {poolsQuery.isLoading && (
-          <div style={{ padding: "40px 24px", textAlign: "center", color: "var(--text-muted)" }} role="status">
+          <div
+            style={{
+              padding: "40px 24px",
+              textAlign: "center",
+              color: "var(--text-muted)",
+            }}
+            role="status"
+          >
             Loading pools…
           </div>
         )}
 
         {poolsQuery.isError && (
-          <div style={{ padding: "40px 24px", textAlign: "center", color: "var(--text-muted)" }} role="alert">
+          <div
+            style={{
+              padding: "40px 24px",
+              textAlign: "center",
+              color: "var(--text-muted)",
+            }}
+            role="alert"
+          >
             Failed to load pools.
           </div>
         )}
 
         {poolsQuery.data && poolsQuery.data.length === 0 && (
-          <div style={{ padding: "40px 24px", textAlign: "center", color: "var(--text-muted)" }}>
+          <div
+            style={{
+              padding: "40px 24px",
+              textAlign: "center",
+              color: "var(--text-muted)",
+            }}
+          >
             No pools yet. Be the first to create one!
           </div>
         )}

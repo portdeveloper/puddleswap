@@ -8,7 +8,7 @@ const BASE = "https://app.puddleswap.org";
 
 export function TokenHub() {
   const canonical = `${BASE}/tokens`;
-  const title = "Core Tokens on Monad Testnet — PuddleSwap";
+  const title = "Core Tokens on Monad Testnet: PuddleSwap";
   const description =
     "The four core tokens on PuddleSwap: MON, WMON, USDC, USDT. Addresses, decimals, and what each token is for on Monad Testnet.";
 
@@ -34,8 +34,8 @@ export function TokenHub() {
       <span className="section-label">~ tokens ~</span>
       <h1 className="section-title">Core Tokens on Monad Testnet</h1>
       <p className="section-sub">
-        The four tokens at the center of PuddleSwap's routing graph. Every pool pairs against one
-        of these.
+        The four tokens at the center of PuddleSwap's routing graph. Every pool
+        pairs against one of these.
       </p>
 
       <ul className="token-hub-list">
@@ -47,7 +47,8 @@ export function TokenHub() {
               </div>
               <div className="token-hub-copy">
                 <strong>
-                  {entry.symbol} <span className="token-hub-name">— {entry.name}</span>
+                  {entry.symbol}{" "}
+                  <span className="token-hub-name">- {entry.name}</span>
                 </strong>
                 <span>{entry.summary}</span>
                 <span className="token-hub-meta">

@@ -11,7 +11,7 @@ const BASE = "https://app.puddleswap.org";
 const TODAY = new Date().toISOString().slice(0, 10);
 
 const DEFAULT_DESCRIPTION =
-  "Swap tokens on Monad Testnet. An unaudited DEX with star routing through USDC, USDT, and WMON, built for builders testing on Monad.";
+  "Swap tokens on Monad Testnet. An unaudited DEX with star routing through USDC, USDT, and WMON for testing on Monad.";
 
 function webApplicationLd(url) {
   return {
@@ -155,7 +155,7 @@ function renderLd(...objects) {
   return objects
     .map(
       (obj) =>
-        `<script type="application/ld+json">\n${JSON.stringify(obj, null, 2)}\n    </script>`
+        `<script type="application/ld+json">\n${JSON.stringify(obj, null, 2)}\n    </script>`,
     )
     .join("\n    ");
 }
@@ -175,7 +175,7 @@ const homeFaqs = [
   },
   {
     q: "What is star routing?",
-    a: "PuddleSwap routes every swap through the core tokens — USDC, USDT, and WMON — acting as hubs. Any token with a pool against a core token is reachable from any other token with a single intermediate hop.",
+    a: "PuddleSwap routes every swap through the core tokens: USDC, USDT, and WMON. Any token with a pool against a core token is reachable from any other token with a single intermediate hop.",
   },
   {
     q: "Does PuddleSwap charge fees?",
@@ -189,10 +189,10 @@ const homeFaqs = [
 
 const homeBody = `
       <section class="prerender-intro" aria-label="About PuddleSwap">
-        <h1>About PuddleSwap — the Monad Testnet DEX</h1>
+        <h1>About PuddleSwap: the Monad Testnet DEX</h1>
         <p>Want to swap tokens on Monad Testnet without waiting for a mainnet DEX? PuddleSwap is a static, no-backend DEX that lets builders trade test tokens and seed their own liquidity pools directly on <a href="/learn/monad-testnet">Monad's public testnet (chain ID 10143)</a>.</p>
-        <p>Every swap runs through <a href="/learn/star-routing"><strong>star routing</strong></a>: core tokens (USDC, USDT, and <a href="/learn/wmon">WMON</a>) act as hubs, so any token with a pool against one of them is tradeable against any other. You can swap MON, WMON, USDC, USDT, or any registered ERC-20 in a few clicks — no account, no signup, just a wallet connected to Monad Testnet.</p>
-        <p>Under the hood, PuddleSwap is a stock UniswapV2 fork deployed on Monad Testnet. The frontend talks to the blockchain directly via RPC — zero backend means zero downtime risk, zero KYC, zero data collection. All contracts are verified on MonadVision, Socialscan, and Monadscan.</p>
+        <p>Every swap runs through <a href="/learn/star-routing"><strong>star routing</strong></a>: core tokens (USDC, USDT, and <a href="/learn/wmon">WMON</a>) act as hubs, so any token with a pool against one of them is tradeable against any other. You can swap MON, WMON, USDC, USDT, or any registered ERC-20 in a few clicks. No account, no signup, just a wallet connected to Monad Testnet.</p>
+        <p>Under the hood, PuddleSwap is a stock UniswapV2 fork deployed on Monad Testnet. The frontend talks to the blockchain directly through RPC. There is no app backend, no KYC, and no data collection. All contracts are verified on MonadVision, Socialscan, and Monadscan.</p>
         <p>PuddleSwap is <strong>unaudited</strong>. Testnet tokens have no real value, but the usual warning applies: use at your own risk, and inspect any pool or token you haven't registered yourself. New here? <a href="/learn">Read the Learn guides</a>.</p>
       </section>
 `;
@@ -208,24 +208,24 @@ const poolsBody = `
 const createPoolBody = `
       <section class="prerender-intro" aria-label="Create a liquidity pool on Monad Testnet">
         <h1>Create a Liquidity Pool on Monad Testnet</h1>
-        <p>Deploy a new UniswapV2-style pair on Monad Testnet and seed it with your initial liquidity in one transaction. Paste any two ERC-20 addresses (or pick a core token), set the amounts, approve, and add liquidity — you receive LP tokens representing your share of the pool.</p>
+        <p>Deploy a new UniswapV2-style pair on Monad Testnet and seed it with your initial liquidity in one transaction. Paste any two ERC-20 addresses (or pick a core token), set the amounts, approve, and add liquidity. You receive LP tokens representing your share of the pool.</p>
         <p>Pools are permissionless: anyone can create any pair. PuddleSwap is unaudited; use at your own risk on testnet only.</p>
       </section>
 `;
 
-const learnHubTitle = "Learn — Monad Testnet DEX Concepts";
+const learnHubTitle = "Learn: Monad Testnet DEX Concepts";
 const learnHubDescription =
-  "Plain-language guides to Monad Testnet, star routing, WMON, and the other moving parts behind PuddleSwap. Written for builders.";
+  "Short guides to Monad Testnet, star routing, WMON, and the parts behind PuddleSwap.";
 
 const learnHubBody = `
       <section class="prerender-intro" aria-label="PuddleSwap Learn">
         <h1>PuddleSwap Learn</h1>
-        <p>Plain-language guides to the moving parts behind a Monad Testnet DEX.</p>
+        <p>Short guides to the parts behind a Monad Testnet DEX.</p>
         <ul>
 ${learnEntries
   .map(
     (e) =>
-      `          <li><a href="/learn/${e.slug}"><strong>${e.h1}</strong> — ${e.summary} <em>(${e.readingTime})</em></a></li>`
+      `          <li><a href="/learn/${e.slug}"><strong>${e.h1}</strong>: ${e.summary} <em>(${e.readingTime})</em></a></li>`,
   )
   .join("\n")}
         </ul>
@@ -243,7 +243,7 @@ ${blocksToHtml(entry.blocks)}
 `;
 }
 
-const tokensHubTitle = "Core Tokens on Monad Testnet — PuddleSwap";
+const tokensHubTitle = "Core Tokens on Monad Testnet: PuddleSwap";
 const tokensHubDescription =
   "The four core tokens on PuddleSwap: MON, WMON, USDC, USDT. Addresses, decimals, and what each token is for on Monad Testnet.";
 
@@ -255,7 +255,7 @@ const tokensHubBody = `
 ${tokenEntries
   .map(
     (t) =>
-      `          <li><a href="/tokens/${t.slug}"><strong>${t.symbol} — ${t.name}</strong>: ${t.summary}</a></li>`
+      `          <li><a href="/tokens/${t.slug}"><strong>${t.symbol}: ${t.name}</strong>: ${t.summary}</a></li>`,
   )
   .join("\n")}
         </ul>
@@ -280,7 +280,7 @@ const routes = [
     file: "index.html",
     title: "Monad Testnet Swap · PuddleSwap DEX",
     description:
-      "Swap tokens on Monad Testnet free. PuddleSwap is an unaudited DEX with star routing through USDC, USDT, and WMON — built for builders testing on Monad.",
+      "Swap tokens on Monad Testnet. PuddleSwap is an unaudited DEX with star routing through USDC, USDT, and WMON for builders testing on Monad.",
     body: homeBody,
     ld: renderLd(webApplicationLd(`${BASE}/`), faqLd(homeFaqs)),
     priority: "1.0",
@@ -298,7 +298,7 @@ const routes = [
       breadcrumbLd([
         { name: "PuddleSwap", path: "/" },
         { name: "Pools", path: "/pools" },
-      ])
+      ]),
     ),
     priority: "0.8",
     changefreq: "weekly",
@@ -316,7 +316,7 @@ const routes = [
         { name: "PuddleSwap", path: "/" },
         { name: "Pools", path: "/pools" },
         { name: "Create Pool", path: "/pool/new" },
-      ])
+      ]),
     ),
     priority: "0.6",
     changefreq: "monthly",
@@ -333,12 +333,12 @@ const routes = [
         learnHubTitle,
         learnHubDescription,
         learnEntries,
-        "/learn"
+        "/learn",
       ),
       breadcrumbLd([
         { name: "PuddleSwap", path: "/" },
         { name: "Learn", path: "/learn" },
-      ])
+      ]),
     ),
     priority: "0.7",
     changefreq: "monthly",
@@ -355,7 +355,7 @@ const routes = [
         { name: "PuddleSwap", path: "/" },
         { name: "Learn", path: "/learn" },
         { name: entry.h1, path: `/learn/${entry.slug}` },
-      ])
+      ]),
     ),
     priority: "0.6",
     changefreq: "monthly",
@@ -372,12 +372,12 @@ const routes = [
         tokensHubTitle,
         tokensHubDescription,
         tokenEntries,
-        "/tokens"
+        "/tokens",
       ),
       breadcrumbLd([
         { name: "PuddleSwap", path: "/" },
         { name: "Tokens", path: "/tokens" },
-      ])
+      ]),
     ),
     priority: "0.7",
     changefreq: "monthly",
@@ -395,7 +395,7 @@ const routes = [
         { name: "PuddleSwap", path: "/" },
         { name: "Tokens", path: "/tokens" },
         { name: entry.symbol, path: `/tokens/${entry.slug}` },
-      ])
+      ]),
     ),
     priority: "0.6",
     changefreq: "monthly",
@@ -409,28 +409,28 @@ function patchHead(html, { title, description, canonical, ld }) {
     .replace(/<title>[^<]*<\/title>/, `<title>${title}</title>`)
     .replace(
       /(<meta name="description" content=")[^"]*(")/,
-      `$1${description}$2`
+      `$1${description}$2`,
     )
     .replace(/(<link rel="canonical" href=")[^"]*(")/, `$1${canonical}$2`)
     .replace(/(<meta property="og:url" content=")[^"]*(")/, `$1${canonical}$2`)
     .replace(/(<meta property="og:title" content=")[^"]*(")/, `$1${title}$2`)
     .replace(
       /(<meta property="og:description" content=")[^"]*(")/,
-      `$1${description}$2`
+      `$1${description}$2`,
     )
     .replace(/(<meta name="twitter:title" content=")[^"]*(")/, `$1${title}$2`)
     .replace(
       /(<meta name="twitter:description" content=")[^"]*(")/,
-      `$1${description}$2`
+      `$1${description}$2`,
     )
-    .replace(
-      /<script type="application\/ld\+json">[\s\S]*?<\/script>/,
-      ld
-    );
+    .replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/, ld);
 }
 
 function patchBody(html, body) {
-  return html.replace(/<div id="root">[\s\S]*?<\/div>/, `<div id="root">${body}    </div>`);
+  return html.replace(
+    /<div id="root">[\s\S]*?<\/div>/,
+    `<div id="root">${body}    </div>`,
+  );
 }
 
 for (const r of routes) {
@@ -448,7 +448,7 @@ for (const r of routes) {
   console.log(`  prerendered ${r.path} -> dist/${r.file}`);
 }
 
-// Pool detail fallback for /pool/:addr — served by Vercel rewrite.
+// Pool detail fallback for /pool/:addr, served by Vercel rewrite.
 // Goal: non-JS crawlers immediately see noindex; React/Helmet manages the rest.
 const fallbackTitle = "Liquidity Pool · PuddleSwap · Monad Testnet";
 const fallbackDescription =
@@ -457,34 +457,42 @@ const fallbackHtml = template
   .replace(/<title>[^<]*<\/title>/, `<title>${fallbackTitle}</title>`)
   .replace(
     /(<meta name="description" content=")[^"]*(")/,
-    `$1${fallbackDescription}$2`
+    `$1${fallbackDescription}$2`,
   )
   .replace(
     /<link rel="canonical" href="[^"]*"\s*\/>/,
-    `<meta name="robots" content="noindex, nofollow" />`
+    `<meta name="robots" content="noindex, nofollow" />`,
   )
-  .replace(/(<meta property="og:title" content=")[^"]*(")/, `$1${fallbackTitle}$2`)
+  .replace(
+    /(<meta property="og:title" content=")[^"]*(")/,
+    `$1${fallbackTitle}$2`,
+  )
   .replace(
     /(<meta property="og:description" content=")[^"]*(")/,
-    `$1${fallbackDescription}$2`
+    `$1${fallbackDescription}$2`,
   )
-  .replace(/(<meta name="twitter:title" content=")[^"]*(")/, `$1${fallbackTitle}$2`)
+  .replace(
+    /(<meta name="twitter:title" content=")[^"]*(")/,
+    `$1${fallbackTitle}$2`,
+  )
   .replace(
     /(<meta name="twitter:description" content=")[^"]*(")/,
-    `$1${fallbackDescription}$2`
+    `$1${fallbackDescription}$2`,
   )
   .replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>\s*/, "");
 
 const fallbackPath = join(DIST, "pool", "_fallback", "index.html");
 mkdirSync(dirname(fallbackPath), { recursive: true });
 writeFileSync(fallbackPath, fallbackHtml);
-console.log(`  prerendered /pool/:addr fallback -> dist/pool/_fallback/index.html`);
+console.log(
+  `  prerendered /pool/:addr fallback -> dist/pool/_fallback/index.html`,
+);
 
-// Sitemap with dynamic lastmod
+// Sitemap with current lastmod
 const sitemapEntries = routes
   .map(
     (r) =>
-      `  <url>\n    <loc>${BASE}${r.path}</loc>\n    <lastmod>${TODAY}</lastmod>\n    <changefreq>${r.changefreq}</changefreq>\n    <priority>${r.priority}</priority>\n  </url>`
+      `  <url>\n    <loc>${BASE}${r.path}</loc>\n    <lastmod>${TODAY}</lastmod>\n    <changefreq>${r.changefreq}</changefreq>\n    <priority>${r.priority}</priority>\n  </url>`,
   )
   .join("\n");
 const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
