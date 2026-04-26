@@ -187,6 +187,7 @@ h1, h2, h3 { scroll-margin-top: 180px; }
   z-index: 100;
   box-shadow: 0 8px 24px rgba(0,0,0,0.08);
   width: max-content;
+  max-width: calc(100vw - 24px);
   height: 56px;
 }
 
@@ -208,6 +209,7 @@ h1, h2, h3 { scroll-margin-top: 180px; }
 .nav-links {
   display: flex;
   gap: 24px;
+  min-width: 0;
 }
 
 .nav-links a {
@@ -1542,7 +1544,14 @@ code {
   }
 
   .logo { font-size: 17px; }
-  .nav-links { gap: 12px; }
+  .logo span { display: none; }
+  .nav-links {
+    gap: 12px;
+    max-width: 48vw;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .nav-links::-webkit-scrollbar { display: none; }
   .nav-links a { font-size: 13px; }
   .btn-connect { padding: 8px 14px; font-size: 13px; }
 
