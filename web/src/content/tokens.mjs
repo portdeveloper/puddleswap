@@ -79,6 +79,24 @@ export const tokenEntries = [
         ],
       },
     ],
+    faqs: [
+      {
+        q: "Does test MON have any real value?",
+        a: "No. Test MON exists only on Monad Testnet, where it pays gas. It is not bridged to mainnet, has no market, and cannot be exchanged for real assets.",
+      },
+      {
+        q: "Why isn't MON listed as an ERC-20 contract address?",
+        a: "MON is the native gas token of Monad, like ETH on Ethereum. Native tokens are handled by the protocol itself and have no ERC-20 contract. Use WMON when you need an ERC-20 form for pools or other contracts.",
+      },
+      {
+        q: "How do I get MON for gas?",
+        a: "Claim from the official Monad Testnet faucet, swap from another token on PuddleSwap, or have someone send you MON directly. Most users start with the faucet because it is free and the cooldown resets daily.",
+      },
+      {
+        q: "Can I send MON to a smart contract directly?",
+        a: "Only if the contract has a payable receive or fallback function. ERC-20-only contracts cannot accept native MON; for those you wrap it to WMON first and send the WMON.",
+      },
+    ],
   },
   {
     slug: "wmon",
@@ -158,6 +176,24 @@ export const tokenEntries = [
           { a: { href: "/pool/new", text: "new liquidity pool" } },
           ".",
         ],
+      },
+    ],
+    faqs: [
+      {
+        q: "Is WMON the same value as MON?",
+        a: "Yes. WMON is redeemable 1:1 for MON via the WMON contract's withdraw function at any time. The economic value is identical; only the token form differs.",
+      },
+      {
+        q: "Do I need to hold WMON to use PuddleSwap?",
+        a: "No. PuddleSwap's router wraps and unwraps automatically when you swap with MON as input or output. You only hold WMON if you wrap it manually or receive it from a liquidity pool withdrawal.",
+      },
+      {
+        q: "Where do I get WMON?",
+        a: "Either swap to it on PuddleSwap, call deposit() on the WMON contract with native MON, or withdraw from a WMON-paired liquidity pool position.",
+      },
+      {
+        q: "What is the WMON contract address?",
+        a: "0x97B3070F9Da6C002343862b35E68Bd8e22608943 on Monad Testnet (chain ID 10143). Verify on Monadscan, MonadVision, or Socialscan before interacting.",
       },
     ],
   },
@@ -243,6 +279,24 @@ export const tokenEntries = [
         ],
       },
     ],
+    faqs: [
+      {
+        q: "Is testnet USDC the same as real USDC?",
+        a: "No. Testnet USDC is a separate ERC-20 deployed on Monad Testnet for testing. It has no economic value, is not issued by Circle, and cannot be redeemed for real USD.",
+      },
+      {
+        q: "How do I get testnet USDC?",
+        a: "Claim from the stable faucet on Monad Testnet, swap MON or WMON for USDC on PuddleSwap, or receive a transfer from another developer. The faucet is the canonical free source.",
+      },
+      {
+        q: "Why is USDC a core routing token on PuddleSwap?",
+        a: "PuddleSwap's star routing designates USDC, USDT, and WMON as hubs. Every pool must pair against at least one of them, which keeps the routing graph small and predictable for both users and contract integrations.",
+      },
+      {
+        q: "Does USDC stay close to 1:1 with USDT and WMON on testnet?",
+        a: "Against USDT, yes. Both are USD-pegged so the USDC/USDT pool stays near 1:1 (minus the 0.30% LP fee). Against WMON, no. The USDC/WMON pair is volatile because MON's price moves against USD.",
+      },
+    ],
   },
   {
     slug: "usdt",
@@ -324,6 +378,24 @@ export const tokenEntries = [
           { a: { href: "/pool/new", text: "create a pool" } },
           " paired with it.",
         ],
+      },
+    ],
+    faqs: [
+      {
+        q: "Is testnet USDT the same as Tether's USDT?",
+        a: "No. Testnet USDT is a separate ERC-20 deployed only on Monad Testnet for testing. It is not issued by Tether, has no real value, and cannot be moved off testnet to any other chain.",
+      },
+      {
+        q: "How is USDT different from USDC on Monad Testnet?",
+        a: "Both are USD-pegged stablecoins issued for testnet. They behave identically for routing and pricing. The brand difference exists so you can test stable-to-stable swaps and downstream flows that depend on either name.",
+      },
+      {
+        q: "Where do I get testnet USDT?",
+        a: "Claim from the stable faucet on Monad Testnet, swap from another token on PuddleSwap, or receive a transfer from another developer. The faucet is free with a daily cooldown.",
+      },
+      {
+        q: "Can I bridge testnet USDT to mainnet?",
+        a: "No. Testnet tokens stay on testnet. There is no bridge between Monad Testnet and Monad mainnet (or any other chain) for testnet assets. Do not attempt to send testnet USDT across a bridge.",
       },
     ],
   },

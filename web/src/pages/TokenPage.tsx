@@ -134,6 +134,29 @@ function TokenArticle({ entry }: { entry: TokenEntry }) {
         )}
       </section>
 
+      {entry.faqs && entry.faqs.length > 0 && (
+        <section
+          className="learn-faq"
+          aria-labelledby={`faq-token-${entry.slug}`}
+        >
+          <h2
+            id={`faq-token-${entry.slug}`}
+            className="section-title"
+            style={{ fontSize: 20 }}
+          >
+            FAQ
+          </h2>
+          <dl>
+            {entry.faqs.map((f, i) => (
+              <div key={i} className="learn-faq-item">
+                <dt>{f.q}</dt>
+                <dd>{f.a}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      )}
+
       {related.length > 0 && (
         <aside className="learn-related" aria-label="Other core tokens">
           <h2 className="section-title" style={{ fontSize: 20 }}>

@@ -1,4 +1,4 @@
-import type { Block } from "./learn.mjs";
+import type { Block, Faq } from "./learn.mjs";
 
 export interface TokenEntry {
   slug: string;
@@ -13,6 +13,7 @@ export interface TokenEntry {
   h1: string;
   summary: string;
   blocks: Block[];
+  faqs?: Faq[];
 }
 
 export const TOKENS_BASE_PATH: string;

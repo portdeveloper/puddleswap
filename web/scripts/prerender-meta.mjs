@@ -431,12 +431,13 @@ ${tokenEntries
 
 function tokenBody(entry) {
   const meta = `${entry.name} · ${entry.decimals} decimals${entry.isCore ? " · core routing token" : ""}`;
+  const faqs = faqHtml(entry.faqs, `faq-token-${entry.slug}`);
   return `
       <article class="prerender-intro" aria-label="${entry.h1}">
         <nav aria-label="Breadcrumb"><a href="/">PuddleSwap</a> / <a href="/tokens">Tokens</a> / <span>${entry.symbol}</span></nav>
         <h1>${entry.h1}</h1>
         <p><em>${meta}</em></p>
-${tokenBlocksToHtml(entry.blocks)}
+${tokenBlocksToHtml(entry.blocks)}${faqs}
       </article>
 `;
 }
@@ -564,6 +565,7 @@ const routes = [
         { name: "Tokens", path: "/tokens" },
         { name: entry.symbol, path: `/tokens/${entry.slug}` },
       ]),
+      ...(entry.faqs && entry.faqs.length > 0 ? [faqLd(entry.faqs)] : []),
     ),
     priority: "0.6",
     changefreq: "monthly",
