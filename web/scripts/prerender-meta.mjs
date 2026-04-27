@@ -233,12 +233,27 @@ ${learnEntries
 `;
 
 function learnBody(entry) {
+  const related = learnEntries.filter((e) => e.slug !== entry.slug);
+  const relatedHtml = related.length
+    ? `
+        <aside class="learn-related" aria-label="More learn articles">
+          <h2>More from Learn</h2>
+          <ul class="learn-related-list">
+${related
+  .map(
+    (r) =>
+      `            <li><a href="/learn/${r.slug}"><strong>${r.h1}</strong><span>${r.summary}</span></a></li>`,
+  )
+  .join("\n")}
+          </ul>
+        </aside>`
+    : "";
   return `
       <article class="prerender-intro" aria-label="${entry.h1}">
         <nav aria-label="Breadcrumb"><a href="/">PuddleSwap</a> / <a href="/learn">Learn</a> / <span>${entry.h1}</span></nav>
         <h1>${entry.h1}</h1>
         <p><em>${entry.readingTime} · Updated ${entry.datePublished}</em></p>
-${blocksToHtml(entry.blocks)}
+${blocksToHtml(entry.blocks)}${relatedHtml}
       </article>
 `;
 }
