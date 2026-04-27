@@ -60,6 +60,7 @@
     { "source": "/learn/:slug", "destination": "/learn/:slug/index.html" },
     { "source": "/tokens", "destination": "/tokens/index.html" },
     { "source": "/tokens/:slug", "destination": "/tokens/:slug/index.html" },
-    { "source": "/about", "destination": "/about/index.html" }
+    { "source": "/about", "destination": "/about/index.html" },
+    { "source": "/swap/:slug", "destination": "/swap/:slug/index.html" }
   ]
 }

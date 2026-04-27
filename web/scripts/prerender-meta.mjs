@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import { blocksToHtml, learnEntries } from "../src/content/learn.mjs";
 import { tokenBlocksToHtml, tokenEntries } from "../src/content/tokens.mjs";
+import { swapBlocksToHtml, swapPairs } from "../src/content/swap-pairs.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const DIST = join(ROOT, "dist");
@@ -269,6 +270,75 @@ function aboutPageLd(url) {
   };
 }
 
+function howToLd(pair) {
+  const url = `${BASE}/swap/${pair.slug}`;
+  const stepText = (item) =>
+    item.parts
+      .map((p) => {
+        if (typeof p === "string") return p;
+        if ("b" in p) return p.b;
+        if ("code" in p) return p.code;
+        if ("a" in p) return p.a.text;
+        return "";
+      })
+      .join("");
+  const stepsBlock = pair.blocks.find((b) => b.type === "ul");
+  const steps = stepsBlock
+    ? stepsBlock.items.map((item, i) => ({
+        "@type": "HowToStep",
+        position: i + 1,
+        name: `Step ${i + 1}`,
+        text: stepText(item),
+      }))
+    : [];
+  return {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    name: pair.h1,
+    description: pair.description,
+    url,
+    image: `${BASE}/og.png`,
+    totalTime: "PT1M",
+    step: steps,
+  };
+}
+
+function swapGuideBody(pair) {
+  const related = swapPairs
+    .filter(
+      (p) =>
+        p.slug !== pair.slug &&
+        (p.from.slug === pair.from.slug ||
+          p.to.slug === pair.to.slug ||
+          p.from.slug === pair.to.slug ||
+          p.to.slug === pair.from.slug),
+    )
+    .slice(0, 4);
+  const relatedHtml = related.length
+    ? `
+        <aside class="learn-related" aria-label="Related swap guides">
+          <h2>Related swap guides</h2>
+          <ul class="learn-related-list">
+${related
+  .map(
+    (r) =>
+      `            <li><a href="/swap/${r.slug}"><strong>${r.h1}</strong><span>${r.summary}</span></a></li>`,
+  )
+  .join("\n")}
+          </ul>
+        </aside>`
+    : "";
+  const faqs = faqHtml(pair.faqs, `faq-${pair.slug}`);
+  return `
+      <article class="prerender-intro" aria-label="${pair.h1}">
+        <nav aria-label="Breadcrumb"><a href="/">PuddleSwap</a> / <a href="/learn">Learn</a> / <span>${pair.from.symbol} to ${pair.to.symbol}</span></nav>
+        <h1>${pair.h1}</h1>
+        <p><em>${pair.readingTime} · Updated ${pair.datePublished}</em></p>
+${swapBlocksToHtml(pair.blocks)}${faqs}${relatedHtml}
+      </article>
+`;
+}
+
 const learnHubTitle = "Learn: Monad Testnet DEX Concepts";
 const learnHubDescription =
   "Short guides to Monad Testnet, star routing, WMON, and the parts behind PuddleSwap.";
@@ -515,6 +585,27 @@ const routes = [
     priority: "0.5",
     changefreq: "monthly",
   },
+  ...swapPairs.map((pair) => ({
+    path: `/swap/${pair.slug}`,
+    file: `swap/${pair.slug}/index.html`,
+    title: `${pair.title} · PuddleSwap`,
+    description: pair.description,
+    body: swapGuideBody(pair),
+    ld: renderLd(
+      howToLd(pair),
+      breadcrumbLd([
+        { name: "PuddleSwap", path: "/" },
+        { name: "Learn", path: "/learn" },
+        {
+          name: `${pair.from.symbol} to ${pair.to.symbol}`,
+          path: `/swap/${pair.slug}`,
+        },
+      ]),
+      faqLd(pair.faqs),
+    ),
+    priority: "0.7",
+    changefreq: "weekly",
+  })),
 ];
 
 const template = readFileSync(join(DIST, "index.html"), "utf8");
