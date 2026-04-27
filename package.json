@@ -2,9 +2,6 @@
   "name": "puddle",
   "private": true,
   "version": "0.1.0",
-  "devDependencies": {
-    "ethers": "^6.15.0"
-  },
   "scripts": {
     "test": "make test",
     "dev": "make dev",

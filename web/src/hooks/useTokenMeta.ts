@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { formatUnits, isAddress, type Address } from "viem";
+import { isAddress, type Address } from "viem";
 import { usePublicClient } from "wagmi";
 import { monadTestnet } from "../config/chain";
 
@@ -39,12 +39,4 @@ export function useTokenMeta(tokenAddress: string | undefined) {
       };
     }
   });
-}
-
-export function formatTokenAmount(amount: bigint | undefined, decimals: number | undefined) {
-  if (amount === undefined || decimals === undefined) {
-    return "-";
-  }
-
-  return formatUnits(amount, decimals);
 }

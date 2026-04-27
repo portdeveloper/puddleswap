@@ -1,7 +1,5 @@
 import type { Address } from "viem";
 
-export type TokenLevel = "TOP_VERIFIED" | "CHECKMARK" | "BASIC";
-
 export type TokenView = {
   token: Address;
   symbol: string;
