@@ -31,7 +31,6 @@ export interface SwapPair {
   faqs: Faq[];
 }
 
-export const SWAP_GUIDES_BASE_PATH: string;
 export const swapPairs: SwapPair[];
 export const swapPairBySlug: Record<string, SwapPair>;
 export function swapBlocksToHtml(blocks: Block[]): string;

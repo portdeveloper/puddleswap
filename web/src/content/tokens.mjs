@@ -3,8 +3,6 @@
 // still reads the chain for live state. Keep addresses in sync with
 // src/config/generated.ts.
 
-export const TOKENS_BASE_PATH = "/tokens";
-
 export const tokenEntries = [
   {
     slug: "mon",

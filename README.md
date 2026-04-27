@@ -116,7 +116,7 @@ ADMIN_ADDRESS=<deployer-address> make verify-contracts
 
 ### Frontend
 
-Deployed to Vercel. Pushes to `master` auto-deploy. The only required env var is `VITE_WALLETCONNECT_PROJECT_ID`.
+Deployed to Vercel. Pushes to `master` auto-deploy. No env vars are required; `VITE_RPC_URL` and `VITE_EXPLORER_BASE_URL` are optional overrides.
 
 ### Rebalancer
 

@@ -2,8 +2,6 @@
 // script. Each article is structured as an ordered list of blocks; React
 // renders them as JSX, the prerender script renders the same blocks as HTML.
 
-export const LEARN_BASE_PATH = "/learn";
-
 // Block shapes:
 //   { type: "p",  parts: Part[] }
 //   { type: "h2", text: string }

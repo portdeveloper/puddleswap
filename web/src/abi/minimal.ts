@@ -260,20 +260,3 @@ export const registryAbi = [
     outputs: []
   }
 ] as const;
-
-export const wmonAbi = [
-  {
-    type: "function",
-    name: "deposit",
-    stateMutability: "payable",
-    inputs: [],
-    outputs: []
-  },
-  {
-    type: "function",
-    name: "withdraw",
-    stateMutability: "nonpayable",
-    inputs: [{ name: "wad", type: "uint256" }],
-    outputs: []
-  }
-] as const;

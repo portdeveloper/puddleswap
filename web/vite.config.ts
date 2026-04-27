@@ -13,7 +13,6 @@ export default defineConfig({
           (d) =>
             !d.includes("wallet-vendor") &&
             !d.includes("query-vendor") &&
-            !d.includes("walletconnect-vendor") &&
             !d.includes("Web3Providers") &&
             !d.includes("WalletControls")
         )
@@ -26,7 +25,6 @@ export default defineConfig({
           if (id.includes("react-helmet")) return "react-vendor";
           if (id.match(/[\\/]react(-dom)?[\\/]/)) return "react-vendor";
           if (id.includes("@tanstack")) return "query-vendor";
-          if (id.includes("@walletconnect")) return "walletconnect-vendor";
           if (id.includes("wagmi") || id.includes("@wagmi")) return "wallet-vendor";
           if (id.includes("viem") || id.includes("ox") || id.includes("abitype"))
             return "wallet-vendor";

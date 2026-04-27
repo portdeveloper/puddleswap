@@ -16,7 +16,6 @@ export interface TokenEntry {
   faqs?: Faq[];
 }
 
-export const TOKENS_BASE_PATH: string;
 export const tokenEntries: TokenEntry[];
 export const tokenBySlug: Record<string, TokenEntry>;
 export function tokenBlocksToHtml(blocks: Block[]): string;

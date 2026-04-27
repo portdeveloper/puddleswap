@@ -2,8 +2,6 @@
 // Imported by React components and the prerender script. The block schema
 // matches learn.mjs and is rendered via the shared BlocksRenderer.
 
-export const SWAP_GUIDES_BASE_PATH = "/swap";
-
 const TOKENS = {
   mon: {
     symbol: "MON",

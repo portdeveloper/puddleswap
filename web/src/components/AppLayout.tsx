@@ -11,7 +11,7 @@ const links = [
   { to: "/pools", label: "Pools" },
 ] satisfies Array<{ to: string; label: string; end?: boolean }>;
 
-export function StaticOpenSwapButton() {
+function StaticOpenSwapButton() {
   return (
     <Link to="/" className="btn-connect">
       Open Swap
@@ -23,12 +23,10 @@ export function AppLayout({
   children,
   walletButton,
   walletWarning,
-  showBelowFold = true,
 }: {
   children: ReactNode;
   walletButton?: ReactNode;
   walletWarning?: ReactNode;
-  showBelowFold?: boolean;
 }) {
   const location = useLocation();
   const isHomePage = location.pathname === "/";
@@ -85,7 +83,7 @@ export function AppLayout({
       {walletWarning}
 
       <main>{children}</main>
-      {isHomePage && showBelowFold && <BelowFold />}
+      {isHomePage && <BelowFold />}
     </div>
   );
 }

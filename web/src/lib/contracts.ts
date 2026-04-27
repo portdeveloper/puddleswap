@@ -2,7 +2,7 @@ import type { Address } from "viem";
 import { isAddress } from "viem";
 
 import { abis, deployment } from "../config/generated";
-import { erc20Abi, factoryAbi, pairAbi, registryAbi, routerAbi, wmonAbi } from "../abi/minimal";
+import { erc20Abi, factoryAbi, pairAbi, registryAbi, routerAbi } from "../abi/minimal";
 
 function asAddress(value: string | undefined): Address | undefined {
   if (!value) {
@@ -16,10 +16,8 @@ export const contractAddresses = {
   wmon: asAddress(deployment.contracts.wmon),
   usdc: asAddress(deployment.contracts.usdc),
   testUSDT: asAddress(deployment.contracts.testUSDT),
-  stableFaucet: asAddress(deployment.contracts.stableFaucet),
   uniswapV2Factory: asAddress(deployment.contracts.uniswapV2Factory),
   uniswapV2Router02: asAddress(deployment.contracts.uniswapV2Router02),
-  openRegistrationGate: asAddress(deployment.contracts.openRegistrationGate),
   tokenRegistry: asAddress(deployment.contracts.tokenRegistry)
 } as const;
 
@@ -32,8 +30,7 @@ export const contractAbis = {
   router: fallbackAbi(abis.uniswapV2Router02, routerAbi),
   factory: fallbackAbi(abis.uniswapV2Factory, factoryAbi),
   pair: pairAbi,
-  registry: fallbackAbi(abis.tokenRegistry, registryAbi),
-  wmon: fallbackAbi(abis.wmon, wmonAbi)
+  registry: fallbackAbi(abis.tokenRegistry, registryAbi)
 } as const;
 
 export const multicall3Address = "0xca11bde05977b3631167028862be2a173976ca11" as Address;

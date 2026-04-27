@@ -26,7 +26,6 @@ export interface LearnEntry {
   faqs?: Faq[];
 }
 
-export const LEARN_BASE_PATH: string;
 export const learnEntries: LearnEntry[];
 export const learnBySlug: Record<string, LearnEntry>;
 export function blocksToHtml(blocks: Block[]): string;
