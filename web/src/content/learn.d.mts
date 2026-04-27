@@ -9,6 +9,11 @@ export type Block =
   | { type: "h2"; text: string }
   | { type: "ul"; items: { parts: Part[] }[] };
 
+export interface Faq {
+  q: string;
+  a: string;
+}
+
 export interface LearnEntry {
   slug: string;
   title: string;
@@ -18,6 +23,7 @@ export interface LearnEntry {
   readingTime: string;
   datePublished: string;
   blocks: Block[];
+  faqs?: Faq[];
 }
 
 export const LEARN_BASE_PATH: string;

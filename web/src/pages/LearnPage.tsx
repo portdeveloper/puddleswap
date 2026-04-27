@@ -44,6 +44,25 @@ function LearnArticle({ entry }: { entry: LearnEntry }) {
         <BlocksRenderer blocks={entry.blocks} />
       </div>
 
+      {entry.faqs && entry.faqs.length > 0 && (
+        <section
+          className="learn-faq"
+          aria-label={`${entry.h1} frequently asked questions`}
+        >
+          <h2 className="section-title" style={{ fontSize: 20 }}>
+            FAQ
+          </h2>
+          <dl>
+            {entry.faqs.map((f, i) => (
+              <div key={i} className="learn-faq-item">
+                <dt>{f.q}</dt>
+                <dd>{f.a}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      )}
+
       {related.length > 0 && (
         <aside className="learn-related" aria-label="More learn articles">
           <h2 className="section-title" style={{ fontSize: 20 }}>

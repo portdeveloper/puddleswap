@@ -232,6 +232,31 @@ ${learnEntries
       </section>
 `;
 
+function escapeAttr(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function faqHtml(faqs, headingId) {
+  if (!faqs || faqs.length === 0) return "";
+  const items = faqs
+    .map(
+      (f) =>
+        `            <div class="learn-faq-item">\n              <dt>${escapeAttr(f.q)}</dt>\n              <dd>${escapeAttr(f.a)}</dd>\n            </div>`,
+    )
+    .join("\n");
+  return `
+        <section class="learn-faq" aria-labelledby="${headingId}">
+          <h2 id="${headingId}">FAQ</h2>
+          <dl>
+${items}
+          </dl>
+        </section>`;
+}
+
 function learnBody(entry) {
   const related = learnEntries.filter((e) => e.slug !== entry.slug);
   const relatedHtml = related.length
@@ -248,12 +273,13 @@ ${related
           </ul>
         </aside>`
     : "";
+  const faqs = faqHtml(entry.faqs, `faq-${entry.slug}`);
   return `
       <article class="prerender-intro" aria-label="${entry.h1}">
         <nav aria-label="Breadcrumb"><a href="/">PuddleSwap</a> / <a href="/learn">Learn</a> / <span>${entry.h1}</span></nav>
         <h1>${entry.h1}</h1>
         <p><em>${entry.readingTime} · Updated ${entry.datePublished}</em></p>
-${blocksToHtml(entry.blocks)}${relatedHtml}
+${blocksToHtml(entry.blocks)}${faqs}${relatedHtml}
       </article>
 `;
 }
@@ -371,6 +397,7 @@ const routes = [
         { name: "Learn", path: "/learn" },
         { name: entry.h1, path: `/learn/${entry.slug}` },
       ]),
+      ...(entry.faqs && entry.faqs.length > 0 ? [faqLd(entry.faqs)] : []),
     ),
     priority: "0.6",
     changefreq: "monthly",

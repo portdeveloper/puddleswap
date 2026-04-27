@@ -102,6 +102,78 @@ export const learnEntries = [
           "Monad mainnet is a separate chain with its own chain ID and economic token. Any state, balances, or deployed contracts on testnet do not carry over. Use testnet as a staging environment: build, test, and only move to mainnet when you're confident.",
         ],
       },
+      { type: "h2", text: "Wallets that work with Monad Testnet" },
+      {
+        type: "p",
+        parts: [
+          "Most EVM-compatible wallets accept Monad Testnet through their custom-network flow. Confirmed wallets:",
+        ],
+      },
+      {
+        type: "ul",
+        items: [
+          {
+            parts: [
+              { b: "MetaMask:" },
+              " Add via Settings > Networks > Add Network with the chain details above.",
+            ],
+          },
+          {
+            parts: [
+              { b: "Rabby:" },
+              " Auto-detects custom chains when a dapp prompts to switch. Good for tracking many chains at once.",
+            ],
+          },
+          {
+            parts: [
+              { b: "Frame:" },
+              " Desktop wallet with hardware-wallet support. Good for cold-signed testing.",
+            ],
+          },
+          {
+            parts: [
+              { b: "Rainbow:" },
+              " Mobile-first wallet that supports custom chains in recent versions.",
+            ],
+          },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "If your wallet is not listed, check whether it accepts a custom RPC URL and arbitrary chain IDs. Most modern wallets do.",
+        ],
+      },
+      { type: "h2", text: "Common mistakes" },
+      {
+        type: "ul",
+        items: [
+          {
+            parts: [
+              "Setting the chain ID to a value other than ",
+              { code: "10143" },
+              ". A common error is copying a chain config for the wrong network.",
+            ],
+          },
+          {
+            parts: [
+              "Treating testnet behavior as a guarantee for mainnet. Testnet state, balances, and contracts do not migrate. Mainnet will run as a separate chain with its own chain ID.",
+            ],
+          },
+          {
+            parts: [
+              "Hammering the public RPC. The endpoint at ",
+              { code: "testnet-rpc.monad.xyz" },
+              " handles normal dapp traffic but rate-limits heavy load. Use a dedicated provider for indexing or sustained calls.",
+            ],
+          },
+          {
+            parts: [
+              "Confusing test MON with real MON. Mainnet MON is a different token on a different chain. There is no bridge between testnet and mainnet for state or balances.",
+            ],
+          },
+        ],
+      },
       {
         type: "p",
         parts: [
@@ -113,6 +185,28 @@ export const learnEntries = [
           },
           ", a testnet DEX for builders.",
         ],
+      },
+    ],
+    faqs: [
+      {
+        q: "Is Monad Testnet free to use?",
+        a: "Yes. Test MON has no real value and you can claim it from a faucet at no cost. Gas fees use test MON, so all activity is free.",
+      },
+      {
+        q: "When does Monad mainnet launch?",
+        a: "Monad has not announced a public mainnet date. Testnet stays open until then, and contracts you deploy on testnet do not migrate to mainnet automatically.",
+      },
+      {
+        q: "Do contracts deployed on testnet carry over to mainnet?",
+        a: "No. Testnet and mainnet are separate chains with different chain IDs. You deploy your contracts again on mainnet when it launches; testnet state and addresses do not transfer.",
+      },
+      {
+        q: "Which wallets support Monad Testnet?",
+        a: "MetaMask, Rabby, Frame, and Rainbow all work. Add Monad Testnet by chain ID 10143 with the public RPC at testnet-rpc.monad.xyz.",
+      },
+      {
+        q: "Is the public RPC reliable for production-style testing?",
+        a: "It handles normal dapp traffic and light load. For indexing, sustained heavy calls, or production-grade testing, use a dedicated RPC provider.",
       },
     ],
   },
@@ -182,6 +276,55 @@ export const learnEntries = [
           'The winning path is shown in the Route row of the swap widget, and you can expand the "Routing table" diagnostic to see quotes from every path: live, failed, or absent.',
         ],
       },
+      { type: "h2", text: "A worked example" },
+      {
+        type: "p",
+        parts: [
+          "Suppose you want to swap 100 ",
+          { a: { href: "/tokens/usdc", text: "USDC" } },
+          " for TOKEN_X, where TOKEN_X has pools against both USDC and WMON.",
+        ],
+      },
+      {
+        type: "p",
+        parts: ["The router considers:"],
+      },
+      {
+        type: "ul",
+        items: [
+          {
+            parts: [
+              { b: "Direct:" },
+              " USDC → TOKEN_X via the USDC/TOKEN_X pool. One pool, one 0.30% fee, one slippage hit.",
+            ],
+          },
+          {
+            parts: [
+              { b: "Two-hop:" },
+              " USDC → WMON → TOKEN_X. Two pools, two 0.30% fees, two slippage hits.",
+            ],
+          },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "For most pairs, the direct path wins because it costs half as much. If the direct pool is very thin and the WMON-routed pools are deep, the two-hop path can produce better output. The router compares all available paths by output and picks the best. The Route row in the swap widget shows the chosen path; the Routing table diagnostic lists the alternatives.",
+        ],
+      },
+      { type: "h2", text: "Slippage and the cost of multi-hop" },
+      {
+        type: "p",
+        parts: [
+          "Each hop in a route compounds slippage and fees. A 100-token swap routed through TOKEN_A → USDC → TOKEN_B is not the same as a hypothetical 100-token direct swap: each pool re-prices based on the new reserves left after the first hop, and the LP fee is taken twice.",
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "For testnet pools with thin liquidity, the gap can be large. For pools with reasonable depth, it is usually small. Always check the slippage figure shown by the swap widget before confirming, and lower the slippage tolerance if you are swapping a sizeable fraction of any pool's reserves.",
+        ],
+      },
       { type: "h2", text: "What this means for liquidity providers" },
       {
         type: "p",
@@ -197,6 +340,24 @@ export const learnEntries = [
           { a: { href: "/pool/new", text: "create a new pool" } },
           " paired with a core token.",
         ],
+      },
+    ],
+    faqs: [
+      {
+        q: "Why doesn't PuddleSwap support direct pools between any two tokens?",
+        a: "Direct pools fragment liquidity. With star routing, every pool pairs against a hub, so adding any new token instantly makes it tradeable against every other registered token without waiting for someone to seed every possible pair.",
+      },
+      {
+        q: "What if my token isn't paired with a core token?",
+        a: "PuddleSwap will not route to it. Pair your token against USDC, USDT, or WMON when you create the pool, and it becomes reachable from every other token in the registry.",
+      },
+      {
+        q: "Is multi-hop slippage worse than single-hop?",
+        a: "Yes, slightly. Each hop adds the pool's slippage and a 0.30% LP fee. For most testnet sizes the difference is small, and the router shows the best path it found.",
+      },
+      {
+        q: "Can a contract bypass PuddleSwap's router and call pools directly?",
+        a: "Yes. The pools are stock UniswapV2 pairs, callable by anyone. The router exists for convenience and best-route quoting; it does not gate access to the pools.",
       },
     ],
   },
@@ -285,6 +446,36 @@ export const learnEntries = [
           },
         ],
       },
+      { type: "h2", text: "When NOT to wrap manually" },
+      {
+        type: "p",
+        parts: [
+          "For most users on PuddleSwap, manual wrapping is unnecessary. The swap router calls ",
+          { code: "deposit" },
+          " and ",
+          { code: "withdraw" },
+          " on your behalf when MON is the input or output of a swap. Manually wrapping first wastes gas, because you pay for the wrap transaction and then any subsequent transfer separately, where the router would batch wrap-and-swap into a single call.",
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "Wrap manually only when you need a standing WMON balance for non-swap purposes, when you are adding liquidity to a pool that pairs against WMON specifically, or when a contract you are calling requires ERC-20 input.",
+        ],
+      },
+      { type: "h2", text: "WMON vs. WETH" },
+      {
+        type: "p",
+        parts: [
+          "WMON works the same way Wrapped Ether (WETH) works on Ethereum. Same interface, same 1:1 ratio, same purpose: turn the native gas token into an ERC-20 that smart contracts can hold and transfer. The contract code is also nearly identical, since most chains adopt the canonical WETH9 contract verbatim with the symbol changed.",
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "If you have used WETH on a Uniswap V2 pool, WMON on PuddleSwap behaves the same. The only practical differences are the chain ID and which native token is being wrapped.",
+        ],
+      },
       {
         type: "p",
         parts: [
@@ -293,6 +484,24 @@ export const learnEntries = [
           { a: { href: "/tokens/wmon", text: "WMON token page" } },
           ".",
         ],
+      },
+    ],
+    faqs: [
+      {
+        q: "Are WMON and MON the same thing?",
+        a: "Functionally yes. WMON is a 1:1 wrapped version of MON in ERC-20 form. You can always redeem 1 WMON for 1 MON via the WMON contract's withdraw function. The economic value is identical.",
+      },
+      {
+        q: "Do I lose anything by wrapping MON to WMON?",
+        a: "Only the gas cost of the wrap transaction. The 1:1 ratio is fixed by the contract; there is no spread, fee, or slippage in wrapping itself.",
+      },
+      {
+        q: "What happens if I send native MON to a contract that expects WMON?",
+        a: "The contract will reject the transfer or the funds will sit unused, depending on its fallback handling. ERC-20-only contracts cannot credit a native MON transfer to your account. Always wrap first.",
+      },
+      {
+        q: "Where can I see the WMON contract on Monad Testnet?",
+        a: "The WMON address is 0x97B3070F9Da6C002343862b35E68Bd8e22608943. View it on Monadscan, MonadVision, or Socialscan to read the source and check balances.",
       },
     ],
   },

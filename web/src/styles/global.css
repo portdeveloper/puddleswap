@@ -1744,6 +1744,40 @@ code {
   border-top: 1px solid var(--border-light);
 }
 
+.learn-faq {
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-light);
+}
+
+.learn-faq dl {
+  margin: 16px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.learn-faq-item {
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  background: rgba(255, 255, 255, 0.6);
+  padding: 16px 20px;
+}
+
+.learn-faq-item dt {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+}
+
+.learn-faq-item dd {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+
 /* ── Token pages ── */
 
 .token-page-header {
