@@ -4,6 +4,20 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   build: {
+    modulePreload: {
+      // Only preload chunks that the entry imports synchronously. Lazy chunks
+      // (Web3Providers, swap UI, route pages) load on demand, not ahead of time.
+      // This keeps content pages from speculatively fetching the wallet bundle.
+      resolveDependencies: (_filename, deps) =>
+        deps.filter(
+          (d) =>
+            !d.includes("wallet-vendor") &&
+            !d.includes("query-vendor") &&
+            !d.includes("walletconnect-vendor") &&
+            !d.includes("Web3Providers") &&
+            !d.includes("WalletControls")
+        )
+    },
     rollupOptions: {
       output: {
         manualChunks: (id) => {

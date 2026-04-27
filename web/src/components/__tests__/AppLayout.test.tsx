@@ -5,17 +5,6 @@ import { describe, expect, it, vi } from "vitest";
 
 import { AppLayout } from "../AppLayout";
 
-vi.mock("wagmi", () => ({
-  useAccount: () => ({ address: undefined, isConnected: false }),
-  useConnect: () => ({ connect: () => undefined, connectors: [] }),
-  useDisconnect: () => ({ disconnect: () => undefined }),
-  useSwitchChain: () => ({ switchChain: () => undefined }),
-}));
-
-vi.mock("../../hooks/useChainGuard", () => ({
-  useChainGuard: () => ({ isCorrectChain: true, expectedChainId: 10143 }),
-}));
-
 vi.mock("../AnimatedBackground", () => ({
   AnimatedBackground: () => null,
 }));
@@ -47,6 +36,7 @@ describe("AppLayout navigation", () => {
       "Learn",
       "Tokens",
       "Pools",
+      "Open Swap",
     ]);
     expect(within(nav).getByRole("link", { name: "Learn" })).toHaveClass(
       "active",

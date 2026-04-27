@@ -1,7 +1,19 @@
 import { lazy, Suspense } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 
 import { AppLayout } from "./components/AppLayout";
+
+const Web3Providers = lazy(() => import("./providers/Web3Providers"));
+const WalletConnectButton = lazy(() =>
+  import("./components/WalletControls").then((m) => ({
+    default: m.WalletConnectButton,
+  }))
+);
+const NetworkWarning = lazy(() =>
+  import("./components/WalletControls").then((m) => ({
+    default: m.NetworkWarning,
+  }))
+);
 
 const SwapPage = lazy(() =>
   import("./pages/SwapPage").then((m) => ({ default: m.SwapPage }))
@@ -43,23 +55,57 @@ const routeFallback = (
   </div>
 );
 
+function isWalletRoute(pathname: string): boolean {
+  if (pathname === "/") return true;
+  if (pathname === "/pools") return true;
+  if (pathname.startsWith("/pool/")) return true;
+  if (pathname.startsWith("/tokens/")) return true;
+  return false;
+}
+
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/" element={<SwapPage />} />
+      <Route path="/pools" element={<PoolsPage />} />
+      <Route path="/pool/new" element={<CreatePoolPage />} />
+      <Route path="/pool/:pairAddress" element={<PoolDetailsPage />} />
+      <Route path="/learn" element={<LearnHub />} />
+      <Route path="/learn/:slug" element={<LearnPage />} />
+      <Route path="/tokens" element={<TokenHub />} />
+      <Route path="/tokens/:slug" element={<TokenPage />} />
+      <Route path="/about" element={<AboutPage />} />
+      <Route path="/swap/:slug" element={<SwapGuidePage />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}
+
 export default function App() {
+  const location = useLocation();
+  const needsWallet = isWalletRoute(location.pathname);
+
+  if (needsWallet) {
+    return (
+      <Suspense fallback={routeFallback}>
+        <Web3Providers>
+          <AppLayout
+            walletButton={<WalletConnectButton />}
+            walletWarning={<NetworkWarning />}
+          >
+            <Suspense fallback={routeFallback}>
+              <AppRoutes />
+            </Suspense>
+          </AppLayout>
+        </Web3Providers>
+      </Suspense>
+    );
+  }
+
   return (
     <AppLayout>
       <Suspense fallback={routeFallback}>
-        <Routes>
-          <Route path="/" element={<SwapPage />} />
-          <Route path="/pools" element={<PoolsPage />} />
-          <Route path="/pool/new" element={<CreatePoolPage />} />
-          <Route path="/pool/:pairAddress" element={<PoolDetailsPage />} />
-          <Route path="/learn" element={<LearnHub />} />
-          <Route path="/learn/:slug" element={<LearnPage />} />
-          <Route path="/tokens" element={<TokenHub />} />
-          <Route path="/tokens/:slug" element={<TokenPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/swap/:slug" element={<SwapGuidePage />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+        <AppRoutes />
       </Suspense>
     </AppLayout>
   );
