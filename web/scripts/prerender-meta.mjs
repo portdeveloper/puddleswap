@@ -489,6 +489,7 @@ console.log(
 );
 
 // Sitemap with current lastmod
+const marketingEntry = `  <url>\n    <loc>https://puddleswap.org/</loc>\n    <lastmod>${TODAY}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>1.0</priority>\n  </url>`;
 const sitemapEntries = routes
   .map(
     (r) =>
@@ -497,6 +498,7 @@ const sitemapEntries = routes
   .join("\n");
 const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${marketingEntry}
 ${sitemapEntries}
 </urlset>
 `;
