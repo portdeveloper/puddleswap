@@ -250,6 +250,11 @@ h1, h2, h3 { scroll-margin-top: 180px; }
   font-size: 15px;
   cursor: pointer;
   transition: background-color 0.2s, color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 168px;
+  text-decoration: none;
 }
 
 .btn-connect:hover {
@@ -263,8 +268,6 @@ h1, h2, h3 { scroll-margin-top: 180px; }
   font-size: 13px;
   padding: 10px 20px;
   font-family: 'SF Mono', 'Fira Code', monospace;
-  min-width: 150px;
-  text-align: center;
 }
 
 .btn-connect.connected.confirm {
@@ -1410,6 +1413,7 @@ code {
   .btn-connect {
     padding: 10px 16px;
     font-size: 14px;
+    min-width: 140px;
   }
 
   main {
@@ -1468,7 +1472,7 @@ code {
   }
   .nav-links::-webkit-scrollbar { display: none; }
   .nav-links a { font-size: 13px; }
-  .btn-connect { padding: 8px 14px; font-size: 13px; }
+  .btn-connect { padding: 8px 14px; font-size: 13px; min-width: 120px; }
 
   .pools-page-header .btn-green-outline {
     justify-self: stretch;
