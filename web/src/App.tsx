@@ -25,6 +25,9 @@ const TokenHub = lazy(() =>
 const TokenPage = lazy(() =>
   import("./pages/TokenPage").then((m) => ({ default: m.TokenPage }))
 );
+const AboutPage = lazy(() =>
+  import("./pages/AboutPage").then((m) => ({ default: m.AboutPage }))
+);
 
 const routeFallback = (
   <div
@@ -48,6 +51,7 @@ export default function App() {
           <Route path="/learn/:slug" element={<LearnPage />} />
           <Route path="/tokens" element={<TokenHub />} />
           <Route path="/tokens/:slug" element={<TokenPage />} />
+          <Route path="/about" element={<AboutPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>

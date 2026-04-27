@@ -59,6 +59,7 @@
     { "source": "/learn", "destination": "/learn/index.html" },
     { "source": "/learn/:slug", "destination": "/learn/:slug/index.html" },
     { "source": "/tokens", "destination": "/tokens/index.html" },
-    { "source": "/tokens/:slug", "destination": "/tokens/:slug/index.html" }
+    { "source": "/tokens/:slug", "destination": "/tokens/:slug/index.html" },
+    { "source": "/about", "destination": "/about/index.html" }
   ]
 }

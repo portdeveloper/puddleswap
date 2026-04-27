@@ -410,6 +410,12 @@ export function BelowFold() {
             >
               Learn
             </Link>
+            <Link
+              to="/about"
+              style={{ color: "var(--brand-green)", fontWeight: 600 }}
+            >
+              About
+            </Link>
             <span>
               Contact dev on{" "}
               <a
