@@ -17,6 +17,559 @@ export const LEARN_BASE_PATH = "/learn";
 
 export const learnEntries = [
   {
+    slug: "add-monad-testnet-to-metamask",
+    title: "How to Add Monad Testnet to MetaMask",
+    description:
+      "Step-by-step guide to adding Monad Testnet to MetaMask, Rabby, Frame, or Rainbow. Chain ID 10143, RPC, native token, and explorer URL.",
+    h1: "How to Add Monad Testnet to MetaMask",
+    summary:
+      "Add Monad Testnet to MetaMask, Rabby, Frame, or Rainbow with the chain details and a one-click flow from PuddleSwap.",
+    readingTime: "4 min read",
+    datePublished: "2026-04-27",
+    blocks: [
+      {
+        type: "p",
+        parts: [
+          "Monad Testnet is not a default network in any wallet. Before you can use a Monad dapp, your wallet needs to know about chain ID ",
+          { code: "10143" },
+          " and the public RPC endpoint. This guide covers three ways to add it: a one-click prompt from PuddleSwap, the manual MetaMask flow, and the equivalent steps for Rabby, Frame, and Rainbow.",
+        ],
+      },
+      { type: "h2", text: "Chain details you need" },
+      {
+        type: "p",
+        parts: [
+          "Whichever method you use, you will provide some or all of these values:",
+        ],
+      },
+      {
+        type: "ul",
+        items: [
+          { parts: [{ b: "Network name:" }, " Monad Testnet"] },
+          { parts: [{ b: "Chain ID:" }, " ", { code: "10143" }] },
+          { parts: [{ b: "Native currency symbol:" }, " ", { code: "MON" }] },
+          {
+            parts: [
+              { b: "RPC URL:" },
+              " ",
+              { code: "https://testnet-rpc.monad.xyz" },
+            ],
+          },
+          {
+            parts: [
+              { b: "Block explorer URL:" },
+              " ",
+              { code: "https://testnet.monadscan.com" },
+            ],
+          },
+        ],
+      },
+      { type: "h2", text: "Method 1: One-click from PuddleSwap" },
+      {
+        type: "p",
+        parts: [
+          "The fastest path: open ",
+          { a: { href: "/", text: "PuddleSwap" } },
+          " and connect your wallet. If your wallet is on the wrong chain, PuddleSwap triggers your wallet's network-switch prompt automatically. Approve it, and your wallet adds Monad Testnet with the right values pre-filled. No copy-pasting required.",
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "This works for any wallet that supports ",
+          { code: "wallet_addEthereumChain" },
+          ", which covers MetaMask, Rabby, Frame, Rainbow, and most modern injected wallets.",
+        ],
+      },
+      { type: "h2", text: "Method 2: Add manually in MetaMask" },
+      {
+        type: "p",
+        parts: [
+          "If you prefer to add the network without connecting to a dapp first:",
+        ],
+      },
+      {
+        type: "ul",
+        items: [
+          {
+            parts: [
+              "Open MetaMask and click the network selector at the top-left.",
+            ],
+          },
+          {
+            parts: [
+              'Click "Add a custom network" or "Add network" then "Add a network manually."',
+            ],
+          },
+          { parts: ["Paste the chain details from the section above."] },
+          {
+            parts: [
+              "Save. Monad Testnet appears in your network list and is selected.",
+            ],
+          },
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "MetaMask validates the chain ID against the RPC: it pings the RPC, asks for ",
+          { code: "eth_chainId" },
+          ", and refuses to save if the response does not match the chain ID you entered. If you see a chain-mismatch error, recheck that the RPC URL and chain ID are correct.",
+        ],
+      },
+      { type: "h2", text: "Method 3: Rabby, Frame, and Rainbow" },
+      {
+        type: "p",
+        parts: [
+          { b: "Rabby:" },
+          " Rabby auto-detects custom chains when a dapp triggers ",
+          { code: "wallet_addEthereumChain" },
+          ", so Method 1 works. To add manually, open Rabby > Settings > Networks > Add Custom Network with the same chain details.",
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          { b: "Frame:" },
+          " Open the Frame app > Chains tab > Add Chain. Provide name, chain ID, RPC, and currency symbol. Frame is desktop-only and works well with hardware wallets.",
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          { b: "Rainbow:" },
+          " Recent versions of the Rainbow mobile app support custom networks. Open Rainbow > Settings > Networks > Add Custom Network. Older versions may need a wallet update first.",
+        ],
+      },
+      { type: "h2", text: "Troubleshooting" },
+      {
+        type: "ul",
+        items: [
+          {
+            parts: [
+              { b: "RPC fails or times out:" },
+              " The public RPC at ",
+              { code: "testnet-rpc.monad.xyz" },
+              " can rate-limit during peak load. Wait a minute and retry, or switch to a dedicated RPC provider for sustained calls.",
+            ],
+          },
+          {
+            parts: [
+              { b: "Chain ID mismatch:" },
+              " MetaMask refuses to add a network when the RPC responds with a different chain ID than what you entered. Both should say ",
+              { code: "10143" },
+              ".",
+            ],
+          },
+          {
+            parts: [
+              { b: "Network already exists:" },
+              " If you previously added Monad Testnet with a stale RPC URL, MetaMask blocks duplicate chain IDs. Delete the old entry first, then re-add.",
+            ],
+          },
+          {
+            parts: [
+              { b: "Hardware wallet not signing:" },
+              " Some hardware wallets need a firmware update to recognize new chain IDs. Check the latest firmware for your device.",
+            ],
+          },
+        ],
+      },
+      { type: "h2", text: "What to do after adding the network" },
+      {
+        type: "p",
+        parts: [
+          "Get some test MON from a faucet (see ",
+          {
+            a: {
+              href: "/learn/get-test-mon-faucet",
+              text: "How to Get Test MON",
+            },
+          },
+          "), then try a swap on PuddleSwap to confirm everything works. If you have never used a testnet DEX, see ",
+          {
+            a: {
+              href: "/learn/swap-tokens-on-monad",
+              text: "How to Swap Tokens on Monad Testnet",
+            },
+          },
+          ".",
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          { a: { href: "/", text: "Open PuddleSwap" } },
+          " to trigger the one-click add flow, or read ",
+          {
+            a: {
+              href: "/learn/monad-testnet",
+              text: "What is Monad Testnet?",
+            },
+          },
+          " for chain background.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        q: "Why isn't Monad Testnet in MetaMask's dropdown by default?",
+        a: "MetaMask only ships a default list of major chains and their popular testnets. New testnets like Monad's are added through the custom-network flow until they are widely adopted.",
+      },
+      {
+        q: "What if the RPC fails when I try to add the network?",
+        a: "MetaMask validates the RPC by calling eth_chainId. If the public RPC is rate-limited, the call can fail. Wait a minute and try again, or use a dedicated RPC provider.",
+      },
+      {
+        q: "Is it safe to add a custom network to MetaMask?",
+        a: "Adding a network does not give the network any access to your wallet. The risk comes from interacting with malicious contracts on the network, not from the network itself. Only sign transactions from dapps you trust.",
+      },
+      {
+        q: "How do I switch back to Ethereum or another chain?",
+        a: "Click the network selector dropdown in MetaMask and pick the chain you want. Adding Monad Testnet does not remove or affect any other network in your wallet.",
+      },
+    ],
+  },
+  {
+    slug: "get-test-mon-faucet",
+    title: "How to Get Test MON from the Monad Faucet",
+    description:
+      "Where to find the Monad Testnet faucet, how much MON you get per claim, and what to do if the faucet is rate-limited.",
+    h1: "How to Get Test MON from the Monad Faucet",
+    summary:
+      "Find the Monad Testnet faucet, claim test MON for gas, and learn what to do if the faucet is empty or rate-limited.",
+    readingTime: "3 min read",
+    datePublished: "2026-04-27",
+    blocks: [
+      {
+        type: "p",
+        parts: [
+          "Test ",
+          { a: { href: "/tokens/mon", text: "MON" } },
+          " is the native token of ",
+          { a: { href: "/learn/monad-testnet", text: "Monad Testnet" } },
+          ". You need a small balance to pay gas before you can do anything else: deploy a contract, swap a token, or send a transfer. This guide covers where to claim test MON, how often, and what to do when the faucet is unavailable.",
+        ],
+      },
+      { type: "h2", text: "Why you need test MON" },
+      {
+        type: "p",
+        parts: [
+          "Test MON has no real value. It exists only to pay gas on Monad Testnet so the chain has an economic model that mirrors mainnet. Every transaction on testnet still costs gas; the difference is that test MON is free and can be reclaimed when you run out.",
+        ],
+      },
+      { type: "h2", text: "Where to find the official faucet" },
+      {
+        type: "p",
+        parts: [
+          "Monad operates the official faucet through its main developer portal. The current URL changes occasionally, so the most reliable approach is to start at ",
+          { code: "monad.xyz" },
+          " or the official Monad Discord and follow the link to the testnet faucet from there. Avoid third-party faucets unless they are listed in Monad's official documentation.",
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "Some Monad community Discords also run their own faucet bots. These typically require a Discord verification step and gate-keep claims by Discord roles. They are useful when the main faucet is rate-limited.",
+        ],
+      },
+      { type: "h2", text: "How to claim test MON" },
+      { type: "p", parts: ["The general flow on any faucet:"] },
+      {
+        type: "ul",
+        items: [
+          {
+            parts: [
+              "Connect or paste the wallet address you want to fund.",
+            ],
+          },
+          {
+            parts: [
+              "Pass any anti-bot checks (captcha, Twitter follow, Discord role, depending on the faucet).",
+            ],
+          },
+          {
+            parts: [
+              "Submit the claim. Test MON arrives within a block or two.",
+            ],
+          },
+          {
+            parts: [
+              "Wait for the cooldown (typically 24 hours per address per faucet) before claiming again.",
+            ],
+          },
+        ],
+      },
+      { type: "h2", text: "How much MON you receive" },
+      {
+        type: "p",
+        parts: [
+          "The official faucet drips a small fixed amount per claim, usually enough for hundreds of regular transactions. Exact amounts change over time as Monad tunes the faucet against testnet load. For most workflows, one claim is enough for a day of normal dapp testing.",
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "If you are running automated tests or deploying many contracts, expect to claim repeatedly across multiple addresses, or use a developer-grade faucet through your RPC provider if available.",
+        ],
+      },
+      { type: "h2", text: "When the faucet is rate-limited or empty" },
+      {
+        type: "ul",
+        items: [
+          {
+            parts: [
+              { b: "Wait the cooldown:" },
+              " Most rate limits reset after 24 hours per address. Try again later from the same address, or use a different one.",
+            ],
+          },
+          {
+            parts: [
+              { b: "Try a community faucet:" },
+              " Monad community Discords sometimes run faucets when the official one is empty.",
+            ],
+          },
+          {
+            parts: [
+              { b: "Ask in Discord:" },
+              " For dev work, asking a moderator in Monad's Discord is often faster than waiting on a faucet refill.",
+            ],
+          },
+          {
+            parts: [
+              { b: "Check chain ID:" },
+              " If the faucet says it sent funds but your wallet shows nothing, confirm you are connected to chain ID ",
+              { code: "10143" },
+              ", not a different network or a stale RPC.",
+            ],
+          },
+        ],
+      },
+      { type: "h2", text: "What to do once you have MON" },
+      {
+        type: "p",
+        parts: [
+          "Now you can pay gas on Monad Testnet. Try a swap on ",
+          { a: { href: "/", text: "PuddleSwap" } },
+          ", deposit into a pool, or deploy any EVM contract. If you have not added Monad Testnet to your wallet yet, see ",
+          {
+            a: {
+              href: "/learn/add-monad-testnet-to-metamask",
+              text: "How to Add Monad Testnet to MetaMask",
+            },
+          },
+          ". For a full swap walkthrough, see ",
+          {
+            a: {
+              href: "/learn/swap-tokens-on-monad",
+              text: "How to Swap Tokens on Monad Testnet",
+            },
+          },
+          ".",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        q: "Does test MON have real value?",
+        a: "No. Test MON is for paying gas on Monad Testnet only. It is not transferable to mainnet, has no market, and you cannot exchange it for anything outside the testnet ecosystem.",
+      },
+      {
+        q: "How often can I claim from the faucet?",
+        a: "The official faucet typically allows one claim per address per 24 hours. Community faucet bots may have different cooldowns. If you need more frequent funding, request a developer faucet through an RPC provider.",
+      },
+      {
+        q: "What's the minimum MON balance I need?",
+        a: "A few hundredths of a MON is enough to pay gas for many regular transactions. One faucet claim almost always covers a full day of normal use.",
+      },
+      {
+        q: "Can I get MON without using the faucet?",
+        a: "Other developers can send you test MON directly from their wallet. Bridges from other testnets to Monad Testnet are rare and not officially supported. The faucet is the canonical source.",
+      },
+    ],
+  },
+  {
+    slug: "swap-tokens-on-monad",
+    title: "How to Swap Tokens on Monad Testnet",
+    description:
+      "Beginner walkthrough for swapping tokens on Monad Testnet with PuddleSwap. Wallet setup, slippage, approvals, and what to do if a swap fails.",
+    h1: "How to Swap Tokens on Monad Testnet",
+    summary:
+      "Walkthrough of a first swap on Monad Testnet: wallet setup, faucet, slippage, approvals, and what to do when a swap fails.",
+    readingTime: "5 min read",
+    datePublished: "2026-04-27",
+    blocks: [
+      {
+        type: "p",
+        parts: [
+          "Swapping tokens on ",
+          { a: { href: "/learn/monad-testnet", text: "Monad Testnet" } },
+          " is the same idea as swapping on Ethereum or any UniswapV2-style DEX. The wallet flow, fees, and approvals all carry over. This guide walks through a first swap on PuddleSwap end-to-end, from wallet setup through confirming the transaction.",
+        ],
+      },
+      { type: "h2", text: "Before you start" },
+      { type: "p", parts: ["You need three things in place:"] },
+      {
+        type: "ul",
+        items: [
+          {
+            parts: [
+              "An EVM wallet with Monad Testnet added. See ",
+              {
+                a: {
+                  href: "/learn/add-monad-testnet-to-metamask",
+                  text: "How to Add Monad Testnet to MetaMask",
+                },
+              },
+              " if you have not added it yet.",
+            ],
+          },
+          {
+            parts: [
+              "A small balance of test ",
+              { a: { href: "/tokens/mon", text: "MON" } },
+              " to pay gas. See ",
+              {
+                a: {
+                  href: "/learn/get-test-mon-faucet",
+                  text: "How to Get Test MON from the Faucet",
+                },
+              },
+              ".",
+            ],
+          },
+          {
+            parts: [
+              "Some balance of the input token you want to swap, if it is not MON. PuddleSwap supports MON, ",
+              { a: { href: "/tokens/wmon", text: "WMON" } },
+              ", ",
+              { a: { href: "/tokens/usdc", text: "USDC" } },
+              ", ",
+              { a: { href: "/tokens/usdt", text: "USDT" } },
+              ", and any registered ERC-20 with a pool against a core token.",
+            ],
+          },
+        ],
+      },
+      { type: "h2", text: "Step 1: Connect your wallet" },
+      {
+        type: "p",
+        parts: [
+          "Open ",
+          { a: { href: "/", text: "PuddleSwap" } },
+          " and click Connect Wallet. Select your wallet from the prompt. If your wallet is on a different chain, PuddleSwap will ask it to switch to Monad Testnet. Approve the switch in your wallet's popup.",
+        ],
+      },
+      { type: "h2", text: "Step 2: Pick the input and output tokens" },
+      {
+        type: "p",
+        parts: [
+          "The swap widget has two token slots: the token you are paying with on top, the token you are receiving on the bottom. Click either slot to open the token picker. The picker lists the core tokens (MON, WMON, USDC, USDT) plus any other token you have a balance of, plus any address you paste manually in Advanced mode.",
+        ],
+      },
+      { type: "h2", text: "Step 3: Enter an amount" },
+      {
+        type: "p",
+        parts: [
+          "Type the amount of input token you want to swap. The output amount updates automatically based on the best route ",
+          { a: { href: "/learn/star-routing", text: "the router" } },
+          " can find. The Route row shows you which path was chosen: a direct swap if the pair exists, or a one-hop swap through USDC, USDT, or WMON if not.",
+        ],
+      },
+      { type: "h2", text: "Step 4: Check slippage" },
+      {
+        type: "p",
+        parts: [
+          "Slippage tolerance is the maximum percentage you will accept the output to drop by between quoting and execution. The default is 1%. For thin testnet pools, raise it to 2-3% if your swap is failing because reserves shifted. For deep pools, you can lower it for tighter execution.",
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "Setting slippage too high lets MEV bots sandwich you. Setting it too low makes your transaction revert. The default is a reasonable balance for most testnet trades.",
+        ],
+      },
+      { type: "h2", text: "Step 5: Approve, then swap" },
+      {
+        type: "p",
+        parts: [
+          "If your input token is an ERC-20 (anything other than MON), the first transaction is an approval that lets the router pull tokens from your wallet. Sign the approval in your wallet. Once it confirms, the Swap button becomes active. Click it, sign the swap transaction, and wait one block for it to confirm. The output token appears in your wallet.",
+        ],
+      },
+      {
+        type: "p",
+        parts: [
+          "If you are swapping with MON as the input, no approval is needed. The router accepts native MON directly and ",
+          { a: { href: "/learn/wmon", text: "wraps it to WMON" } },
+          " inside the same transaction.",
+        ],
+      },
+      { type: "h2", text: "If your swap fails" },
+      {
+        type: "ul",
+        items: [
+          {
+            parts: [
+              { b: "Reverted with slippage error:" },
+              " Reserves moved more than your slippage tolerance allows between quote and execution. Raise the slippage and retry.",
+            ],
+          },
+          {
+            parts: [
+              { b: "Out of gas:" },
+              " You ran out of test MON for gas. Top up from the faucet.",
+            ],
+          },
+          {
+            parts: [
+              { b: "Approval not yet confirmed:" },
+              " The Swap button stays disabled until the approval transaction confirms. Wait for the previous transaction, or check it in MonadVision.",
+            ],
+          },
+          {
+            parts: [
+              { b: "No route found:" },
+              " The token you are trying to swap does not have a pool against a core token. Either add liquidity yourself with ",
+              { a: { href: "/pool/new", text: "Create Pool" } },
+              " or pick a different token.",
+            ],
+          },
+        ],
+      },
+      { type: "h2", text: "What to do next" },
+      {
+        type: "p",
+        parts: [
+          "Browse ",
+          { a: { href: "/pools", text: "active pools" } },
+          " to see what's tradeable. Read about ",
+          { a: { href: "/learn/star-routing", text: "star routing" } },
+          " to understand how PuddleSwap picks the best path. Or ",
+          { a: { href: "/pool/new", text: "create your own pool" } },
+          " paired against a core token.",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        q: "Why does my swap require an approval transaction first?",
+        a: "ERC-20 tokens require an explicit allowance before another contract (the router) can move them. The approval grants that allowance once. After approving, future swaps of the same token skip this step until you revoke or change the allowance.",
+      },
+      {
+        q: "What does slippage actually mean?",
+        a: "Slippage is the difference between the quoted output and the actual output. It happens because pool reserves change between quote and execution. The slippage tolerance setting tells the router to revert the transaction if the actual output drops by more than that percentage.",
+      },
+      {
+        q: "Why does the Route row show a different path than I expected?",
+        a: "PuddleSwap evaluates every path through every available core token (USDC, USDT, WMON) and picks the one with the best output. The chosen path may not be the most direct one if a multi-hop path has deeper liquidity or better pricing.",
+      },
+      {
+        q: "What should I do if a swap keeps failing?",
+        a: "Check that your wallet is on chain ID 10143, that you have enough MON for gas, that your slippage is at least 1-2% for thin pools, and that your input token has a pool against a core token. If all four are correct, the pool may have very low liquidity; pick a different token or add liquidity first.",
+      },
+    ],
+  },
+  {
     slug: "monad-testnet",
     title: "What is Monad Testnet? Chain ID, RPC, Faucet",
     description:
