@@ -2,8 +2,10 @@ import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import { AppLayout } from "./components/AppLayout";
-import { SwapPage } from "./pages/SwapPage";
 
+const SwapPage = lazy(() =>
+  import("./pages/SwapPage").then((m) => ({ default: m.SwapPage }))
+);
 const PoolsPage = lazy(() =>
   import("./pages/PoolsPage").then((m) => ({ default: m.PoolsPage }))
 );
