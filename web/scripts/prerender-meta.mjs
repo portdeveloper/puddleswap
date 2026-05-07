@@ -216,24 +216,26 @@ const createPoolBody = `
 
 const aboutTitle = "About PuddleSwap";
 const aboutDescription =
-  "PuddleSwap is a static, no-backend DEX for Monad Testnet built by port. No accounts, no analytics, no backend. Source on GitHub.";
+  "PuddleSwap is a static, no-backend DEX for Monad Testnet built by port. No accounts, no backend, no tracking cookies. Source on GitHub.";
 
 const aboutBody = `
       <article class="prerender-intro" aria-label="About PuddleSwap">
         <nav aria-label="Breadcrumb"><a href="/">PuddleSwap</a> / <span>About</span></nav>
         <h1>About PuddleSwap</h1>
-        <p>PuddleSwap is a static, no-backend DEX for <a href="/learn/monad-testnet">Monad Testnet</a>. It runs entirely in your browser and talks to the Monad RPC directly. There is no app server, no account, no KYC, and no analytics.</p>
+        <p>PuddleSwap is a static, no-backend DEX for <a href="/learn/monad-testnet">Monad Testnet</a>. It runs entirely in your browser and talks to the Monad RPC directly. There is no app server, no account, and no KYC. The only telemetry is privacy-friendly Cloudflare Web Analytics for aggregate page-view counts — no cookies, no IP storage, no cross-site tracking.</p>
         <h2>Why this exists</h2>
         <p>Monad Testnet needs a working DEX before mainnet so builders can test the parts of their dapp that depend on a live AMM: routing, slippage, LP token handling, MEV exposure, integrations with other contracts. PuddleSwap is one of those parts. It is a UniswapV2 fork deployed to Monad Testnet, deliberately constrained to <a href="/learn/star-routing">star routing</a> through three core tokens so the routing surface stays small and predictable.</p>
         <p>If your dapp needs a DEX to test against on Monad Testnet, this is one. If it needs more than one, please use more than one.</p>
         <h2>Who built it</h2>
         <p>PuddleSwap is built and maintained by <a href="https://x.com/port_dev" rel="noopener noreferrer" translate="no">port</a>. Source is on <a href="https://github.com/portdeveloper/puddleswap" rel="noopener noreferrer">GitHub</a> and contributions are welcome.</p>
         <h2>What is and is not collected</h2>
-        <p>Nothing is collected. The frontend is a static React app served from Vercel. The wallet talks directly to the Monad Testnet RPC (<code>testnet-rpc.monad.xyz</code> by default) for chain reads and to your wallet for signed transactions. PuddleSwap does not run an indexer, does not store user data, does not set tracking cookies, and does not have a login or account system.</p>
+        <p>The frontend is a static React app served from Vercel. The wallet talks directly to the Monad Testnet RPC (<code>testnet-rpc.monad.xyz</code> by default) for chain reads and to your wallet for signed transactions. PuddleSwap does not run an indexer, does not link wallet activity to identity, does not set tracking cookies, and does not have a login or account system.</p>
+        <p>For traffic counts, the site loads Cloudflare Web Analytics. It is cookieless, does not store IP addresses, and only records aggregate page views and basic device/country information. It cannot identify individual users or follow them across sites.</p>
         <p>What you see in your network tab while using PuddleSwap:</p>
         <ul>
           <li>Calls to the Monad RPC for chain reads.</li>
           <li>Vercel-hosted static asset requests for the page itself.</li>
+          <li>A Cloudflare Web Analytics beacon request to <code>cloudflareinsights.com</code> per page view.</li>
           <li>Optional WalletConnect calls if you connect via WalletConnect.</li>
         </ul>
         <p>That is the entire data path.</p>

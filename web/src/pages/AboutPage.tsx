@@ -7,7 +7,7 @@ export function AboutPage() {
   const canonical = `${BASE}/about`;
   const title = "About PuddleSwap";
   const description =
-    "PuddleSwap is a static, no-backend DEX for Monad Testnet built by port. No accounts, no analytics, no backend. Source on GitHub.";
+    "PuddleSwap is a static, no-backend DEX for Monad Testnet built by port. No accounts, no backend, no tracking cookies. Source on GitHub.";
 
   return (
     <article className="intro-section learn-article">
@@ -37,7 +37,9 @@ export function AboutPage() {
           PuddleSwap is a static, no-backend DEX for{" "}
           <Link to="/learn/monad-testnet">Monad Testnet</Link>. It runs entirely
           in your browser and talks to the Monad RPC directly. There is no app
-          server, no account, no KYC, and no analytics.
+          server, no account, and no KYC. The only telemetry is privacy-friendly
+          Cloudflare Web Analytics for aggregate page-view counts — no cookies,
+          no IP storage, no cross-site tracking.
         </p>
 
         <h2>Why this exists</h2>
@@ -79,17 +81,27 @@ export function AboutPage() {
 
         <h2>What is and is not collected</h2>
         <p>
-          Nothing is collected. The frontend is a static React app served from
-          Vercel. The wallet talks directly to the Monad Testnet RPC (
+          The frontend is a static React app served from Vercel. The wallet
+          talks directly to the Monad Testnet RPC (
           <code translate="no">testnet-rpc.monad.xyz</code> by default) for chain
           reads and to your wallet for signed transactions. PuddleSwap does not
-          run an indexer, does not store user data, does not set tracking
-          cookies, and does not have a login or account system.
+          run an indexer, does not link wallet activity to identity, does not
+          set tracking cookies, and does not have a login or account system.
+        </p>
+        <p>
+          For traffic counts, the site loads Cloudflare Web Analytics. It is
+          cookieless, does not store IP addresses, and only records aggregate
+          page views and basic device/country information. It cannot identify
+          individual users or follow them across sites.
         </p>
         <p>What you see in your network tab while using PuddleSwap:</p>
         <ul>
           <li>Calls to the Monad RPC for chain reads.</li>
           <li>Vercel-hosted static asset requests for the page itself.</li>
+          <li>
+            A Cloudflare Web Analytics beacon request to{" "}
+            <code translate="no">cloudflareinsights.com</code> per page view.
+          </li>
           <li>Optional WalletConnect calls if you connect via WalletConnect.</li>
         </ul>
         <p>That is the entire data path.</p>
