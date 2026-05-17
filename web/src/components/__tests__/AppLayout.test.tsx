@@ -5,10 +5,6 @@ import { describe, expect, it, vi } from "vitest";
 
 import { AppLayout } from "../AppLayout";
 
-vi.mock("../AnimatedBackground", () => ({
-  AnimatedBackground: () => null,
-}));
-
 vi.mock("../BelowFold", () => ({
   BelowFold: () => null,
 }));

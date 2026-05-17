@@ -1,8 +1,6 @@
 import { Suspense, lazy, type ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 
-import { AnimatedBackground } from "./AnimatedBackground";
-
 const BelowFold = lazy(() =>
   import("./BelowFold").then((m) => ({ default: m.BelowFold }))
 );
@@ -36,8 +34,6 @@ export function AppLayout({
 
   return (
     <div className="app-shell">
-      <AnimatedBackground />
-
       <nav className="topbar" aria-label="Primary">
         <a href="https://puddleswap.org/" className="logo">
           <svg
