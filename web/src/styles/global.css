@@ -859,6 +859,7 @@ svg.puddle-char {
   max-width: 480px;
   width: 100%;
   margin-top: 16px;
+  min-height: 72px;
 }
 
 .quick-tokens-label {
