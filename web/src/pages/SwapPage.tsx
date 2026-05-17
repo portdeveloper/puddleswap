@@ -754,43 +754,49 @@ export function SwapPage() {
             )}
           </div>
 
-          {/* Route info */}
-          {quoteQuery.data?.best && (
-            <div className="route-info">
-              {quoteQuery.data.decimalsIn !== undefined &&
-                quoteQuery.data.decimalsOut !== undefined &&
-                quoteQuery.data.amountInRaw > 0n && (
-                  <div className="route-row">
-                    <span>Exchange Rate</span>
-                    <span className="route-value">
-                      1 {tokenInSymbol} ={" "}
-                      {(
-                        Number(bestQuoteValue) / Number(amountIn || "1")
-                      ).toFixed(4)}{" "}
-                      {tokenOutSymbol}
-                    </span>
-                  </div>
-                )}
-              <div className="route-row">
-                <span>Route</span>
-                <span className="route-path">
-                  {routeLabels.map((label, i) => (
-                    <span
-                      key={i}
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 4,
-                      }}
-                    >
-                      {i > 0 && arrowRight}
-                      {label}
-                    </span>
-                  ))}
-                </span>
-              </div>
+          {/* Route info — always rendered so layout stays stable while the
+              quote query loads; content fills in once data arrives. */}
+          <div
+            className="route-info"
+            aria-hidden={!quoteQuery.data?.best}
+            style={{ visibility: quoteQuery.data?.best ? "visible" : "hidden" }}
+          >
+            {quoteQuery.data?.best &&
+              quoteQuery.data.decimalsIn !== undefined &&
+              quoteQuery.data.decimalsOut !== undefined &&
+              quoteQuery.data.amountInRaw > 0n && (
+                <div className="route-row">
+                  <span>Exchange Rate</span>
+                  <span className="route-value">
+                    1 {tokenInSymbol} ={" "}
+                    {(
+                      Number(bestQuoteValue) / Number(amountIn || "1")
+                    ).toFixed(4)}{" "}
+                    {tokenOutSymbol}
+                  </span>
+                </div>
+              )}
+            <div className="route-row">
+              <span>Route</span>
+              <span className="route-path">
+                {quoteQuery.data?.best
+                  ? routeLabels.map((label, i) => (
+                      <span
+                        key={i}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4,
+                        }}
+                      >
+                        {i > 0 && arrowRight}
+                        {label}
+                      </span>
+                    ))
+                  : "—"}
+              </span>
             </div>
-          )}
+          </div>
 
           {/* CTA */}
           <button
