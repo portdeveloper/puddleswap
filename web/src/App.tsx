@@ -4,15 +4,8 @@ import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AppLayout } from "./components/AppLayout";
 
 const Web3Providers = lazy(() => import("./providers/Web3Providers"));
-const WalletConnectButton = lazy(() =>
-  import("./components/WalletControls").then((m) => ({
-    default: m.WalletConnectButton,
-  }))
-);
-const NetworkWarning = lazy(() =>
-  import("./components/WalletControls").then((m) => ({
-    default: m.NetworkWarning,
-  }))
+const WalletControlsPortal = lazy(
+  () => import("./providers/WalletControlsPortal")
 );
 
 const SwapPage = lazy(() =>
@@ -87,18 +80,14 @@ export default function App() {
 
   if (needsWallet) {
     return (
-      <Suspense fallback={routeFallback}>
-        <Web3Providers>
-          <AppLayout
-            walletButton={<WalletConnectButton />}
-            walletWarning={<NetworkWarning />}
-          >
-            <Suspense fallback={routeFallback}>
-              <AppRoutes />
-            </Suspense>
-          </AppLayout>
-        </Web3Providers>
-      </Suspense>
+      <AppLayout walletButton={null}>
+        <Suspense fallback={routeFallback}>
+          <Web3Providers>
+            <WalletControlsPortal />
+            <AppRoutes />
+          </Web3Providers>
+        </Suspense>
+      </AppLayout>
     );
   }
 

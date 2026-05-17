@@ -22,7 +22,7 @@ function StaticOpenSwapButton() {
 
 export function AppLayout({
   children,
-  walletButton,
+  walletButton = <StaticOpenSwapButton />,
   walletWarning,
 }: {
   children: ReactNode;
@@ -76,10 +76,12 @@ export function AppLayout({
             </NavLink>
           ))}
         </div>
-        {walletButton ?? <StaticOpenSwapButton />}
+        <div id="topbar-wallet-slot" className="topbar-wallet-slot">
+          {walletButton}
+        </div>
       </nav>
 
-      {walletWarning}
+      <div id="wallet-warning-slot">{walletWarning}</div>
 
       <main>{children}</main>
       {isHomePage && (

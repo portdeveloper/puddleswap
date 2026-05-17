@@ -262,6 +262,14 @@ h1, h2, h3 { scroll-margin-top: 180px; }
   background-repeat: repeat-x;
 }
 
+.topbar-wallet-slot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 168px;
+  min-height: 40px;
+}
+
 .btn-connect {
   background-color: var(--brand-green);
   color: var(--surface-white);
