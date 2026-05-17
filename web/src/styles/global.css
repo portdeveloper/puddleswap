@@ -91,10 +91,14 @@ h1, h2, h3 { scroll-margin-top: 180px; }
 
 .animated-bg {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
+  contain: layout paint;
 }
 
 .bg-noise {
@@ -107,8 +111,8 @@ h1, h2, h3 { scroll-margin-top: 180px; }
   position: absolute;
   border-radius: 50%;
   filter: blur(60px);
-  opacity: 0.3;
-  will-change: transform;
+  opacity: 0;
+  will-change: transform, opacity;
 }
 
 .blob-1 {
@@ -117,7 +121,7 @@ h1, h2, h3 { scroll-margin-top: 180px; }
   background: var(--brand-green);
   top: -65px;
   right: -8px;
-  animation: drift-1 30s ease-in-out 3s infinite;
+  animation: blob-show-30 0.8s 1.5s ease-out forwards, drift-1 30s ease-in-out 3s infinite;
 }
 
 .blob-2 {
@@ -126,7 +130,7 @@ h1, h2, h3 { scroll-margin-top: 180px; }
   background: var(--accent-blue);
   bottom: 0;
   left: -20px;
-  animation: drift-2 36s ease-in-out 3s infinite;
+  animation: blob-show-30 0.8s 1.5s ease-out forwards, drift-2 36s ease-in-out 3s infinite;
 }
 
 .blob-3 {
@@ -135,8 +139,7 @@ h1, h2, h3 { scroll-margin-top: 180px; }
   background: var(--accent-yellow);
   top: 35%;
   right: 15%;
-  opacity: 0.22;
-  animation: drift-3 32s ease-in-out 3s infinite;
+  animation: blob-show-22 0.8s 1.5s ease-out forwards, drift-3 32s ease-in-out 3s infinite;
 }
 
 .blob-4 {
@@ -145,8 +148,7 @@ h1, h2, h3 { scroll-margin-top: 180px; }
   background: var(--accent-pink);
   top: 55%;
   left: 10%;
-  opacity: 0.18;
-  animation: drift-4 38s ease-in-out 3s infinite;
+  animation: blob-show-18 0.8s 1.5s ease-out forwards, drift-4 38s ease-in-out 3s infinite;
 }
 
 .blob-5 {
@@ -155,9 +157,12 @@ h1, h2, h3 { scroll-margin-top: 180px; }
   background: var(--bubble-green);
   top: 8%;
   left: 25%;
-  opacity: 0.3;
-  animation: drift-5 28s ease-in-out 3s infinite;
+  animation: blob-show-30 0.8s 1.5s ease-out forwards, drift-5 28s ease-in-out 3s infinite;
 }
+
+@keyframes blob-show-30 { to { opacity: 0.3; } }
+@keyframes blob-show-22 { to { opacity: 0.22; } }
+@keyframes blob-show-18 { to { opacity: 0.18; } }
 
 @keyframes drift-1 {
   0%, 100% { transform: translate(0, 0) scale(1); }
