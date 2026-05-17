@@ -111,8 +111,8 @@ h1, h2, h3 { scroll-margin-top: 180px; }
   width: 450px;
   height: 450px;
   background: var(--brand-green);
-  top: -8%;
-  right: -2%;
+  top: -65px;
+  right: -8px;
   animation: drift-1 30s ease-in-out 3s infinite;
 }
 
@@ -120,8 +120,8 @@ h1, h2, h3 { scroll-margin-top: 180px; }
   width: 380px;
   height: 380px;
   background: var(--accent-blue);
-  bottom: 0%;
-  left: -5%;
+  bottom: 0;
+  left: -20px;
   animation: drift-2 36s ease-in-out 3s infinite;
 }
 
