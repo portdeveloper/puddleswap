@@ -20,6 +20,11 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
+          // Vite's __vitePreload helper. Without this rule it gets hoisted into
+          // the most-shared chunk (wallet-vendor, since wagmi uses dynamic
+          // imports for secp256k1 + ccipRead), which forces every page — even
+          // /learn/* and /about — to statically pull the wallet bundle.
+          if (id.includes("vite/preload-helper")) return "preload-helper";
           if (!id.includes("node_modules")) return undefined;
           if (id.includes("react-router")) return "react-vendor";
           if (id.includes("react-helmet")) return "react-vendor";
