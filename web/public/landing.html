@@ -4,9 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="theme-color" content="#F8F9F3" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Outfit:wght@400;500;600;700;800&display=swap" />
+    <link rel="preload" href="/fonts/outfit-latin.woff2" as="font" type="font/woff2" crossorigin />
     <title>PuddleSwap: The Monad Testnet DEX</title>
     <meta name="description" content="PuddleSwap is a static, no-backend DEX for Monad Testnet. Swap tokens with star routing through USDC, USDT, and WMON." />
     <link rel="canonical" href="https://puddleswap.org/" />
@@ -40,6 +38,21 @@
       }
     </script>
     <style>
+      @font-face {
+        font-family: 'Outfit';
+        src: url('/fonts/outfit-latin.woff2') format('woff2-variations'),
+             url('/fonts/outfit-latin.woff2') format('woff2');
+        font-weight: 100 900;
+        font-style: normal;
+        font-display: swap;
+      }
+      @font-face {
+        font-family: 'Caveat';
+        src: url('/fonts/caveat-600-latin.woff2') format('woff2');
+        font-weight: 600;
+        font-style: normal;
+        font-display: swap;
+      }
       :root {
         --bg-cream: #F8F9F3;
         --surface-white: #FFFFFF;

@@ -1,8 +1,11 @@
-import type { ReactNode } from "react";
+import { Suspense, lazy, type ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 
 import { AnimatedBackground } from "./AnimatedBackground";
-import { BelowFold } from "./BelowFold";
+
+const BelowFold = lazy(() =>
+  import("./BelowFold").then((m) => ({ default: m.BelowFold }))
+);
 
 const links = [
   { to: "/", label: "Swap", end: true },
@@ -83,7 +86,11 @@ export function AppLayout({
       {walletWarning}
 
       <main>{children}</main>
-      {isHomePage && <BelowFold />}
+      {isHomePage && (
+        <Suspense fallback={null}>
+          <BelowFold />
+        </Suspense>
+      )}
     </div>
   );
 }
