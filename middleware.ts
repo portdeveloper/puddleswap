@@ -8,7 +8,7 @@ const APEX_STATIC_FILES = new Set([
 ]);
 
 export const config = {
-  matcher: "/((?!assets/).*)",
+  matcher: "/((?!assets/|fonts/).*)",
 };
 
 export default function middleware(request: Request) {
