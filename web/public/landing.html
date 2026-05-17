@@ -47,6 +47,14 @@
         font-display: swap;
       }
       @font-face {
+        font-family: 'Outfit Fallback';
+        src: local('Arial');
+        ascent-override: 100%;
+        descent-override: 26%;
+        line-gap-override: 0%;
+        size-adjust: 127.09%;
+      }
+      @font-face {
         font-family: 'Caveat';
         src: url('/fonts/caveat-600-latin.woff2') format('woff2');
         font-weight: 600;
@@ -70,7 +78,7 @@
         --radius-md: 20px;
         --radius-lg: 32px;
         --radius-pill: 999px;
-        --font-ui: 'Outfit', system-ui, -apple-system, sans-serif;
+        --font-ui: 'Outfit', 'Outfit Fallback', system-ui, -apple-system, sans-serif;
         --font-hand: 'Caveat', cursive;
         color-scheme: light;
       }
