@@ -21,7 +21,7 @@
   src: url('/fonts/caveat-600-latin.woff2') format('woff2');
   font-weight: 600;
   font-style: normal;
-  font-display: optional;
+  font-display: swap;
 }
 
 :root {
