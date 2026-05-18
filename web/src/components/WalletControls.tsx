@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import posthog from "posthog-js";
 import { useAccount, useConnect, useDisconnect, useSwitchChain } from "wagmi";
 
 import { monadTestnet } from "../config/chain";
@@ -23,6 +24,14 @@ export function WalletConnectButton() {
       switchChain({ chainId: monadTestnet.id });
     }
   }, [isConnected, isCorrectChain, switchChain]);
+
+  useEffect(() => {
+    if (isConnected && address) {
+      posthog.identify(address.toLowerCase());
+    } else {
+      posthog.reset();
+    }
+  }, [isConnected, address]);
 
   const [confirmDisconnect, setConfirmDisconnect] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);

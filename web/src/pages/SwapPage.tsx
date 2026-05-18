@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import posthog from "posthog-js";
 import { Helmet } from "react-helmet-async";
 import { formatUnits, isAddress, type Address, type Hash } from "viem";
 import {
@@ -278,12 +279,21 @@ export function SwapPage() {
     setPendingAction("swap");
     setLastAction("Submitting swap…");
 
+    const rawSlippage = Number(slippagePercent);
+    const slippage =
+      Number.isFinite(rawSlippage) && rawSlippage > 0
+        ? Math.min(rawSlippage, 50)
+        : 1;
+    const swapProps = {
+      token_in: tokenInSymbol,
+      token_out: tokenOutSymbol,
+      amount_in: amountIn,
+      slippage_percent: slippage,
+      route_hops: Math.max(0, quoteQuery.data.best.path.length - 1),
+    };
+    posthog.capture("swap_submitted", swapProps);
+
     try {
-      const rawSlippage = Number(slippagePercent);
-      const slippage =
-        Number.isFinite(rawSlippage) && rawSlippage > 0
-          ? Math.min(rawSlippage, 50)
-          : 1;
       const bps = Math.floor(slippage * 100);
       const minOut =
         quoteQuery.data.best.amountOut -
@@ -336,9 +346,15 @@ export function SwapPage() {
       });
       if (swapReceipt.status === "reverted") {
         setLastAction(`Swap reverted: ${hash}`);
+        posthog.capture("swap_failed", {
+          ...swapProps,
+          reason: "reverted",
+          tx_hash: hash,
+        });
         return;
       }
       setLastAction(`Swap confirmed: ${hash}`);
+      posthog.capture("swap_confirmed", { ...swapProps, tx_hash: hash });
       await Promise.all([
         allowanceQuery.refetch(),
         balanceInQuery.refetch(),
@@ -348,11 +364,16 @@ export function SwapPage() {
       ]);
     } catch (error) {
       console.error("Swap failed", error);
-      const msg =
-        error instanceof Error && error.message.includes("User rejected")
-          ? "Transaction rejected by wallet."
-          : "Swap failed. Check your balance and try again.";
+      const rejected =
+        error instanceof Error && error.message.includes("User rejected");
+      const msg = rejected
+        ? "Transaction rejected by wallet."
+        : "Swap failed. Check your balance and try again.";
       setLastAction(msg);
+      posthog.capture("swap_failed", {
+        ...swapProps,
+        reason: rejected ? "rejected" : "error",
+      });
     } finally {
       setPending(false);
       setPendingAction(null);
