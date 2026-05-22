@@ -2,7 +2,7 @@
 
 A static, no-backend DEX on Monad testnet. Solves the problem of builders needing stablecoins and token swaps on testnet without waiting for mainnet DEX deployments.
 
-**Live at [app.puddleswap.org](https://app.puddleswap.org)**
+**Live at [app.puddleswap.org](https://app.puddleswap.org)** · **Built by [@portdeveloper](https://portdeveloper.github.io)**
 
 ## How it works
 
