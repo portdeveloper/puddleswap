@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
 
+Sitemap: https://puddleswap.org/sitemap.xml
 Sitemap: https://app.puddleswap.org/sitemap.xml
