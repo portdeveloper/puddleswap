@@ -1,7 +1,14 @@
 import { rewrite, next } from "@vercel/edge";
 
 const APEX_STATIC_FILES = new Set([
+  "/favicon.ico",
   "/favicon.svg",
+  "/favicon-16.png",
+  "/favicon-32.png",
+  "/favicon-48.png",
+  "/favicon-96.png",
+  "/favicon-192.png",
+  "/apple-touch-icon.png",
   "/og.png",
   "/robots.txt",
   "/sitemap.xml",
