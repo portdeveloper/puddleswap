@@ -1,9 +1,5 @@
-import { Suspense, lazy, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
-
-const BelowFold = lazy(() =>
-  import("./BelowFold").then((m) => ({ default: m.BelowFold }))
-);
 
 const links = [
   { to: "/", label: "Swap", end: true },
@@ -84,11 +80,9 @@ export function AppLayout({
       <div id="wallet-warning-slot">{walletWarning}</div>
 
       <main>{children}</main>
-      {isHomePage && (
-        <Suspense fallback={null}>
-          <BelowFold />
-        </Suspense>
-      )}
+      {/* Slot for BelowFold. It is portaled in from inside Web3Providers
+          (see BelowFoldPortal) because it relies on wagmi hooks. */}
+      {isHomePage && <div id="below-fold-slot" />}
     </div>
   );
 }

@@ -7,6 +7,7 @@ const Web3Providers = lazy(() => import("./providers/Web3Providers"));
 const WalletControlsPortal = lazy(
   () => import("./providers/WalletControlsPortal")
 );
+const BelowFoldPortal = lazy(() => import("./providers/BelowFoldPortal"));
 
 const SwapPage = lazy(() =>
   import("./pages/SwapPage").then((m) => ({ default: m.SwapPage }))
@@ -77,6 +78,7 @@ function AppRoutes() {
 export default function App() {
   const location = useLocation();
   const needsWallet = isWalletRoute(location.pathname);
+  const isHomePage = location.pathname === "/";
 
   if (needsWallet) {
     return (
@@ -84,6 +86,7 @@ export default function App() {
         <Suspense fallback={routeFallback}>
           <Web3Providers>
             <WalletControlsPortal />
+            {isHomePage && <BelowFoldPortal />}
             <AppRoutes />
           </Web3Providers>
         </Suspense>
