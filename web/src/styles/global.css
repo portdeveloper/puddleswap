@@ -1221,6 +1221,8 @@ code {
   background: var(--bubble-green);
   padding: 1px 6px;
   border-radius: 4px;
+  /* Long contract addresses must wrap rather than overflow on mobile. */
+  overflow-wrap: anywhere;
 }
 
 /* ── Pools section ── */
@@ -1382,6 +1384,9 @@ code {
   display: flex;
   align-items: center;
   gap: 14px;
+  /* Grid items default to min-width:auto and won't shrink below their
+     content width, overflowing the grid on narrow screens. */
+  min-width: 0;
   box-shadow: 0 4px 12px rgba(0,0,0,0.03);
   transition: transform 0.15s, box-shadow 0.15s;
   cursor: pointer;
@@ -1673,6 +1678,8 @@ code {
   font-size: 14px;
   line-height: 1.55;
   color: var(--text-muted);
+  /* FAQ answers can contain raw contract addresses; wrap them on mobile. */
+  overflow-wrap: anywhere;
 }
 
 /* ── Token pages ── */
