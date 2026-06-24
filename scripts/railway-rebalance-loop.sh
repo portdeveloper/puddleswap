@@ -13,6 +13,12 @@ DISCORD_WEBHOOK_URL="${DISCORD_WEBHOOK_URL:-}"
 LOW_BALANCE_ALERT_STATE_FILE="${LOW_BALANCE_ALERT_STATE_FILE:-/app/state/low-mon-alert.ts}"
 mkdir -p "$(dirname "$LOW_BALANCE_ALERT_STATE_FILE")"
 
+# port-monitor heartbeat: a status doc published to a gist each cycle and read by
+# port-monitor (the central pager). Needs a token with `gist` scope.
+HEARTBEAT_GIST_ID="${HEARTBEAT_GIST_ID:-44b8bbb6180de10e510d2d84baed799a}"
+HEARTBEAT_GIST_TOKEN="${HEARTBEAT_GIST_TOKEN:-${GH_PAT:-}}"
+LAST_SUCCESS_ISO=""
+
 if [[ -z "${PRIVATE_KEY:-}" ]]; then
   echo "PRIVATE_KEY is required."
   exit 1
@@ -50,6 +56,30 @@ send_discord_alert() {
   curl -fsS -X POST "$DISCORD_WEBHOOK_URL" \
     -H "Content-Type: application/json" \
     -d "$payload" >/dev/null
+}
+
+# Publish run status to the heartbeat gist. Best-effort: never fails the loop.
+# lastRun tracks the last *success* (kept across cycles in this process).
+publish_status() {
+  local status="$1" summary="${2:-}" error="${3:-}"
+  if [[ -z "$HEARTBEAT_GIST_TOKEN" ]]; then return 0; fi
+  local now
+  now="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+  if [[ "$status" == "ok" ]]; then LAST_SUCCESS_ISO="$now"; fi
+  local content payload
+  content="$(jq -n \
+    --arg worker "puddleswap-dex-rebalancer" \
+    --arg lastAttempt "$now" \
+    --arg lastRun "$LAST_SUCCESS_ISO" \
+    --arg lastStatus "$status" \
+    --arg lastError "$error" \
+    --arg summary "$summary" \
+    '{worker:$worker, lastAttempt:$lastAttempt, lastRun:(if $lastRun=="" then null else $lastRun end), lastStatus:$lastStatus, lastError:(if $lastError=="" then null else $lastError end), summary:$summary}')"
+  payload="$(jq -n --arg c "$content" '{files: {"heartbeat.json": {content: $c}}}')"
+  curl -fsS -X PATCH "https://api.github.com/gists/$HEARTBEAT_GIST_ID" \
+    -H "Authorization: Bearer $HEARTBEAT_GIST_TOKEN" \
+    -H "Accept: application/vnd.github+json" \
+    -d "$payload" >/dev/null 2>&1 || echo "port-monitor heartbeat publish failed"
 }
 
 check_low_mon_balance() {
@@ -118,9 +148,11 @@ while true; do
 
   if bash "$ROOT_DIR/scripts/rebalance-testnet-core.sh"; then
     echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Rebalance cycle succeeded"
+    publish_status "ok" "rebalance cycle ok" "" || true
   else
     EXIT_CODE=$?
     echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Rebalance cycle failed with exit code $EXIT_CODE"
+    publish_status "failed" "rebalance cycle failed" "exit code $EXIT_CODE" || true
   fi
 
   check_low_mon_balance
