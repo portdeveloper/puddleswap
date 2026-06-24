@@ -2,7 +2,14 @@ import type { Address } from "viem";
 import { isAddress } from "viem";
 
 import { abis, deployment } from "../config/generated";
-import { erc20Abi, factoryAbi, pairAbi, registryAbi, routerAbi } from "../abi/minimal";
+import {
+  erc20Abi,
+  factoryAbi,
+  pairAbi,
+  registryAbi,
+  routerAbi,
+  stakingRewardsAbi
+} from "../abi/minimal";
 
 function asAddress(value: string | undefined): Address | undefined {
   if (!value) {
@@ -18,7 +25,8 @@ export const contractAddresses = {
   testUSDT: asAddress(deployment.contracts.testUSDT),
   uniswapV2Factory: asAddress(deployment.contracts.uniswapV2Factory),
   uniswapV2Router02: asAddress(deployment.contracts.uniswapV2Router02),
-  tokenRegistry: asAddress(deployment.contracts.tokenRegistry)
+  tokenRegistry: asAddress(deployment.contracts.tokenRegistry),
+  stakingRewardsWmonUsdc: asAddress(deployment.contracts.stakingRewardsWmonUsdc)
 } as const;
 
 function fallbackAbi<T extends readonly unknown[]>(generated: readonly unknown[], fallback: T): T {
@@ -30,7 +38,8 @@ export const contractAbis = {
   router: fallbackAbi(abis.uniswapV2Router02, routerAbi),
   factory: fallbackAbi(abis.uniswapV2Factory, factoryAbi),
   pair: pairAbi,
-  registry: fallbackAbi(abis.tokenRegistry, registryAbi)
+  registry: fallbackAbi(abis.tokenRegistry, registryAbi),
+  stakingRewards: fallbackAbi(abis.stakingRewardsWmonUsdc, stakingRewardsAbi)
 } as const;
 
 export const multicall3Address = "0xca11bde05977b3631167028862be2a173976ca11" as Address;

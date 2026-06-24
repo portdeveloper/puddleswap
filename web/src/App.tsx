@@ -21,6 +21,9 @@ const CreatePoolPage = lazy(() =>
 const PoolDetailsPage = lazy(() =>
   import("./pages/PoolDetailsPage").then((m) => ({ default: m.PoolDetailsPage }))
 );
+const FarmPage = lazy(() =>
+  import("./pages/FarmPage").then((m) => ({ default: m.FarmPage }))
+);
 const LearnHub = lazy(() =>
   import("./pages/LearnHub").then((m) => ({ default: m.LearnHub }))
 );
@@ -53,6 +56,7 @@ function isWalletRoute(pathname: string): boolean {
   if (pathname === "/") return true;
   if (pathname === "/pools") return true;
   if (pathname.startsWith("/pool/")) return true;
+  if (pathname === "/farm") return true;
   if (pathname.startsWith("/tokens/")) return true;
   return false;
 }
@@ -64,6 +68,7 @@ function AppRoutes() {
       <Route path="/pools" element={<PoolsPage />} />
       <Route path="/pool/new" element={<CreatePoolPage />} />
       <Route path="/pool/:pairAddress" element={<PoolDetailsPage />} />
+      <Route path="/farm" element={<FarmPage />} />
       <Route path="/learn" element={<LearnHub />} />
       <Route path="/learn/:slug" element={<LearnPage />} />
       <Route path="/tokens" element={<TokenHub />} />

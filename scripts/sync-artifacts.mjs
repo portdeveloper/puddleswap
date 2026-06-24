@@ -16,7 +16,8 @@ const artifacts = {
   passRegistrationGate: ["contracts/out/PassRegistrationGate.sol/PassRegistrationGate.json"],
   uniswapV2Factory: ["contracts/out/UniswapV2Factory.sol/UniswapV2Factory.json"],
   uniswapV2Router02: ["contracts/out/UniswapV2Router02.sol/UniswapV2Router02.json"],
-  wmon: ["contracts/out/WMON.sol/WMON.json"]
+  wmon: ["contracts/out/WMON.sol/WMON.json"],
+  stakingRewardsWmonUsdc: ["contracts/out/StakingRewards.sol/StakingRewards.json"]
 };
 
 function readJson(filePath) {

@@ -6,6 +6,7 @@ const links = [
   { to: "/learn", label: "Learn" },
   { to: "/tokens", label: "Tokens" },
   { to: "/pools", label: "Pools" },
+  { to: "/farm", label: "Farm" },
 ] satisfies Array<{ to: string; label: string; end?: boolean }>;
 
 function StaticOpenSwapButton() {

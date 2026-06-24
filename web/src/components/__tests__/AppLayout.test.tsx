@@ -32,6 +32,7 @@ describe("AppLayout navigation", () => {
       "Learn",
       "Tokens",
       "Pools",
+      "Farm",
       "Open Swap",
     ]);
     expect(within(nav).getByRole("link", { name: "Learn" })).toHaveClass(
