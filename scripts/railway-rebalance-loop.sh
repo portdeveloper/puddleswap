@@ -76,10 +76,17 @@ publish_status() {
     --arg summary "$summary" \
     '{worker:$worker, lastAttempt:$lastAttempt, lastRun:(if $lastRun=="" then null else $lastRun end), lastStatus:$lastStatus, lastError:(if $lastError=="" then null else $lastError end), summary:$summary}')"
   payload="$(jq -n --arg c "$content" '{files: {"heartbeat.json": {content: $c}}}')"
-  curl -fsS -X PATCH "https://api.github.com/gists/$HEARTBEAT_GIST_ID" \
+  local http
+  http="$(curl -sS -o /tmp/hb_resp -w "%{http_code}" -X PATCH "https://api.github.com/gists/$HEARTBEAT_GIST_ID" \
     -H "Authorization: Bearer $HEARTBEAT_GIST_TOKEN" \
     -H "Accept: application/vnd.github+json" \
-    -d "$payload" >/dev/null 2>&1 || echo "port-monitor heartbeat publish failed"
+    -H "Content-Type: application/json" \
+    -d "$payload" 2>/tmp/hb_err)" || true
+  if [[ "$http" == "200" ]]; then
+    echo "port-monitor heartbeat published (http 200)"
+  else
+    echo "port-monitor heartbeat publish failed http=[$http] err=[$(head -c 150 /tmp/hb_err 2>/dev/null)] body=[$(head -c 200 /tmp/hb_resp 2>/dev/null)]"
+  fi
 }
 
 check_low_mon_balance() {
