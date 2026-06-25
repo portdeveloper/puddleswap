@@ -1,0 +1,21 @@
+{
+  "chainId": 10143,
+  "network": "Monad Testnet",
+  "rpcUrl": "https://testnet-rpc.monad.xyz",
+  "explorer": "https://testnet.monadscan.com",
+  "farms": [
+    {
+      "label": "WMON/USDC",
+      "stakingRewards": "0xe23B3825F950637256e8DE1BF39743E8f29D97F1",
+      "stakingToken": "0x1FBC7b6B54726D735fF1B47Df75535B4B9021902",
+      "rewardsToken": "0x97B3070F9Da6C002343862b35E68Bd8e22608943",
+      "rewardsTokenSymbol": "WMON"
+    }
+  ],
+  "core": {
+    "wmon": "0x97B3070F9Da6C002343862b35E68Bd8e22608943",
+    "usdc": "0x534b2f3A21130d7a60830c2Df862319e593943A3",
+    "uniswapV2Factory": "0xd498f5beBD0C9f1FE0135a0Cf942dA67Ee6e8A9B",
+    "uniswapV2Router02": "0x430c23895c8D44883526e3E0B09327dAD8766660"
+  }
+}

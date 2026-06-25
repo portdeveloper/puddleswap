@@ -188,5 +188,23 @@ verify_contract "$FACTORY" "lib/v2-core/contracts/UniswapV2Factory.sol:UniswapV2
 ROUTER_ARGS="$(cast abi-encode 'constructor(address,address)' "$FACTORY" "$WMON" | sed 's/^0x//')"
 verify_contract "$ROUTER" "lib/v2-periphery/contracts/UniswapV2Router02.sol:UniswapV2Router02" "$ROUTER_ARGS"
 
+# StakingRewards (LP farm): constructor(address admin_, address rewardsToken_, address stakingToken_, uint256 rewardsDuration_)
+# Args are read back from chain so this stays correct regardless of deploy params.
+STAKING="$(jq -r '.contracts.stakingRewardsWmonUsdc // empty' "$ADDR_FILE")"
+if [[ -n "$STAKING" ]]; then
+  STAKING_ADMIN="${STAKING_ADMIN:-}"
+  STAKING_BROADCAST="contracts/broadcast/DeployStakingRewards.s.sol/${CHAIN_ID}/run-latest.json"
+  if [[ -z "$STAKING_ADMIN" && -f "$STAKING_BROADCAST" ]]; then
+    STAKING_ADMIN="$(jq -r '.transactions[0].transaction.from' "$STAKING_BROADCAST")"
+  fi
+  STAKING_ADMIN="${STAKING_ADMIN:-$ADMIN_ADDRESS}"
+  STAKING_REWARD_TOKEN="$(cast call "$STAKING" 'rewardsToken()(address)' --rpc-url "$RPC_URL")"
+  STAKING_PAIR="$(cast call "$STAKING" 'stakingToken()(address)' --rpc-url "$RPC_URL")"
+  STAKING_DURATION="$(cast call "$STAKING" 'rewardsDuration()(uint256)' --rpc-url "$RPC_URL" | awk '{print $1}')"
+  STAKING_ARGS="$(cast abi-encode 'constructor(address,address,address,uint256)' \
+    "$STAKING_ADMIN" "$STAKING_REWARD_TOKEN" "$STAKING_PAIR" "$STAKING_DURATION" | sed 's/^0x//')"
+  verify_contract "$STAKING" "src/StakingRewards.sol:StakingRewards" "$STAKING_ARGS"
+fi
+
 echo ""
 echo "=== Verification complete ==="
