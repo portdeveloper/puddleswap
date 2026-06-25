@@ -271,7 +271,16 @@ export function FarmPage() {
   const farmsQuery = useFarms();
 
   return (
-    <section className="pools-section">
+    <section
+      style={{
+        width: "100%",
+        maxWidth: 520,
+        margin: "0 auto",
+        display: "flex",
+        flexDirection: "column",
+        gap: 20
+      }}
+    >
       <Helmet>
         <title>Farm · Liquidity Mining · Monad Testnet · PuddleSwap</title>
         <meta
@@ -287,14 +296,12 @@ export function FarmPage() {
         />
       </Helmet>
 
-      <div className="pools-header pools-page-header">
-        <div className="pools-header-copy">
-          <p className="section-label">~ liquidity mining ~</p>
-          <h1 className="pools-page-title">Farm</h1>
-          <p className="pools-page-subtitle">
-            Stake your LP tokens to earn rewards while they keep earning swap fees.
-          </p>
-        </div>
+      <div style={{ textAlign: "center" }}>
+        <p className="section-label">~ liquidity mining ~</p>
+        <h1 className="pools-page-title">Farm</h1>
+        <p className="pools-page-subtitle">
+          Stake your LP tokens to earn rewards while they keep earning swap fees.
+        </p>
       </div>
 
       {FARMS.length === 0 && (
