@@ -1,0 +1,70 @@
+# PuddleSwap
+
+> A static, no-backend DEX on Monad testnet. PuddleSwap lets builders swap tokens, mint test stablecoins, create Uniswap V2 pools, provide liquidity, and stake LP tokens for rewards — entirely via direct RPC calls to onchain contracts (there is no API server). It exists so builders can get testnet stablecoins and token swaps without waiting for mainnet DEX deployments.
+
+App: https://app.puddleswap.org · Landing: https://puddleswap.org · Source: https://github.com/portdeveloper/puddleswap
+
+## Network
+
+- Network: Monad Testnet
+- Chain ID: 10143 (0x279f)
+- Default RPC: https://testnet-rpc.monad.xyz
+- Explorer: https://testnet.monadscan.com
+- Architecture: 100% static frontend + onchain contracts. No REST/GraphQL API, no backend, no subgraph. Agents interact by calling the contracts below directly over JSON-RPC (eth_call for reads, signed transactions for writes). All contracts are stock Uniswap V2 or simple/verified Solidity.
+
+## Core contracts (Monad testnet, chainId 10143)
+
+- WMON (wrapped MON): `0x97B3070F9Da6C002343862b35E68Bd8e22608943`
+- USDC (Circle test token, real — cannot be minted): `0x534b2f3A21130d7a60830c2Df862319e593943A3`
+- TestUSDT (mintable test stablecoin): `0x1314b22df27BDcD4F8D11a0f4185943e55748917`
+- StableFaucet (mints test stables): `0x50959dd2a4ef310f9aa2df9498cE9aC0aB956276`
+- UniswapV2Factory: `0xd498f5beBD0C9f1FE0135a0Cf942dA67Ee6e8A9B`
+- UniswapV2Router02: `0x430c23895c8D44883526e3E0B09327dAD8766660`
+- TokenRegistry (onchain token directory/autocomplete): `0x82289127fda2d521c851C696796c41EDB6b6461D`
+- OpenRegistrationGate (controls who can register tokens): `0xd1a37dF00238b97F453fC583806711048eB9987c`
+
+## Farms (LP staking / liquidity mining)
+
+- WMON/USDC farm — StakingRewards: `0xe23B3825F950637256e8DE1BF39743E8f29D97F1`
+  - Staking token (WMON/USDC LP pair): `0x1FBC7b6B54726D735fF1B47Df75535B4B9021902`
+  - Rewards token: WMON (`0x97B3070F9Da6C002343862b35E68Bd8e22608943`)
+
+## How to interact (read & write over RPC)
+
+- Quote a swap: `UniswapV2Router02.getAmountsOut(amountIn, path[])` returns output amounts along a path.
+- Best route ("star routing"): for a swap A→B, PuddleSwap tries the direct pair and multi-hop paths through the core tokens USDC, USDT, and WMON (3-hop A→core→B, 4-hop A→core→core→B), then picks the highest output. Any token with a pool against at least one core token is tradeable against any other.
+- Execute a swap: standard `UniswapV2Router02.swapExactTokensForTokens(...)` etc. (stock Uniswap V2 router; approve the token first). Default slippage 1%, max 50%.
+- Create a pool / add liquidity: `UniswapV2Factory.createPair(tokenA, tokenB)` then `UniswapV2Router02.addLiquidity(...)`.
+- Mint test stablecoins: use the StableFaucet contract (USDT is mintable; USDC is the real Circle token and cannot be minted).
+- Token registry: `search(symbolPrefix)` (up to 4 chars), `getToken(address)`, `listCoreTokens()`. Trust tiers: Top Verified (core tokens), Checkmark (verifier-vetted), Basic (anyone; 7-day cooldown, max 1 active per address).
+- Staking: `StakingRewards.stake(amount)`, `withdraw(amount)`, `getReward()`, plus reads `balanceOf(user)`, `earned(user)`, `rewardRate()`, `getRewardForDuration()`.
+
+## Machine-readable data (raw JSON)
+
+- [Addresses + ABIs (canonical, all contracts)](https://raw.githubusercontent.com/portdeveloper/puddleswap/master/config/addresses/10143.json): deployed addresses per chain, with chainId and updatedAt timestamp.
+- [Integration addresses + farms](https://raw.githubusercontent.com/portdeveloper/puddleswap/master/docs/integration/abi/addresses.json): RPC URL, explorer, core contracts, and the farms array.
+- [StakingRewards ABI](https://raw.githubusercontent.com/portdeveloper/puddleswap/master/docs/integration/abi/StakingRewards.json): standalone JSON ABI for the farm contract.
+
+## Docs
+
+- [README](https://github.com/portdeveloper/puddleswap/blob/master/README.md): overview, how it works, contracts, dev/deploy instructions.
+- [Staking integration guide](https://github.com/portdeveloper/puddleswap/blob/master/docs/integration/staking-rewards.md): copy-paste viem and ethers v6 examples, method signatures, APR formula.
+- [Trust model / security](https://github.com/portdeveloper/puddleswap/blob/master/docs/security/trust-model.md): privileged roles, key management, threat model.
+
+## App routes (human UI)
+
+- `/` — Swap tokens (best-route quoting, refreshes every ~6s)
+- `/pools` — List all active pools
+- `/pool/new` — Create a pool + seed first liquidity
+- `/pool/:pairAddress` — Pool details, add/remove liquidity
+- `/farm` — Stake WMON/USDC LP for WMON rewards
+- `/tokens`, `/tokens/:slug` — Token directory
+- `/learn`, `/learn/:slug` — Learn / guides
+- `/swap/:slug` — Per-token swap guides
+- `/about` — About
+
+## Notes for agents
+
+- Testnet only. Tokens have no real value; treat all activity as non-financial.
+- Writes require a wallet on chainId 10143 — the UI blocks transactions on other chains.
+- USDC is the real Circle test token and cannot be minted; an operator wallet must be pre-funded with it.
