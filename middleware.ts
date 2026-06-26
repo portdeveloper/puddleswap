@@ -12,6 +12,8 @@ const APEX_STATIC_FILES = new Set([
   "/og.png",
   "/robots.txt",
   "/sitemap.xml",
+  "/llms.txt",
+  "/skill.md",
 ]);
 
 export const config = {
