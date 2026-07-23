@@ -1,5 +1,12 @@
 # Contributing to PuddleSwap
 
+## How work lands
+
+All changes go through a pull request, and every pull request needs an approving
+review from @portdeveloper before it can merge. Direct pushes to the default
+branch are turned off. A merge means the work was read and accepted, not just
+that it was opened.
+
 Thank you for your interest in contributing to PuddleSwap - a static, no-backend DEX on Monad testnet, live at [app.puddleswap.org](https://app.puddleswap.org).
 
 ## About the project
