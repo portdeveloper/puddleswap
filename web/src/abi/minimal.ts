@@ -217,6 +217,20 @@ export const pairAbi = [
   }
 ] as const;
 
+/** Uniswap V2 pair Swap event, used by pool analytics to derive volume from logs. */
+export const pairSwapEvent = {
+  type: "event",
+  name: "Swap",
+  inputs: [
+    { name: "sender", type: "address", indexed: true },
+    { name: "amount0In", type: "uint256", indexed: false },
+    { name: "amount1In", type: "uint256", indexed: false },
+    { name: "amount0Out", type: "uint256", indexed: false },
+    { name: "amount1Out", type: "uint256", indexed: false },
+    { name: "to", type: "address", indexed: true }
+  ]
+} as const;
+
 export const registryAbi = [
   {
     type: "function",

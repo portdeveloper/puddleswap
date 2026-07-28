@@ -6,8 +6,10 @@ import { Link, useParams } from "react-router-dom";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 import { monadTestnet } from "../config/chain";
 
+import { AnalyticsPanel } from "../components/AnalyticsPanel";
 import { TxStatus } from "../components/TxStatus";
 import { useChainGuard } from "../hooks/useChainGuard";
+import { usePoolAnalytics } from "../hooks/usePoolAnalytics";
 import { contractAbis, contractAddresses } from "../lib/contracts";
 
 function shortPair(value: string) {
@@ -27,6 +29,7 @@ export function PoolDetailsPage() {
   const [removeLpAmount, setRemoveLpAmount] = useState("0");
   const [status, setStatus] = useState("");
   const [pending, setPending] = useState(false);
+  const [analyticsOpen, setAnalyticsOpen] = useState(false);
 
   const pairMetaQuery = useQuery({
     queryKey: ["pair-meta", pairAddress],
@@ -68,10 +71,10 @@ export function PoolDetailsPage() {
     enabled: Boolean(publicClient && pairMetaQuery.data),
     queryFn: async () => {
       if (!publicClient || !pairMetaQuery.data) {
-        return { token0Decimals: 18, token1Decimals: 18 };
+        return { token0Decimals: 18, token1Decimals: 18, token0Symbol: "?", token1Symbol: "?" };
       }
 
-      const [token0Decimals, token1Decimals] = await Promise.all([
+      const [token0Decimals, token1Decimals, token0Symbol, token1Symbol] = await Promise.all([
         publicClient.readContract({
           address: pairMetaQuery.data.token0,
           abi: contractAbis.erc20,
@@ -81,15 +84,42 @@ export function PoolDetailsPage() {
           address: pairMetaQuery.data.token1,
           abi: contractAbis.erc20,
           functionName: "decimals"
+        }),
+        publicClient.readContract({
+          address: pairMetaQuery.data.token0,
+          abi: contractAbis.erc20,
+          functionName: "symbol"
+        }),
+        publicClient.readContract({
+          address: pairMetaQuery.data.token1,
+          abi: contractAbis.erc20,
+          functionName: "symbol"
         })
       ]);
 
       return {
         token0Decimals: Number(token0Decimals),
-        token1Decimals: Number(token1Decimals)
+        token1Decimals: Number(token1Decimals),
+        token0Symbol: token0Symbol as string,
+        token1Symbol: token1Symbol as string
       };
     }
   });
+
+  const analyticsQuery = usePoolAnalytics(
+    isAddress(pairAddress) ? pairAddress : undefined,
+    pairMetaQuery.data && tokenDecimalsQuery.data
+      ? {
+          token0: pairMetaQuery.data.token0,
+          token1: pairMetaQuery.data.token1,
+          symbol0: tokenDecimalsQuery.data.token0Symbol,
+          symbol1: tokenDecimalsQuery.data.token1Symbol,
+          decimals0: tokenDecimalsQuery.data.token0Decimals,
+          decimals1: tokenDecimalsQuery.data.token1Decimals
+        }
+      : undefined,
+    analyticsOpen
+  );
 
   const lpBalanceQuery = useQuery({
     queryKey: ["lp-balance", pairAddress, address],
@@ -351,6 +381,33 @@ export function PoolDetailsPage() {
         <span>Your LP</span>
         <strong>{formatUnits(lpBalanceQuery.data ?? 0n, 18)}</strong>
       </div>
+
+      <div className="analytics-toggle-row">
+        <button
+          type="button"
+          className="analytics-toggle"
+          onClick={() => setAnalyticsOpen((v) => !v)}
+          aria-expanded={analyticsOpen}
+        >
+          {analyticsOpen ? "Hide Analytics" : "Show Analytics"}
+        </button>
+      </div>
+
+      {analyticsOpen && (
+        <div className="analytics-section">
+          {analyticsQuery.isPending && (
+            <p className="analytics-loading" role="status">Loading analytics…</p>
+          )}
+          {analyticsQuery.isError && (
+            <p className="analytics-empty" role="alert">
+              Analytics unavailable. The pool may have no history yet, or the RPC query failed.
+            </p>
+          )}
+          {analyticsQuery.data && (
+            <AnalyticsPanel analytics={analyticsQuery.data} />
+          )}
+        </div>
+      )}
 
       <h3>Add Liquidity</h3>
       <label>

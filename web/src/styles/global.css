@@ -1827,3 +1827,155 @@ code {
     scroll-behavior: auto !important;
   }
 }
+
+/* ── Pool analytics ── */
+
+.analytics-toggle-row {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 0 4px;
+  border-top: 1px solid var(--border-light);
+}
+
+.analytics-toggle {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-cream);
+  border: 1px solid var(--border-light);
+  color: var(--text-dark);
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.analytics-toggle:hover {
+  background: var(--bubble-green);
+  border-color: var(--brand-green);
+}
+
+.analytics-section {
+  margin-bottom: 8px;
+}
+
+.analytics-loading {
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 16px 0;
+  text-align: center;
+}
+
+.analytics-panel {
+  padding: 4px 0 8px;
+}
+
+.analytics-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 16px 0 6px;
+}
+
+.analytics-subtle {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.analytics-empty {
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 10px 0;
+}
+
+.analytics-chart {
+  width: 100%;
+  overflow: hidden;
+}
+
+.analytics-chart svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  cursor: crosshair;
+}
+
+/* SVG element classes */
+.analytics-grid {
+  stroke: var(--border-light);
+  stroke-width: 1;
+  fill: none;
+}
+
+.analytics-baseline {
+  stroke: var(--border-light);
+  stroke-width: 1;
+}
+
+.analytics-axis-label {
+  font-size: 10px;
+  fill: var(--text-muted);
+  font-family: var(--font-ui);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Price line: 2px, brand-green */
+.analytics-line {
+  stroke: var(--brand-green);
+  stroke-width: 2;
+  fill: none;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* Area fill: brand-green at ~10% opacity */
+.analytics-area {
+  fill: var(--brand-green);
+  opacity: 0.08;
+}
+
+/* End dot with 2px surface ring */
+.analytics-dot-ring {
+  fill: var(--surface-white);
+  stroke: none;
+  r: 6;
+}
+
+.analytics-dot {
+  fill: var(--brand-green);
+  stroke: none;
+}
+
+/* Crosshair hairline */
+.analytics-crosshair {
+  stroke: var(--text-muted);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+/* Volume bars: accent-blue, 4px rounded data-end */
+.analytics-bar {
+  fill: var(--accent-blue);
+  opacity: 0.75;
+}
+
+.analytics-bar-hover {
+  opacity: 1;
+}
+
+/* Readout line below each chart */
+.analytics-readout {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  font-size: 12px;
+  color: var(--text-muted);
+  padding: 4px 0 2px;
+  min-height: 20px;
+}
+
+.analytics-readout strong {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dark);
+  font-variant-numeric: tabular-nums;
+}

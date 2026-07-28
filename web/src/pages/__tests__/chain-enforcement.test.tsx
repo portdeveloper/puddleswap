@@ -214,7 +214,12 @@ describe("PoolDetailsPage chain enforcement", () => {
     render(React.createElement(PoolDetailsPage));
 
     const buttons = screen.getAllByRole("button");
-    for (const btn of buttons) {
+    // The analytics toggle is a UI-only control (no transaction) and stays
+    // enabled regardless of chain. Filter it out before asserting.
+    const txButtons = buttons.filter(
+      (btn) => !/analytics/i.test(btn.textContent ?? "")
+    );
+    for (const btn of txButtons) {
       expect(btn).toBeDisabled();
     }
   });
