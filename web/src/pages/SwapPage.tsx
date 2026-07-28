@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import posthog from "posthog-js";
 import { Helmet } from "react-helmet-async";
 import { formatUnits, isAddress, type Address, type Hash } from "viem";
+import { applySlippage } from "@puddleswap/sdk";
 import {
   useAccount,
   useConnect,
@@ -294,10 +295,7 @@ export function SwapPage() {
     posthog.capture("swap_submitted", swapProps);
 
     try {
-      const bps = Math.floor(slippage * 100);
-      const minOut =
-        quoteQuery.data.best.amountOut -
-        (quoteQuery.data.best.amountOut * BigInt(bps)) / 10_000n;
+      const minOut = applySlippage(quoteQuery.data.best.amountOut, slippage);
       const deadline = BigInt(Math.floor(Date.now() / 1000) + 60 * 20);
       const isTokenInMon = tokenIn === MON_TOKEN;
       const isTokenOutMon = tokenOut === MON_TOKEN;

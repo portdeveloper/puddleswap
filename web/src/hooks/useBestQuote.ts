@@ -1,13 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
-import { isAddress, parseUnits, type Address } from "viem";
+import { isAddress, type Address } from "viem";
 import { usePublicClient } from "wagmi";
+import { getQuote, type QuoteCandidate } from "@puddleswap/sdk";
 import { monadTestnet } from "../config/chain";
 
-import { contractAbis, contractAddresses, multicall3Address } from "../lib/contracts";
-import { buildCandidateRoutes, selectBestQuote } from "../lib/routing";
-import type { QuoteCandidate } from "../types";
+import { contractAddresses } from "../lib/contracts";
 
 const MON_TOKEN = "MON";
+
+const EMPTY_RESULT = {
+  quotes: [] as QuoteCandidate[],
+  best: undefined,
+  decimalsIn: 18,
+  decimalsOut: 18,
+  amountInRaw: 0n
+};
 
 export function useBestQuote(tokenIn: string, tokenOut: string, amountIn: string, coreTokens: Address[]) {
   const publicClient = usePublicClient({ chainId: monadTestnet.id });
@@ -39,87 +46,21 @@ export function useBestQuote(tokenIn: string, tokenOut: string, amountIn: string
         !tokenOutAddress ||
         tokenIn === tokenOut
       ) {
-        return {
-          quotes: [] as QuoteCandidate[],
-          best: undefined,
-          decimalsIn: 18,
-          decimalsOut: 18,
-          amountInRaw: 0n
-        };
+        return EMPTY_RESULT;
       }
 
       if (tokenInAddress === tokenOutAddress) {
-        return {
-          quotes: [] as QuoteCandidate[],
-          best: undefined,
-          decimalsIn: 18,
-          decimalsOut: 18,
-          amountInRaw: 0n
-        };
+        return EMPTY_RESULT;
       }
 
-      const [decimalsInRaw, decimalsOutRaw] = await Promise.all([
-        tokenInIsMon
-          ? Promise.resolve(18)
-          : publicClient.readContract({
-              address: tokenInAddress,
-              abi: contractAbis.erc20,
-              functionName: "decimals"
-            }),
-        tokenOutIsMon
-          ? Promise.resolve(18)
-          : publicClient.readContract({
-              address: tokenOutAddress,
-              abi: contractAbis.erc20,
-              functionName: "decimals"
-            })
-      ]);
-
-      const decimalsIn = Number(decimalsInRaw);
-      const decimalsOut = Number(decimalsOutRaw);
-      const amountInRaw = parseUnits(amountIn, decimalsIn);
-
-      const routes = buildCandidateRoutes(tokenInAddress, tokenOutAddress, coreTokens);
-
-      const multicallResult = await publicClient.multicall({
-        allowFailure: true,
-        multicallAddress: multicall3Address,
-        contracts: routes.map((route) => ({
-          address: contractAddresses.uniswapV2Router02 as Address,
-          abi: contractAbis.router,
-          functionName: "getAmountsOut",
-          args: [amountInRaw, route]
-        }))
+      return getQuote(publicClient, {
+        tokenIn: tokenInAddress,
+        tokenOut: tokenOutAddress,
+        amountIn,
+        coreTokens,
+        decimalsIn: tokenInIsMon ? 18 : undefined,
+        decimalsOut: tokenOutIsMon ? 18 : undefined
       });
-
-      const quotes: QuoteCandidate[] = routes.map((route, index) => {
-        const result = multicallResult[index];
-
-        if (result.status !== "success") {
-          return {
-            path: route,
-            amountOut: 0n,
-            success: false
-          };
-        }
-
-        const amounts = result.result as bigint[];
-        const finalAmount = amounts[amounts.length - 1] ?? 0n;
-
-        return {
-          path: route,
-          amountOut: finalAmount,
-          success: true
-        };
-      });
-
-      return {
-        quotes,
-        best: selectBestQuote(quotes),
-        decimalsIn,
-        decimalsOut,
-        amountInRaw
-      };
     }
   });
 }

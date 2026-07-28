@@ -1,6 +1,6 @@
 import type { Address } from "viem";
 
-import type { QuoteCandidate } from "../types";
+import type { QuoteCandidate } from "./types";
 
 export function buildCandidateRoutes(tokenIn: Address, tokenOut: Address, cores: Address[]): Address[][] {
   const routes: Address[][] = [[tokenIn, tokenOut]];
@@ -63,4 +63,15 @@ export function selectBestQuote(quotes: QuoteCandidate[]): QuoteCandidate | unde
   }
 
   return winner;
+}
+
+/**
+ * Minimum acceptable output for a quote at the given slippage tolerance.
+ * Percent is converted to basis points with Math.floor, then deducted with
+ * integer bigint math, matching the swap flow in the web app exactly.
+ * The caller validates the percent (the app clamps it to 0 < p <= 50).
+ */
+export function applySlippage(amountOut: bigint, slippagePercent: number): bigint {
+  const bps = Math.floor(slippagePercent * 100);
+  return amountOut - (amountOut * BigInt(bps)) / 10_000n;
 }

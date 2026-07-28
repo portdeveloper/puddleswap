@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: setup setup-contracts setup-web test test-contracts test-web dev deploy-testnet deploy-uniswap verify-contracts rebalance-testnet deploy-railway-rebalancer sync-artifacts lint format
+.PHONY: setup setup-contracts setup-web test test-contracts test-sdk test-web dev deploy-testnet deploy-uniswap verify-contracts rebalance-testnet deploy-railway-rebalancer sync-artifacts lint format
 
 setup: setup-contracts setup-web
 
@@ -10,10 +10,13 @@ setup-contracts:
 setup-web:
 	pnpm install
 
-test: test-contracts test-web
+test: test-contracts test-sdk test-web
 
 test-contracts:
 	cd contracts && forge test --no-match-path test/E2ESwap.t.sol
+
+test-sdk:
+	pnpm --dir sdk test --run
 
 test-web:
 	pnpm --dir web test --run

@@ -1,2 +1,10 @@
 packages:
+  - sdk
   - web
+allowBuilds:
+  bufferutil: false
+  core-js: false
+  esbuild: false
+  keccak: false
+  protobufjs: false
+  utf-8-validate: false

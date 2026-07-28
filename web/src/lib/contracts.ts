@@ -1,15 +1,16 @@
 import type { Address } from "viem";
 import { isAddress } from "viem";
-
-import { abis, deployment } from "../config/generated";
 import {
   erc20Abi,
   factoryAbi,
+  MULTICALL3_ADDRESS,
   pairAbi,
   registryAbi,
   routerAbi,
   stakingRewardsAbi
-} from "../abi/minimal";
+} from "@puddleswap/sdk";
+
+import { abis, deployment } from "../config/generated";
 
 function asAddress(value: string | undefined): Address | undefined {
   if (!value) {
@@ -42,4 +43,4 @@ export const contractAbis = {
   stakingRewards: fallbackAbi(abis.stakingRewardsWmonUsdc, stakingRewardsAbi)
 } as const;
 
-export const multicall3Address = "0xca11bde05977b3631167028862be2a173976ca11" as Address;
+export const multicall3Address = MULTICALL3_ADDRESS;

@@ -29,6 +29,7 @@ jobs:
 
       - run: make setup
       - run: make test
+      - run: pnpm --dir sdk typecheck
       - run: pnpm --dir web lint
       - run: pnpm --dir web typecheck
       - run: pnpm --dir web build

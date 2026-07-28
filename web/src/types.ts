@@ -10,9 +10,3 @@ export type TokenView = {
   isCore: boolean;
   active: boolean;
 };
-
-export type QuoteCandidate = {
-  path: Address[];
-  amountOut: bigint;
-  success: boolean;
-};

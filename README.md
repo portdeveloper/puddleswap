@@ -43,6 +43,7 @@ An automated service on Railway keeps the core pools (USDC/WMON, USDT/WMON) near
 ```
 contracts/          Foundry — Solidity contracts, deploy scripts, tests
 web/                Vite + React + TypeScript — static frontend (RPC-only)
+sdk/                TypeScript SDK — star-routing quotes, swap calldata, registry reads
 config/             Deployed contract addresses per chain
 scripts/            Deploy, verify, rebalance, sync helpers
 docs/               Runbooks and security docs
