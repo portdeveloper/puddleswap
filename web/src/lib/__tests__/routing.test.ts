@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { buildCandidateRoutes, selectBestQuote } from "../routing";
+import {
+  applySlippage,
+  buildCandidateRoutes,
+  selectBestQuote,
+} from "../routing";
 
 describe("buildCandidateRoutes", () => {
   it("creates direct, single-core, and two-core routes without duplicates", () => {
@@ -29,31 +33,83 @@ describe("selectBestQuote", () => {
       {
         path: [
           "0x0000000000000000000000000000000000000001",
-          "0x0000000000000000000000000000000000000002"
+          "0x0000000000000000000000000000000000000002",
         ],
         amountOut: 100n,
-        success: true
+        success: true,
       },
       {
         path: [
           "0x0000000000000000000000000000000000000001",
           "0x0000000000000000000000000000000000000003",
-          "0x0000000000000000000000000000000000000002"
+          "0x0000000000000000000000000000000000000002",
         ],
         amountOut: 150n,
-        success: true
+        success: true,
       },
       {
         path: [
           "0x0000000000000000000000000000000000000001",
           "0x0000000000000000000000000000000000000004",
-          "0x0000000000000000000000000000000000000002"
+          "0x0000000000000000000000000000000000000002",
         ],
         amountOut: 200n,
-        success: false
-      }
+        success: false,
+      },
     ]);
 
     expect(best?.amountOut).toBe(150n);
+  });
+
+  it.each([
+    ["a direct route", 100n, 90n, 100n],
+    ["a multi-hop route when the direct pool has price impact", 80n, 95n, 95n],
+  ])(
+    "selects %s when both quotes succeed",
+    (_description, directAmountOut, multiHopAmountOut, expected) => {
+      const best = selectBestQuote([
+        {
+          path: [
+            "0x0000000000000000000000000000000000000001",
+            "0x0000000000000000000000000000000000000002",
+          ],
+          amountOut: directAmountOut,
+          success: true,
+        },
+        {
+          path: [
+            "0x0000000000000000000000000000000000000001",
+            "0x0000000000000000000000000000000000000003",
+            "0x0000000000000000000000000000000000000002",
+          ],
+          amountOut: multiHopAmountOut,
+          success: true,
+        },
+      ]);
+
+      expect(best?.amountOut).toBe(expected);
+    },
+  );
+
+  it("returns no route when every quote fails", () => {
+    const best = selectBestQuote([
+      {
+        path: [
+          "0x0000000000000000000000000000000000000001",
+          "0x0000000000000000000000000000000000000002",
+        ],
+        amountOut: 0n,
+        success: false,
+      },
+    ]);
+
+    expect(best).toBeUndefined();
+  });
+});
+
+describe("applySlippage", () => {
+  it("applies the configured bound to the selected quote", () => {
+    expect(applySlippage(1_000_000n, 1)).toBe(990_000n);
+    expect(applySlippage(1_000_000n, 50)).toBe(500_000n);
   });
 });

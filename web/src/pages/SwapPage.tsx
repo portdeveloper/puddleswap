@@ -19,6 +19,7 @@ import { useCoreTokens } from "../hooks/useCoreTokens";
 import { useBestQuote } from "../hooks/useBestQuote";
 import { useTokenMeta } from "../hooks/useTokenMeta";
 import { contractAbis, contractAddresses } from "../lib/contracts";
+import { applySlippage } from "../lib/routing";
 
 function shortAddress(value: string) {
   return `${value.slice(0, 6)}…${value.slice(-4)}`;
@@ -294,10 +295,7 @@ export function SwapPage() {
     posthog.capture("swap_submitted", swapProps);
 
     try {
-      const bps = Math.floor(slippage * 100);
-      const minOut =
-        quoteQuery.data.best.amountOut -
-        (quoteQuery.data.best.amountOut * BigInt(bps)) / 10_000n;
+      const minOut = applySlippage(quoteQuery.data.best.amountOut, slippage);
       const deadline = BigInt(Math.floor(Date.now() / 1000) + 60 * 20);
       const isTokenInMon = tokenIn === MON_TOKEN;
       const isTokenOutMon = tokenOut === MON_TOKEN;
@@ -790,9 +788,9 @@ export function SwapPage() {
                   <span>Exchange Rate</span>
                   <span className="route-value">
                     1 {tokenInSymbol} ={" "}
-                    {(
-                      Number(bestQuoteValue) / Number(amountIn || "1")
-                    ).toFixed(4)}{" "}
+                    {(Number(bestQuoteValue) / Number(amountIn || "1")).toFixed(
+                      4,
+                    )}{" "}
                     {tokenOutSymbol}
                   </span>
                 </div>
