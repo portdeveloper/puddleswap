@@ -2,7 +2,11 @@ import type { Address } from "viem";
 
 import type { QuoteCandidate } from "../types";
 
-export function buildCandidateRoutes(tokenIn: Address, tokenOut: Address, cores: Address[]): Address[][] {
+export function buildCandidateRoutes(
+  tokenIn: Address,
+  tokenOut: Address,
+  cores: Address[],
+): Address[][] {
   const routes: Address[][] = [[tokenIn, tokenOut]];
 
   for (const core of cores) {
@@ -16,7 +20,12 @@ export function buildCandidateRoutes(tokenIn: Address, tokenOut: Address, cores:
       if (coreA === coreB) {
         continue;
       }
-      if (coreA === tokenIn || coreA === tokenOut || coreB === tokenIn || coreB === tokenOut) {
+      if (
+        coreA === tokenIn ||
+        coreA === tokenOut ||
+        coreB === tokenIn ||
+        coreB === tokenOut
+      ) {
         continue;
       }
 
@@ -49,7 +58,9 @@ export function buildCandidateRoutes(tokenIn: Address, tokenOut: Address, cores:
   return deduped;
 }
 
-export function selectBestQuote(quotes: QuoteCandidate[]): QuoteCandidate | undefined {
+export function selectBestQuote(
+  quotes: QuoteCandidate[],
+): QuoteCandidate | undefined {
   let winner: QuoteCandidate | undefined;
 
   for (const quote of quotes) {
@@ -63,4 +74,12 @@ export function selectBestQuote(quotes: QuoteCandidate[]): QuoteCandidate | unde
   }
 
   return winner;
+}
+
+export function applySlippage(
+  amountOut: bigint,
+  slippagePercent: number,
+): bigint {
+  const bps = Math.floor(slippagePercent * 100);
+  return amountOut - (amountOut * BigInt(bps)) / 10_000n;
 }
