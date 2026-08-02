@@ -65,7 +65,14 @@ describe("useBestQuote", () => {
       .mockResolvedValueOnce(18);
     publicClient.multicall.mockResolvedValue([
       { status: "success", result: [1_250_000n, 800_000_000_000_000_000n] },
-      { status: "success", result: [1_250_000n, 950_000_000_000_000_000n] },
+      {
+        status: "success",
+        result: [
+          1_250_000n,
+          1_245_000_000_000_000_000n,
+          950_000_000_000_000_000n,
+        ],
+      },
     ]);
 
     const { result } = renderQuote(tokenIn, tokenOut, "1.25", [core]);
