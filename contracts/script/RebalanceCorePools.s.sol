@@ -48,6 +48,7 @@ contract RebalanceCorePools is Script {
     uint256 private _targetStablePerWmon;
     uint256 private _toleranceBps;
     uint256 private _maxInputFractionBps;
+    uint256 private _gasBufferWei;
 
     function run() external {
         _factoryAddress = vm.envAddress("FACTORY_ADDRESS");
@@ -60,6 +61,7 @@ contract RebalanceCorePools is Script {
         _targetStablePerWmon = vm.envOr("TARGET_STABLE_PER_WMON", uint256(1000 * 1e6)); // 1000 USDC/USDT
         _toleranceBps = vm.envOr("TARGET_TOLERANCE_BPS", uint256(50)); // 0.50%
         _maxInputFractionBps = vm.envOr("MAX_INPUT_FRACTION_BPS", uint256(5000)); // 50% reserve cap
+        _gasBufferWei = vm.envOr("GAS_BUFFER_WEI", uint256(5 ether)); // native MON kept back for gas
 
         vm.startBroadcast();
 
@@ -97,7 +99,15 @@ contract RebalanceCorePools is Script {
                 return;
             }
 
-            _ensureStableBalance(stableToken, _operator, amountStableIn);
+            uint256 stableBalance = IERC20Mintable(stableToken).balanceOf(_operator);
+            if (amountStableIn > stableBalance) {
+                console2.log("partial: stable in capped to balance", stableBalance);
+                amountStableIn = stableBalance;
+            }
+            if (amountStableIn == 0) {
+                console2.log("skip: no stable balance - pre-fund operator wallet");
+                return;
+            }
             uint256 expectedWmonOut = _amountOut(amountStableIn, reserveStable, reserveWmon);
             uint256 minWmonOut = (expectedWmonOut * (10_000 - _toleranceBps)) / 10_000;
             address[] memory path = new address[](2);
@@ -115,6 +125,15 @@ contract RebalanceCorePools is Script {
                 return;
             }
 
+            uint256 affordableWmon = IWMON(_wmonToken).balanceOf(_operator) + _spendableNative();
+            if (amountWmonIn > affordableWmon) {
+                console2.log("partial: wmon in capped to affordable", affordableWmon);
+                amountWmonIn = affordableWmon;
+            }
+            if (amountWmonIn == 0) {
+                console2.log("skip: no wmon/native balance - pre-fund operator wallet");
+                return;
+            }
             _ensureWmonBalance(_wmonToken, _operator, amountWmonIn);
             uint256 expectedStableOut = _amountOut(amountWmonIn, reserveWmon, reserveStable);
             uint256 minStableOut = (expectedStableOut * (10_000 - _toleranceBps)) / 10_000;
@@ -130,9 +149,9 @@ contract RebalanceCorePools is Script {
         }
     }
 
-    function _ensureStableBalance(address stableToken, address operator, uint256 requiredAmount) internal view {
-        uint256 stableBalance = IERC20Mintable(stableToken).balanceOf(operator);
-        require(stableBalance >= requiredAmount, "insufficient stable balance - pre-fund operator wallet");
+    function _spendableNative() internal view returns (uint256) {
+        uint256 nativeBalance = _operator.balance;
+        return nativeBalance > _gasBufferWei ? nativeBalance - _gasBufferWei : 0;
     }
 
     function _ensureWmonBalance(address wmonToken, address operator, uint256 requiredAmount) internal {

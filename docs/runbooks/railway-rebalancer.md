@@ -20,9 +20,13 @@ This service continuously runs the core pool rebalancer on Monad testnet.
 - `MAX_INPUT_FRACTION_BPS` default `5000`
 - `REBALANCE_INTERVAL_SECONDS` default `300`
 - `REBALANCE_JITTER_SECONDS` default `30`
-- `LOW_MON_THRESHOLD_MON` default `200`
+- `LOW_MON_THRESHOLD_MON` default `200` — static floor; the effective threshold is `max(static, cycle need)` where cycle need = `MAX_INPUT_FRACTION_BPS` of the largest core-pair WMON reserve + `GAS_BUFFER_MON`
+- `GAS_BUFFER_MON` default `25` — MON reserved for gas when sizing the low-balance threshold
 - `LOW_BALANCE_ALERT_COOLDOWN_SECONDS` default `21600` (6h)
-- `DISCORD_WEBHOOK_URL` Discord incoming webhook URL for low balance alerts
+- `FAILURE_ALERT_THRESHOLD` default `3` — consecutive failed cycles before a Discord alert
+- `FAILURE_ALERT_COOLDOWN_SECONDS` default `3600` (1h)
+- `GAS_BUFFER_WEI` default `5 ether` — native MON the forge script keeps back when capping WMON swaps to the affordable amount
+- `DISCORD_WEBHOOK_URL` Discord incoming webhook URL for low balance / failure alerts
 - `FACTORY_ADDRESS` overrides config file
 - `ROUTER_ADDRESS` overrides config file
 - `USDC_ADDRESS` overrides config file
@@ -49,3 +53,9 @@ Manual equivalent:
    - `Rebalance cycle started`
    - `Rebalance run complete.`
    - `within tolerance, no action` or swap execution logs
+
+## Failure behavior
+
+- If the operator can't afford the full capped swap, the script logs `partial: ... capped to affordable` and swaps what it can, or `skip: ... pre-fund operator wallet` — the cycle still succeeds.
+- After `FAILURE_ALERT_THRESHOLD` consecutive failed cycles, a `PUDDLE ALERT` is sent to Discord (plus a `PUDDLE RECOVERY` message once cycles succeed again).
+- The heartbeat gist records `lastStatus: ok|failed` and `lastRun` (last success) each cycle.
