@@ -26,7 +26,7 @@ const TOKENS = {
     isNative: false,
     isStable: true,
     description:
-      "USD-pegged stablecoin issued for Monad Testnet. Stable rate, deep core-pair pools, claimable from the stable faucet.",
+      "Circle-issued testnet USDC used for core routing. It is not the locally mintable USDC dispensed by the stable faucet.",
   },
   usdt: {
     symbol: "USDT",
@@ -295,7 +295,7 @@ const PAIR_DEFS = [
       },
       {
         q: "What is the difference between USDT and USDC on Monad Testnet?",
-        a: "Both are USD-pegged stablecoins issued for testnet. They behave identically for routing purposes; only the brand differs. Use whichever you need for downstream testing.",
+        a: "USDC is Circle's canonical CCTP testnet token; USDT is a locally mintable test token. Both are routing cores, but their supply and pool risk differ.",
       },
       {
         q: "Can I send the resulting USDT to mainnet?",
@@ -455,7 +455,7 @@ const PAIR_DEFS = [
       },
       {
         q: "Are testnet USDC and testnet USDT the same as mainnet USDC and USDT?",
-        a: "No. They are separate test tokens deployed only for Monad Testnet, with no economic value and no relationship to the real Circle USDC or Tether USDT. They share the brand for familiarity, not the issuer.",
+        a: "No. Both have no real economic value. The USDC contract is Circle's canonical testnet deployment and supports CCTP; USDT is a local test token with no relationship to Tether.",
       },
     ],
   },

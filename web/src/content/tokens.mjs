@@ -205,7 +205,7 @@ export const tokenEntries = [
     isCore: true,
     title: "USDC: Test USD Coin on Monad Testnet",
     description:
-      "USDC is a test USD-pegged stablecoin on Monad Testnet, used as a core routing token on PuddleSwap. 6 decimals, free from the faucet.",
+      "Circle-issued testnet USDC used as a core routing token on PuddleSwap. It is not the locally mintable token dispensed by the stable faucet.",
     h1: "USDC: Test USD Coin on Monad Testnet",
     summary:
       "Test USD-pegged stablecoin. One of three core routing tokens on PuddleSwap. 6 decimals.",
@@ -214,7 +214,7 @@ export const tokenEntries = [
         type: "p",
         parts: [
           { b: "USDC" },
-          " on Monad Testnet is a test stablecoin, a USD-pegged ERC-20 deployed specifically for the testnet environment. It is ",
+          " on Monad Testnet is Circle's canonical testnet USDC and can move between supported testnets through CCTP. It is ",
           { b: "not" },
           " the same contract as mainnet USDC and has no real economic value. On PuddleSwap, test USDC is one of three ",
           { a: { href: "/learn/star-routing", text: "core routing tokens" } },
@@ -242,7 +242,7 @@ export const tokenEntries = [
       {
         type: "p",
         parts: [
-          "Test USDC can be minted through the stable faucet contract, or received via swaps on PuddleSwap. Since it's a core token, many pairs are available. You can swap MON for USDC in one transaction from the ",
+          "PuddleSwap's canonical USDC is not minted by the local stable faucet. Obtain it through Circle's testnet CCTP flow, receive it from another developer, or swap for it on PuddleSwap. The faucet's different USDC contract is not a core routing token. You can swap MON for canonical USDC from the ",
           { a: { href: "/", text: "swap widget" } },
           ".",
         ],
@@ -280,11 +280,11 @@ export const tokenEntries = [
     faqs: [
       {
         q: "Is testnet USDC the same as real USDC?",
-        a: "No. Testnet USDC is a separate ERC-20 deployed on Monad Testnet for testing. It has no economic value, is not issued by Circle, and cannot be redeemed for real USD.",
+        a: "No. This is Circle-issued testnet USDC, separate from mainnet USDC. It has no real economic value and cannot be redeemed for real USD.",
       },
       {
         q: "How do I get testnet USDC?",
-        a: "Claim from the stable faucet on Monad Testnet, swap MON or WMON for USDC on PuddleSwap, or receive a transfer from another developer. The faucet is the canonical free source.",
+        a: "Use Circle's testnet CCTP flow, swap MON or WMON for canonical USDC on PuddleSwap, or receive it from another developer. The local stable faucet dispenses a different USDC contract.",
       },
       {
         q: "Why is USDC a core routing token on PuddleSwap?",
@@ -292,7 +292,7 @@ export const tokenEntries = [
       },
       {
         q: "Does USDC stay close to 1:1 with USDT and WMON on testnet?",
-        a: "Against USDT, yes. Both are USD-pegged so the USDC/USDT pool stays near 1:1 (minus the 0.30% LP fee). Against WMON, no. The USDC/WMON pair is volatile because MON's price moves against USD.",
+        a: "No price is defended. All pools float according to their reserves and trades; even USDC/USDT can move away from 1:1 on testnet. WMON pairs are especially volatile.",
       },
     ],
   },

@@ -9,12 +9,16 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
 INTERVAL_SECONDS="${REPORT_INTERVAL_SECONDS:-300}"
+REPORT_ONCE="${REPORT_ONCE:-0}"
 RPC_URL="${RPC_URL:-https://testnet-rpc.monad.xyz}"
 DISCORD_WEBHOOK_URL="${DISCORD_WEBHOOK_URL:-}"
 
 # Anomaly thresholds (per cycle, vs the previous observation).
 PRICE_MOVE_ALERT_PCT="${PRICE_MOVE_ALERT_PCT:-15}"
 RESERVE_DRAIN_ALERT_PCT="${RESERVE_DRAIN_ALERT_PCT:-25}"
+CROSS_POOL_DIVERGENCE_ALERT_PCT="${CROSS_POOL_DIVERGENCE_ALERT_PCT:-25}"
+USDC_MIN_WMON_DEPTH="${USDC_MIN_WMON_DEPTH:-500}"
+USDT_MIN_WMON_DEPTH="${USDT_MIN_WMON_DEPTH:-1000}"
 ANOMALY_ALERT_COOLDOWN_SECONDS="${ANOMALY_ALERT_COOLDOWN_SECONDS:-3600}"
 STATE_DIR="${STATE_DIR:-/app/state}"
 mkdir -p "$STATE_DIR"
@@ -36,24 +40,38 @@ send_discord_alert() {
     -d "$(jq -n --arg content "$message" '{content: $content}')" >/dev/null
 }
 
-# echoes "stableReserve wmonReserve price" (price = stable per WMON, 6-dec units
-# scaled by 1e18/1e18 => integer stable-per-1-WMON*1e0). Falls back to empty.
+# Echoes "stableReserve wmonReserve price" (price = stable per WMON, 6-dec units
+# scaled by 1e18/1e18 => integer stable-per-1-WMON*1e0). Returns non-zero when
+# any required read fails so the cycle cannot publish a false healthy status.
 read_pool() {
   local stable="$1" pair token0 reserves r0 r1 sres wres
-  pair="$(cast call "$FACTORY_ADDRESS" "getPair(address,address)(address)" "$stable" "$WMON_ADDRESS" --rpc-url "$RPC_URL" 2>/dev/null || echo "")"
-  [[ -z "$pair" || "$pair" == 0x0000000000000000000000000000000000000000 ]] && return 0
-  token0="$(cast call "$pair" "token0()(address)" --rpc-url "$RPC_URL" 2>/dev/null || echo "")"
-  reserves="$(cast call "$pair" "getReserves()(uint112,uint112,uint32)" --rpc-url "$RPC_URL" 2>/dev/null | sed 's/ \[.*//' || echo "")"
+  if ! pair="$(cast call "$FACTORY_ADDRESS" "getPair(address,address)(address)" "$stable" "$WMON_ADDRESS" --rpc-url "$RPC_URL" 2>/dev/null)"; then
+    return 1
+  fi
+  [[ -z "$pair" || "$pair" == 0x0000000000000000000000000000000000000000 ]] && return 1
+  if ! token0="$(cast call "$pair" "token0()(address)" --rpc-url "$RPC_URL" 2>/dev/null)"; then
+    return 1
+  fi
+  if ! reserves="$(cast call "$pair" "getReserves()(uint112,uint112,uint32)" --rpc-url "$RPC_URL" 2>/dev/null)"; then
+    return 1
+  fi
+  reserves="$(cut -d' ' -f1 <<<"$reserves")"
   r0="$(echo "$reserves" | sed -n 1p)"; r1="$(echo "$reserves" | sed -n 2p)"
-  [[ -z "$token0" || -z "$r0" || -z "$r1" ]] && return 0
+  [[ -z "$token0" || -z "$r0" || -z "$r1" ]] && return 1
   if [[ "$(echo "$token0" | tr 'A-F' 'a-f')" == "$(echo "$stable" | tr 'A-F' 'a-f')" ]]; then sres="$r0"; wres="$r1"; else sres="$r1"; wres="$r0"; fi
+  [[ "$sres" =~ ^[0-9]+$ && "$wres" =~ ^[0-9]+$ ]] || return 1
+  [[ "$wres" != "0" ]] || return 1
   # price = stable(6dec) per 1 WMON(18dec) = sres*1e18/wres, in 6-dec units.
   awk -v s="$sres" -v w="$wres" 'BEGIN { if (w+0>0) printf "%s %s %d", s, w, (s*1e18/w); }'
 }
 
 publish_status() {
   local summary="$1" status="$2"
-  [[ -z "$HEARTBEAT_GIST_TOKEN" ]] && return 0
+  echo "heartbeat status=$status"
+  if [[ -z "$HEARTBEAT_GIST_TOKEN" ]]; then
+    echo "heartbeat disabled: token not configured"
+    return 1
+  fi
   local now content payload http
   now="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
   content="$(jq -n --arg worker "puddleswap-pool-health" --arg now "$now" \
@@ -64,6 +82,7 @@ publish_status() {
     -H "Authorization: Bearer $HEARTBEAT_GIST_TOKEN" -H "Accept: application/vnd.github+json" \
     -d "$payload" 2>/dev/null)" || true
   echo "heartbeat http=$http"
+  [[ "$http" =~ ^2[0-9][0-9]$ ]]
 }
 
 maybe_alert_anomaly() {
@@ -79,15 +98,28 @@ maybe_alert_anomaly() {
 }
 
 check_pool() {
-  local label="$1" stable="$2" data prev_file prev slug
+  local label="$1" stable="$2" pool_key="$3" min_depth="$4" data prev_file slug
   slug="$(echo "$label" | tr '/' '-')"
-  data="$(read_pool "$stable")"
-  [[ -z "$data" ]] && { echo "$label: no pool / read failed"; return; }
+  if ! data="$(read_pool "$stable")" || [[ -z "$data" ]]; then
+    echo "$label: no pool / read failed"
+    return 1
+  fi
   local sres wres price; read -r sres wres price <<<"$data"
   local price_h; price_h="$(awk -v p="$price" 'BEGIN { printf "%.6f", p/1e6 }')"
   local wmon_h; wmon_h="$(cast from-wei "$wres" ether 2>/dev/null | cut -d. -f1)"
   echo "$label: price=${price_h} stable/WMON, WMON depth=${wmon_h}"
   SUMMARY+="${label} ${price_h} (WMON ${wmon_h}); "
+
+  if [[ "$pool_key" == "usdc" ]]; then
+    USDC_PRICE="$price"
+  else
+    USDT_PRICE="$price"
+  fi
+
+  if awk -v d="$wmon_h" -v t="$min_depth" 'BEGIN { exit !(d+0 < t+0) }'; then
+    maybe_alert_anomaly "$label" \
+      "${label} WMON depth is below ${min_depth} (now ${wmon_h} WMON)" "low-depth-${slug}"
+  fi
 
   prev_file="$STATE_DIR/prev-${slug}.kv"
   if [[ -f "$prev_file" ]]; then
@@ -106,15 +138,38 @@ check_pool() {
   echo "$price $wres" > "$prev_file"
 }
 
+check_cross_pool_divergence() {
+  [[ "$USDC_PRICE" =~ ^[0-9]+$ && "$USDT_PRICE" =~ ^[0-9]+$ ]] || return 1
+  (( USDC_PRICE > 0 && USDT_PRICE > 0 )) || return 1
+  local divergence
+  divergence="$(awk -v a="$USDC_PRICE" -v b="$USDT_PRICE" \
+    'BEGIN { lo=a<b?a:b; hi=a>b?a:b; printf "%.1f", (hi-lo)/lo*100 }')"
+  echo "cross-pool price divergence=${divergence}%"
+  SUMMARY+="cross-pool divergence ${divergence}%; "
+  if awk -v d="$divergence" -v t="$CROSS_POOL_DIVERGENCE_ALERT_PCT" \
+    'BEGIN { exit !(d+0 >= t+0) }'; then
+    maybe_alert_anomaly "cross-pool" \
+      "USDC/WMON and USDT/WMON prices differ by ${divergence}%" "cross-pool-divergence"
+  fi
+}
+
 echo "Starting PuddleSwap pool health reporter (read-only)"
-echo "RPC: $RPC_URL  interval: ${INTERVAL_SECONDS}s"
-echo "Alerts: price move >=${PRICE_MOVE_ALERT_PCT}%, reserve drain >=${RESERVE_DRAIN_ALERT_PCT}% (Discord $([[ -n "$DISCORD_WEBHOOK_URL" ]] && echo on || echo off))"
+echo "RPC: configured (URL redacted)  interval: ${INTERVAL_SECONDS}s"
+echo "Alerts: price move >=${PRICE_MOVE_ALERT_PCT}%, reserve drain >=${RESERVE_DRAIN_ALERT_PCT}%, cross-pool divergence >=${CROSS_POOL_DIVERGENCE_ALERT_PCT}% (Discord $([[ -n "$DISCORD_WEBHOOK_URL" ]] && echo on || echo off))"
 
 while true; do
   echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] health cycle"
   SUMMARY=""
-  check_pool "USDC/WMON" "$USDC_ADDRESS"
-  check_pool "USDT/WMON" "$USDT_ADDRESS"
-  publish_status "${SUMMARY%%; }" "ok"
+  USDC_PRICE=""
+  USDT_PRICE=""
+  cycle_status="ok"
+  check_pool "USDC/WMON" "$USDC_ADDRESS" "usdc" "$USDC_MIN_WMON_DEPTH" || cycle_status="degraded"
+  check_pool "USDT/WMON" "$USDT_ADDRESS" "usdt" "$USDT_MIN_WMON_DEPTH" || cycle_status="degraded"
+  check_cross_pool_divergence || cycle_status="degraded"
+  if ! publish_status "${SUMMARY%%; }" "$cycle_status"; then
+    echo "health cycle degraded: heartbeat publication failed"
+    maybe_alert_anomaly "heartbeat" "Pool health heartbeat publication failed" "heartbeat" || true
+  fi
+  [[ "$REPORT_ONCE" == "1" ]] && break
   sleep "$INTERVAL_SECONDS"
 done
