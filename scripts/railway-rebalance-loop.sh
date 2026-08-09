@@ -9,14 +9,23 @@ JITTER_SECONDS="${REBALANCE_JITTER_SECONDS:-30}"
 RPC_URL="${RPC_URL:-https://testnet-rpc.monad.xyz}"
 LOW_MON_THRESHOLD_MON="${LOW_MON_THRESHOLD_MON:-200}"
 GAS_BUFFER_MON="${GAS_BUFFER_MON:-25}"
-MAX_INPUT_FRACTION_BPS="${MAX_INPUT_FRACTION_BPS:-5000}"
+SEED_WMON_MON="${SEED_WMON_MON:-1000}"
+
+# Deterministic target ratchet: raise the ask while the counterparty keeps
+# buying, drift back toward the floor when it goes quiet.
+TARGET_FLOOR_STABLE_PER_WMON="${TARGET_STABLE_PER_WMON:-30000}"
+TARGET_MAX_STABLE_PER_WMON="${TARGET_MAX_STABLE_PER_WMON:-300000}"
+RATCHET_UP_PCT="${RATCHET_UP_PCT:-25}"
+RATCHET_UP_AFTER_SKIMS="${RATCHET_UP_AFTER_SKIMS:-2}"
+RATCHET_DOWN_IDLE_SECONDS="${RATCHET_DOWN_IDLE_SECONDS:-86400}"
+TARGET_STATE_FILE="${TARGET_STATE_FILE:-/app/state/target-ratchet}"
 LOW_BALANCE_ALERT_COOLDOWN_SECONDS="${LOW_BALANCE_ALERT_COOLDOWN_SECONDS:-21600}"
 FAILURE_ALERT_THRESHOLD="${FAILURE_ALERT_THRESHOLD:-3}"
 FAILURE_ALERT_COOLDOWN_SECONDS="${FAILURE_ALERT_COOLDOWN_SECONDS:-3600}"
 DISCORD_WEBHOOK_URL="${DISCORD_WEBHOOK_URL:-}"
 LOW_BALANCE_ALERT_STATE_FILE="${LOW_BALANCE_ALERT_STATE_FILE:-/app/state/low-mon-alert.ts}"
 FAILURE_ALERT_STATE_FILE="${FAILURE_ALERT_STATE_FILE:-/app/state/failure-alert.ts}"
-mkdir -p "$(dirname "$LOW_BALANCE_ALERT_STATE_FILE")" "$(dirname "$FAILURE_ALERT_STATE_FILE")"
+mkdir -p "$(dirname "$LOW_BALANCE_ALERT_STATE_FILE")" "$(dirname "$FAILURE_ALERT_STATE_FILE")" "$(dirname "$TARGET_STATE_FILE")"
 
 # Token/factory addresses, used to size the low-balance threshold from what a
 # cycle can actually spend (MAX_INPUT_FRACTION_BPS of the largest WMON reserve).
@@ -102,25 +111,71 @@ publish_status() {
   fi
 }
 
-# Worst-case MON a single cycle can need: MAX_INPUT_FRACTION_BPS of the largest
-# core-pair WMON reserve, plus a gas buffer. Falls back to 0 on RPC errors so the
-# static LOW_MON_THRESHOLD_MON still applies.
+# Worst-case MON a single cycle can need under skim-and-reseed: one fresh seed
+# per pair plus a gas buffer (the skim itself recovers WMON before reseeding,
+# so this overstates the common case — that's fine for an alert threshold).
 required_mon_for_cycle() {
-  local stable pair token0 reserves r0 r1 wmon_wei wmon_mon max_wmon_mon=0
-  for stable in "$USDC_ADDRESS" "$USDT_ADDRESS"; do
-    pair="$(cast call "$FACTORY_ADDRESS" "getPair(address,address)(address)" "$stable" "$WMON_ADDRESS" --rpc-url "$RPC_URL" 2>/dev/null || echo "")"
-    if [[ -z "$pair" || "$pair" == "0x0000000000000000000000000000000000000000" ]]; then continue; fi
-    token0="$(cast call "$pair" "token0()(address)" --rpc-url "$RPC_URL" 2>/dev/null || echo "")"
-    reserves="$(cast call "$pair" "getReserves()(uint112,uint112,uint32)" --rpc-url "$RPC_URL" 2>/dev/null | sed 's/ \[.*//' || echo "")"
-    r0="$(echo "$reserves" | sed -n 1p)"
-    r1="$(echo "$reserves" | sed -n 2p)"
-    if [[ -z "$token0" || -z "$r0" || -z "$r1" ]]; then continue; fi
-    if [[ "$(echo "$token0" | tr 'A-F' 'a-f')" == "$(echo "$WMON_ADDRESS" | tr 'A-F' 'a-f')" ]]; then wmon_wei="$r0"; else wmon_wei="$r1"; fi
-    wmon_mon="$(cast from-wei "$wmon_wei" ether 2>/dev/null || echo 0)"
-    max_wmon_mon="$(awk -v a="$max_wmon_mon" -v b="$wmon_mon" 'BEGIN { print (b > a) ? b : a }')"
-  done
-  awk -v r="$max_wmon_mon" -v bps="$MAX_INPUT_FRACTION_BPS" -v gas="$GAS_BUFFER_MON" \
-    'BEGIN { printf "%.2f", r * bps / 10000 + gas }'
+  awk -v seed="$SEED_WMON_MON" -v gas="$GAS_BUFFER_MON" 'BEGIN { printf "%.2f", seed + gas }'
+}
+
+# ---- deterministic target ratchet ----
+# State file: "<target> <consecutive_skims> <last_skim_ts>". While the
+# counterparty keeps buying (every skim = it traded the pool out of tolerance),
+# raise the ask RATCHET_UP_PCT after each RATCHET_UP_AFTER_SKIMS consecutive
+# skims, up to TARGET_MAX. After RATCHET_DOWN_IDLE_SECONDS without a skim,
+# step back down toward the floor at the same rate.
+CURRENT_TARGET="$TARGET_FLOOR_STABLE_PER_WMON"
+CONSECUTIVE_SKIMS=0
+LAST_SKIM_TS=0
+
+load_ratchet_state() {
+  if [[ -f "$TARGET_STATE_FILE" ]]; then
+    read -r CURRENT_TARGET CONSECUTIVE_SKIMS LAST_SKIM_TS < "$TARGET_STATE_FILE" || true
+  fi
+  [[ "$CURRENT_TARGET" =~ ^[0-9]+$ ]] || CURRENT_TARGET="$TARGET_FLOOR_STABLE_PER_WMON"
+  [[ "$CONSECUTIVE_SKIMS" =~ ^[0-9]+$ ]] || CONSECUTIVE_SKIMS=0
+  [[ "$LAST_SKIM_TS" =~ ^[0-9]+$ ]] || LAST_SKIM_TS=0
+  if (( CURRENT_TARGET < TARGET_FLOOR_STABLE_PER_WMON )); then
+    CURRENT_TARGET="$TARGET_FLOOR_STABLE_PER_WMON"
+  fi
+  if (( CURRENT_TARGET > TARGET_MAX_STABLE_PER_WMON )); then
+    CURRENT_TARGET="$TARGET_MAX_STABLE_PER_WMON"
+  fi
+}
+
+save_ratchet_state() {
+  echo "$CURRENT_TARGET $CONSECUTIVE_SKIMS $LAST_SKIM_TS" > "$TARGET_STATE_FILE"
+}
+
+# $1 = 1 if this cycle skimmed (pool was out of tolerance), 0 otherwise.
+update_ratchet() {
+  local skimmed="$1" now_ts
+  now_ts="$(date +%s)"
+  if (( skimmed )); then
+    CONSECUTIVE_SKIMS=$((CONSECUTIVE_SKIMS + 1))
+    LAST_SKIM_TS="$now_ts"
+    if (( CONSECUTIVE_SKIMS >= RATCHET_UP_AFTER_SKIMS )); then
+      local next
+      next=$((CURRENT_TARGET * (100 + RATCHET_UP_PCT) / 100))
+      if (( next > TARGET_MAX_STABLE_PER_WMON )); then next="$TARGET_MAX_STABLE_PER_WMON"; fi
+      if (( next != CURRENT_TARGET )); then
+        echo "ratchet: target ${CURRENT_TARGET} -> ${next} after ${CONSECUTIVE_SKIMS} consecutive skims"
+      fi
+      CURRENT_TARGET="$next"
+      CONSECUTIVE_SKIMS=0
+    fi
+  else
+    CONSECUTIVE_SKIMS=0
+    if (( LAST_SKIM_TS > 0 && now_ts - LAST_SKIM_TS >= RATCHET_DOWN_IDLE_SECONDS && CURRENT_TARGET > TARGET_FLOOR_STABLE_PER_WMON )); then
+      local next
+      next=$((CURRENT_TARGET * 100 / (100 + RATCHET_UP_PCT)))
+      if (( next < TARGET_FLOOR_STABLE_PER_WMON )); then next="$TARGET_FLOOR_STABLE_PER_WMON"; fi
+      echo "ratchet: idle $((now_ts - LAST_SKIM_TS))s, target ${CURRENT_TARGET} -> ${next}"
+      CURRENT_TARGET="$next"
+      LAST_SKIM_TS="$now_ts"
+    fi
+  fi
+  save_ratchet_state
 }
 
 check_low_mon_balance() {
@@ -132,7 +187,13 @@ check_low_mon_balance() {
     return
   fi
 
-  balance_mon="$(cast from-wei "$balance_wei" ether 2>/dev/null || echo "0")"
+  # Reseeds draw on WMON recovered by prior skims, so ERC20 WMON counts as
+  # spendable inventory alongside native MON.
+  local wmon_wei
+  wmon_wei="$(cast call "$WMON_ADDRESS" "balanceOf(address)(uint256)" "$OPERATOR_ADDRESS" --rpc-url "$RPC_URL" 2>/dev/null | sed 's/ \[.*//' || echo "0")"
+  [[ "$wmon_wei" =~ ^[0-9]+$ ]] || wmon_wei=0
+
+  balance_mon="$(awk -v n="$(cast from-wei "$balance_wei" ether 2>/dev/null || echo 0)" -v w="$(cast from-wei "$wmon_wei" ether 2>/dev/null || echo 0)" 'BEGIN { printf "%.6f", n + w }')"
 
   required_mon="$(required_mon_for_cycle)"
   effective_threshold="$(awk -v a="$LOW_MON_THRESHOLD_MON" -v b="$required_mon" 'BEGIN { print (b > a) ? b : a }')"
@@ -224,14 +285,28 @@ alert_on_failure_streak() {
   fi
 }
 
+CYCLE_OUTPUT_FILE="$(mktemp)"
+trap 'rm -f "$CYCLE_OUTPUT_FILE"' EXIT
+
 while true; do
   STARTED_AT="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
   echo "[$STARTED_AT] Rebalance cycle started"
 
   check_low_mon_balance
 
-  if bash "$ROOT_DIR/scripts/rebalance-testnet-core.sh"; then
+  load_ratchet_state
+  echo "ratchet: effective target ${CURRENT_TARGET} (floor ${TARGET_FLOOR_STABLE_PER_WMON}, max ${TARGET_MAX_STABLE_PER_WMON}, streak ${CONSECUTIVE_SKIMS})"
+
+  if TARGET_STABLE_PER_WMON="$CURRENT_TARGET" \
+     SEED_WMON_WEI="$(cast to-wei "$SEED_WMON_MON" ether)" \
+     GAS_BUFFER_WEI="$(cast to-wei "$GAS_BUFFER_MON" ether)" \
+     bash "$ROOT_DIR/scripts/rebalance-testnet-core.sh" 2>&1 | tee "$CYCLE_OUTPUT_FILE"; then
     echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] Rebalance cycle succeeded"
+    if grep -q "skim: removed" "$CYCLE_OUTPUT_FILE"; then
+      update_ratchet 1
+    else
+      update_ratchet 0
+    fi
     if (( FAILURE_ALERTED )); then
       send_discord_alert "PUDDLE RECOVERY: Rebalancer cycles are succeeding again (after ${CONSECUTIVE_FAILURES} consecutive failures)." || true
     fi
