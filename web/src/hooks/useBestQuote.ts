@@ -113,12 +113,43 @@ export function useBestQuote(tokenIn: string, tokenOut: string, amountIn: string
         };
       });
 
+      const best = selectBestQuote(quotes);
+
+      // Price impact: compare the trade's execution rate against the pool's
+      // marginal (near-zero-size) rate along the same route. A tiny reference
+      // trade quotes ~the spot price; impact is how far the real fill falls
+      // short of it. Returned in basis points (100 bps = 1%).
+      let priceImpactBps: number | undefined;
+      if (best && best.amountOut > 0n) {
+        const refIn = amountInRaw / 1000n > 0n ? amountInRaw / 1000n : 1n;
+        try {
+          const refAmounts = (await publicClient.readContract({
+            address: contractAddresses.uniswapV2Router02 as Address,
+            abi: contractAbis.router,
+            functionName: "getAmountsOut",
+            args: [refIn, best.path]
+          })) as bigint[];
+          const refOut = refAmounts[refAmounts.length - 1] ?? 0n;
+          if (refOut > 0n) {
+            // realRate = amountOut/amountInRaw, refRate = refOut/refIn.
+            // impact = 1 - realRate/refRate, in bps, clamped to >= 0.
+            const num = best.amountOut * refIn * 10_000n;
+            const den = amountInRaw * refOut;
+            const ratioBps = den > 0n ? Number(num / den) : 10_000;
+            priceImpactBps = Math.max(0, 10_000 - ratioBps);
+          }
+        } catch {
+          priceImpactBps = undefined;
+        }
+      }
+
       return {
         quotes,
-        best: selectBestQuote(quotes),
+        best,
         decimalsIn,
         decimalsOut,
-        amountInRaw
+        amountInRaw,
+        priceImpactBps
       };
     }
   });

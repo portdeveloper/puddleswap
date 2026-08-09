@@ -663,6 +663,53 @@ svg.puddle-char {
   font-variant-numeric: tabular-nums;
 }
 
+.impact-warning,
+.impact-danger {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.impact-warning {
+  background-color: rgba(224, 161, 6, 0.12);
+  border: 1px solid rgba(224, 161, 6, 0.4);
+  color: #8a6400;
+}
+
+.impact-danger {
+  background-color: rgba(229, 72, 77, 0.1);
+  border: 1px solid rgba(229, 72, 77, 0.45);
+  color: #b4262b;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.impact-ack {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.impact-ack input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+@media (prefers-color-scheme: dark) {
+  .impact-warning {
+    color: #f4cd6b;
+  }
+  .impact-danger {
+    color: #ff9ea1;
+  }
+}
+
 .route-path {
   display: inline-flex;
   align-items: center;

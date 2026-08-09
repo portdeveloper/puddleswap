@@ -130,6 +130,43 @@ describe("useBestQuote", () => {
     expect(result.current.data?.best).toBeUndefined();
   });
 
+  it("computes price impact from a marginal reference trade", async () => {
+    // 6-decimal in/out; direct route only (no cores).
+    // amountIn 0.001 -> 1000n raw, quoted out 900n (0.9 rate).
+    // Reference probe: refIn = 1000/1000 = 1n, out 1n (1.0 marginal rate).
+    // impact = 1 - 0.9/1.0 = 10% = 1000 bps.
+    publicClient.readContract
+      .mockResolvedValueOnce(6) // decimalsIn
+      .mockResolvedValueOnce(6) // decimalsOut
+      .mockResolvedValueOnce([1n, 1n]); // reference probe getAmountsOut
+    publicClient.multicall.mockResolvedValue([
+      { status: "success", result: [1000n, 900n] },
+    ]);
+
+    const { result } = renderQuote(tokenIn, tokenOut, "0.001", []);
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(result.current.data?.priceImpactBps).toBe(1000);
+  });
+
+  it("reports undefined impact when the reference probe reverts", async () => {
+    publicClient.readContract
+      .mockResolvedValueOnce(6)
+      .mockResolvedValueOnce(6)
+      .mockRejectedValueOnce(new Error("revert"));
+    publicClient.multicall.mockResolvedValue([
+      { status: "success", result: [1000n, 900n] },
+    ]);
+
+    const { result } = renderQuote(tokenIn, tokenOut, "0.001", []);
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(result.current.data?.best?.amountOut).toBe(900n);
+    expect(result.current.data?.priceImpactBps).toBeUndefined();
+  });
+
   it("does not request a quote for zero input or the same token", () => {
     renderQuote(tokenIn, tokenOut, "0", [core]);
     renderQuote(tokenIn, tokenIn, "1", [core]);

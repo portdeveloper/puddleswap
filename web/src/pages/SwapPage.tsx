@@ -38,7 +38,8 @@ export function SwapPage() {
   const [tokenIn, setTokenIn] = useState(contractAddresses.usdc ?? "");
   const [tokenOut, setTokenOut] = useState(contractAddresses.testUSDT ?? "");
   const [amountIn, setAmountIn] = useState("1");
-  const [slippagePercent, setSlippagePercent] = useState("1");
+  const [slippagePercent, setSlippagePercent] = useState("0.5");
+  const [impactAck, setImpactAck] = useState(false);
   const [lastAction, setLastAction] = useState<string>("");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
@@ -276,6 +277,12 @@ export function SwapPage() {
       return;
     }
 
+    // Never submit a high-impact swap the user hasn't explicitly acknowledged.
+    if (impactBlocked) {
+      setLastAction("Confirm the high price-impact warning before swapping.");
+      return;
+    }
+
     setPending(true);
     setPendingAction("swap");
     setLastAction("Submitting swap…");
@@ -377,6 +384,11 @@ export function SwapPage() {
       setPendingAction(null);
     }
   }
+
+  // A fresh acknowledgement is required for each distinct high-impact trade.
+  useEffect(() => {
+    setImpactAck(false);
+  }, [tokenIn, tokenOut, amountIn]);
 
   function handleSwapDirection() {
     setTokenIn(tokenOut);
@@ -488,6 +500,23 @@ export function SwapPage() {
     quoteQuery.data.amountInRaw > 0n &&
     balanceInRaw < quoteQuery.data.amountInRaw;
 
+  // Price-impact guardrails. Warn above 3%; require an explicit acknowledgement
+  // above 15% (a trade that size is almost always draining a shallow pool).
+  const IMPACT_WARN_BPS = 300;
+  const IMPACT_BLOCK_BPS = 1500;
+  const priceImpactBps = quoteQuery.data?.priceImpactBps;
+  const priceImpactPercent =
+    priceImpactBps !== undefined ? priceImpactBps / 100 : undefined;
+  const impactLevel =
+    priceImpactBps === undefined
+      ? "none"
+      : priceImpactBps >= IMPACT_BLOCK_BPS
+        ? "high"
+        : priceImpactBps >= IMPACT_WARN_BPS
+          ? "warn"
+          : "none";
+  const impactBlocked = impactLevel === "high" && !impactAck;
+
   const primaryButtonLabel = pending
     ? pendingAction === "approve"
       ? `Approving ${tokenInSymbol}…`
@@ -508,7 +537,9 @@ export function SwapPage() {
     (!isConnected
       ? connectors.length === 0
       : isCorrectChain &&
-        (hasInsufficientBalance || (!needsApproval && !quoteQuery.data?.best)));
+        (hasInsufficientBalance ||
+          (!needsApproval && !quoteQuery.data?.best) ||
+          (!needsApproval && impactBlocked)));
 
   const isReady =
     isConnected &&
@@ -815,7 +846,56 @@ export function SwapPage() {
                   : "—"}
               </span>
             </div>
+            {quoteQuery.data?.best && priceImpactPercent !== undefined && (
+              <div className="route-row">
+                <span>Price impact</span>
+                <span
+                  className="route-value"
+                  style={{
+                    color:
+                      impactLevel === "high"
+                        ? "#e5484d"
+                        : impactLevel === "warn"
+                          ? "#e0a106"
+                          : undefined,
+                    fontWeight: impactLevel === "none" ? undefined : 600,
+                  }}
+                >
+                  {priceImpactPercent < 0.01
+                    ? "<0.01"
+                    : priceImpactPercent.toFixed(2)}
+                  %
+                </span>
+              </div>
+            )}
           </div>
+
+          {/* Price-impact guardrails */}
+          {quoteQuery.data?.best && impactLevel === "warn" && (
+            <div className="impact-warning" role="alert">
+              High price impact — this trade moves the pool price by{" "}
+              {priceImpactPercent?.toFixed(2)}%. You may get a poor rate. Try a
+              smaller amount.
+            </div>
+          )}
+          {quoteQuery.data?.best && impactLevel === "high" && (
+            <div className="impact-danger" role="alert">
+              <div>
+                <strong>Very high price impact (~{priceImpactPercent?.toFixed(1)}%).</strong>{" "}
+                A trade this large against this pool's liquidity will execute far
+                below the market rate — you will likely lose a significant
+                portion of value. Consider a much smaller amount.
+              </div>
+              <label className="impact-ack">
+                <input
+                  type="checkbox"
+                  checked={impactAck}
+                  onChange={(e) => setImpactAck(e.target.checked)}
+                />
+                I understand and want to swap anyway
+              </label>
+            </div>
+          )}
 
           {/* CTA */}
           <button
