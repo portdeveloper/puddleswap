@@ -119,11 +119,13 @@ required_mon_for_cycle() {
 }
 
 # ---- deterministic target ratchet ----
-# State file: "<target> <consecutive_skims> <last_skim_ts>". While the
-# counterparty keeps buying (every skim = it traded the pool out of tolerance),
-# raise the ask RATCHET_UP_PCT after each RATCHET_UP_AFTER_SKIMS consecutive
-# skims, up to TARGET_MAX. After RATCHET_DOWN_IDLE_SECONDS without a skim,
-# step back down toward the floor at the same rate.
+# State file: "<target> <skim_streak> <last_skim_ts>". While the counterparty
+# keeps buying (every skim = it traded the pool out of tolerance), raise the
+# ask RATCHET_UP_PCT after each RATCHET_UP_AFTER_SKIMS skims, up to TARGET_MAX.
+# Quiet cycles do NOT reset the streak - an episodic buyer trading every few
+# hours against a 5-minute loop would otherwise never trigger the ratchet.
+# After RATCHET_DOWN_IDLE_SECONDS without a skim, step back down toward the
+# floor at the same rate (and clear the streak).
 CURRENT_TARGET="$TARGET_FLOOR_STABLE_PER_WMON"
 CONSECUTIVE_SKIMS=0
 LAST_SKIM_TS=0
@@ -159,13 +161,15 @@ update_ratchet() {
       next=$((CURRENT_TARGET * (100 + RATCHET_UP_PCT) / 100))
       if (( next > TARGET_MAX_STABLE_PER_WMON )); then next="$TARGET_MAX_STABLE_PER_WMON"; fi
       if (( next != CURRENT_TARGET )); then
-        echo "ratchet: target ${CURRENT_TARGET} -> ${next} after ${CONSECUTIVE_SKIMS} consecutive skims"
+        echo "ratchet: target ${CURRENT_TARGET} -> ${next} after ${CONSECUTIVE_SKIMS} skims"
       fi
       CURRENT_TARGET="$next"
       CONSECUTIVE_SKIMS=0
     fi
   else
-    CONSECUTIVE_SKIMS=0
+    if (( LAST_SKIM_TS > 0 && now_ts - LAST_SKIM_TS >= RATCHET_DOWN_IDLE_SECONDS )); then
+      CONSECUTIVE_SKIMS=0
+    fi
     if (( LAST_SKIM_TS > 0 && now_ts - LAST_SKIM_TS >= RATCHET_DOWN_IDLE_SECONDS && CURRENT_TARGET > TARGET_FLOOR_STABLE_PER_WMON )); then
       local next
       next=$((CURRENT_TARGET * 100 / (100 + RATCHET_UP_PCT)))
