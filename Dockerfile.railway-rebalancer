@@ -39,4 +39,5 @@ ENV REBALANCE_INTERVAL_SECONDS=300
 ENV REBALANCE_JITTER_SECONDS=30
 
 USER rebalancer
-CMD ["bash", "/app/scripts/railway-rebalance-loop.sh"]
+# Rebalancer retired; this image now runs the read-only pool health reporter.
+CMD ["bash", "/app/scripts/pool-health-reporter.sh"]

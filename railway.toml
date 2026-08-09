@@ -2,7 +2,9 @@
 builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile.railway-rebalancer"
 
+# The rebalancer is retired (see docs/incidents/2026-08-09-mon-farming-bot.md).
+# This service now runs the read-only pool health reporter instead.
 [deploy]
-startCommand = "bash /app/scripts/railway-rebalance-loop.sh"
+startCommand = "bash /app/scripts/pool-health-reporter.sh"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 5
