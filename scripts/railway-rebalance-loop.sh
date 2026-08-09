@@ -14,9 +14,10 @@ SEED_WMON_MON="${SEED_WMON_MON:-1000}"
 # Deterministic target ratchet: raise the ask while the counterparty keeps
 # buying, drift back toward the floor when it goes quiet.
 TARGET_FLOOR_STABLE_PER_WMON="${TARGET_STABLE_PER_WMON:-30000}"
-# 0 = no ceiling: the ratchet follows whatever the buyer will pay. An internal
-# bound of 1e15 (1e9 stable per WMON) guards 64-bit arithmetic, nothing more.
-TARGET_MAX_STABLE_PER_WMON="${TARGET_MAX_STABLE_PER_WMON:-0}"
+# The ceiling keeps the core pool quoting a price real users can still swap
+# at - this pool serves the whole app, not a duel with one farmer. Default 3x
+# the floor; 0 = no ceiling (arithmetic-guard bound only).
+TARGET_MAX_STABLE_PER_WMON="${TARGET_MAX_STABLE_PER_WMON:-$((TARGET_FLOOR_STABLE_PER_WMON * 3))}"
 RATCHET_HARD_MAX=1000000000000000
 if (( TARGET_MAX_STABLE_PER_WMON == 0 )); then
   TARGET_MAX_STABLE_PER_WMON="$RATCHET_HARD_MAX"
