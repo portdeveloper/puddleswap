@@ -14,7 +14,13 @@ SEED_WMON_MON="${SEED_WMON_MON:-1000}"
 # Deterministic target ratchet: raise the ask while the counterparty keeps
 # buying, drift back toward the floor when it goes quiet.
 TARGET_FLOOR_STABLE_PER_WMON="${TARGET_STABLE_PER_WMON:-30000}"
-TARGET_MAX_STABLE_PER_WMON="${TARGET_MAX_STABLE_PER_WMON:-300000}"
+# 0 = no ceiling: the ratchet follows whatever the buyer will pay. An internal
+# bound of 1e15 (1e9 stable per WMON) guards 64-bit arithmetic, nothing more.
+TARGET_MAX_STABLE_PER_WMON="${TARGET_MAX_STABLE_PER_WMON:-0}"
+RATCHET_HARD_MAX=1000000000000000
+if (( TARGET_MAX_STABLE_PER_WMON == 0 )); then
+  TARGET_MAX_STABLE_PER_WMON="$RATCHET_HARD_MAX"
+fi
 RATCHET_UP_PCT="${RATCHET_UP_PCT:-25}"
 RATCHET_UP_AFTER_SKIMS="${RATCHET_UP_AFTER_SKIMS:-2}"
 RATCHET_DOWN_IDLE_SECONDS="${RATCHET_DOWN_IDLE_SECONDS:-86400}"
@@ -125,7 +131,8 @@ required_mon_for_cycle() {
 # Quiet cycles do NOT reset the streak - an episodic buyer trading every few
 # hours against a 5-minute loop would otherwise never trigger the ratchet.
 # After RATCHET_DOWN_IDLE_SECONDS without a skim, step back down toward the
-# floor at the same rate (and clear the streak).
+# floor at the same rate on every subsequent quiet cycle (and clear the
+# streak), so an abandoned high quote decays to the floor in hours.
 CURRENT_TARGET="$TARGET_FLOOR_STABLE_PER_WMON"
 CONSECUTIVE_SKIMS=0
 LAST_SKIM_TS=0
@@ -176,7 +183,6 @@ update_ratchet() {
       if (( next < TARGET_FLOOR_STABLE_PER_WMON )); then next="$TARGET_FLOOR_STABLE_PER_WMON"; fi
       echo "ratchet: idle $((now_ts - LAST_SKIM_TS))s, target ${CURRENT_TARGET} -> ${next}"
       CURRENT_TARGET="$next"
-      LAST_SKIM_TS="$now_ts"
     fi
   fi
   save_ratchet_state
