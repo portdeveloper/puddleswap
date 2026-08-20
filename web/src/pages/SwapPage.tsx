@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import posthog from "posthog-js";
 import { Helmet } from "react-helmet-async";
 import { formatUnits, isAddress, type Address, type Hash } from "viem";
@@ -27,6 +28,17 @@ function shortAddress(value: string) {
 
 const MON_TOKEN = "MON";
 
+// Accepts "MON" or a valid address from the URL; anything else (missing,
+// malformed, or an address that fails viem's checksum check) falls back so a
+// bad link can't reach the quote hook with garbage.
+function resolveTokenParam(param: string | null, fallback: string): string {
+  if (param && (param === MON_TOKEN || isAddress(param))) {
+    return param;
+  }
+
+  return fallback;
+}
+
 export function SwapPage() {
   const { address, isConnected } = useAccount();
   const { connect, connectors } = useConnect();
@@ -34,9 +46,41 @@ export function SwapPage() {
   const { isCorrectChain } = useChainGuard();
   const { switchChain } = useSwitchChain();
   const { writeContractAsync } = useWriteContract();
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const [tokenIn, setTokenIn] = useState(contractAddresses.usdc ?? "");
-  const [tokenOut, setTokenOut] = useState(contractAddresses.testUSDT ?? "");
+  const [tokenIn, setTokenInState] = useState(() =>
+    resolveTokenParam(searchParams.get("in"), MON_TOKEN),
+  );
+  const [tokenOut, setTokenOutState] = useState(() =>
+    resolveTokenParam(
+      searchParams.get("out"),
+      contractAddresses.testUSDT ?? "",
+    ),
+  );
+
+  // Merge token selection into the URL without pushing a new history entry,
+  // so picking tokens or flipping direction doesn't pollute browser back/forward.
+  function updateTokenParams(next: { in?: string; out?: string }) {
+    setSearchParams(
+      (prev) => {
+        const params = new URLSearchParams(prev);
+        if (next.in !== undefined) params.set("in", next.in);
+        if (next.out !== undefined) params.set("out", next.out);
+        return params;
+      },
+      { replace: true },
+    );
+  }
+
+  function setTokenIn(value: string) {
+    setTokenInState(value);
+    updateTokenParams({ in: value });
+  }
+
+  function setTokenOut(value: string) {
+    setTokenOutState(value);
+    updateTokenParams({ out: value });
+  }
   const [amountIn, setAmountIn] = useState("1");
   const [slippagePercent, setSlippagePercent] = useState("0.5");
   const [impactAck, setImpactAck] = useState(false);
@@ -391,8 +435,9 @@ export function SwapPage() {
   }, [tokenIn, tokenOut, amountIn]);
 
   function handleSwapDirection() {
-    setTokenIn(tokenOut);
-    setTokenOut(tokenIn);
+    setTokenInState(tokenOut);
+    setTokenOutState(tokenIn);
+    updateTokenParams({ in: tokenOut, out: tokenIn });
   }
 
   async function handlePrimaryAction() {
