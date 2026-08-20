@@ -57,30 +57,6 @@ export function SwapPage() {
       contractAddresses.testUSDT ?? "",
     ),
   );
-
-  // Merge token selection into the URL without pushing a new history entry,
-  // so picking tokens or flipping direction doesn't pollute browser back/forward.
-  function updateTokenParams(next: { in?: string; out?: string }) {
-    setSearchParams(
-      (prev) => {
-        const params = new URLSearchParams(prev);
-        if (next.in !== undefined) params.set("in", next.in);
-        if (next.out !== undefined) params.set("out", next.out);
-        return params;
-      },
-      { replace: true },
-    );
-  }
-
-  function setTokenIn(value: string) {
-    setTokenInState(value);
-    updateTokenParams({ in: value });
-  }
-
-  function setTokenOut(value: string) {
-    setTokenOutState(value);
-    updateTokenParams({ out: value });
-  }
   const [amountIn, setAmountIn] = useState("1");
   const [slippagePercent, setSlippagePercent] = useState("0.5");
   const [impactAck, setImpactAck] = useState(false);
@@ -433,6 +409,30 @@ export function SwapPage() {
   useEffect(() => {
     setImpactAck(false);
   }, [tokenIn, tokenOut, amountIn]);
+
+  // Merge token selection into the URL without pushing a new history entry,
+  // so picking tokens or flipping direction doesn't pollute browser back/forward.
+  function updateTokenParams(next: { in?: string; out?: string }) {
+    setSearchParams(
+      (prev) => {
+        const params = new URLSearchParams(prev);
+        if (next.in !== undefined) params.set("in", next.in);
+        if (next.out !== undefined) params.set("out", next.out);
+        return params;
+      },
+      { replace: true },
+    );
+  }
+
+  function setTokenIn(value: string) {
+    setTokenInState(value);
+    updateTokenParams({ in: value });
+  }
+
+  function setTokenOut(value: string) {
+    setTokenOutState(value);
+    updateTokenParams({ out: value });
+  }
 
   function handleSwapDirection() {
     setTokenInState(tokenOut);
