@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import React from "react";
 
 import { monadTestnet } from "../../config/chain";
+import { contractAddresses } from "../../lib/contracts";
 
 // --- Mock wagmi hooks ---
 const mockWriteContractAsync = vi.fn();
@@ -52,10 +53,28 @@ vi.mock("../../hooks/useTokenMeta", () => ({
 }));
 
 // --- Mock react-router-dom ---
+const routerState = {
+  searchParams: new URLSearchParams(),
+};
+const mockSetSearchParams = vi.fn(
+  (
+    ...args: [
+      URLSearchParams | ((prev: URLSearchParams) => URLSearchParams),
+      { replace?: boolean }?,
+    ]
+  ) => {
+    const [next] = args;
+    routerState.searchParams =
+      typeof next === "function" ? next(routerState.searchParams) : next;
+  },
+);
+
 vi.mock("react-router-dom", () => ({
   Link: ({ children, to }: { children: React.ReactNode; to: string }) =>
     React.createElement("a", { href: to }, children),
   useParams: () => ({ pairAddress: "0x0000000000000000000000000000000000000001" }),
+  useSearchParams: () =>
+    [routerState.searchParams, mockSetSearchParams] as const,
 }));
 
 // --- Mock TokenPicker ---
@@ -71,6 +90,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   wagmiState.isConnected = true;
   wagmiState.chain = { id: monadTestnet.id };
+  routerState.searchParams = new URLSearchParams();
 });
 
 // ============================================================
@@ -141,6 +161,66 @@ describe("SwapPage chain enforcement", () => {
     render(React.createElement(SwapPage));
 
     expect(screen.getByText("Connect Wallet")).toBeInTheDocument();
+  });
+});
+
+// ============================================================
+// SwapPage URL query params (added alongside #18)
+// ============================================================
+describe("SwapPage URL query params", () => {
+  it("preselects tokens from valid ?in= and ?out= query params", () => {
+    routerState.searchParams = new URLSearchParams({
+      in: contractAddresses.usdc!,
+      out: "MON",
+    });
+    render(React.createElement(SwapPage));
+
+    const [tokenInSelect, tokenOutSelect] = screen.getAllByRole("combobox");
+    expect(tokenInSelect).toHaveValue(contractAddresses.usdc);
+    expect(tokenOutSelect).toHaveValue("MON");
+  });
+
+  it("falls back to MON and testUSDT when query params are missing or invalid", () => {
+    routerState.searchParams = new URLSearchParams({
+      in: "not-an-address",
+      // out intentionally omitted
+    });
+    render(React.createElement(SwapPage));
+
+    const [tokenInSelect, tokenOutSelect] = screen.getAllByRole("combobox");
+    expect(tokenInSelect).toHaveValue("MON");
+    expect(tokenOutSelect).toHaveValue(contractAddresses.testUSDT);
+  });
+
+  it("picking a token updates the URL with replace semantics", async () => {
+    const user = userEvent.setup();
+    render(React.createElement(SwapPage));
+
+    const [, tokenOutSelect] = screen.getAllByRole("combobox");
+    await user.selectOptions(tokenOutSelect, contractAddresses.usdc!);
+
+    expect(mockSetSearchParams).toHaveBeenCalledTimes(1);
+    expect(mockSetSearchParams.mock.calls[0][1]).toEqual({ replace: true });
+    expect(routerState.searchParams.get("out")).toBe(contractAddresses.usdc);
+  });
+
+  it("switching direction swaps both tokens in the URL with replace semantics", async () => {
+    const user = userEvent.setup();
+    routerState.searchParams = new URLSearchParams({
+      in: contractAddresses.usdc!,
+      out: "MON",
+    });
+    render(React.createElement(SwapPage));
+
+    await user.click(screen.getByLabelText("Switch tokens"));
+
+    const [tokenInSelect, tokenOutSelect] = screen.getAllByRole("combobox");
+    expect(tokenInSelect).toHaveValue("MON");
+    expect(tokenOutSelect).toHaveValue(contractAddresses.usdc);
+    expect(mockSetSearchParams).toHaveBeenCalledTimes(1);
+    expect(mockSetSearchParams.mock.calls[0][1]).toEqual({ replace: true });
+    expect(routerState.searchParams.get("in")).toBe("MON");
+    expect(routerState.searchParams.get("out")).toBe(contractAddresses.usdc);
   });
 });
 
