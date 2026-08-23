@@ -20,6 +20,7 @@ import { useCoreTokens } from "../hooks/useCoreTokens";
 import { useBestQuote } from "../hooks/useBestQuote";
 import { useTokenMeta } from "../hooks/useTokenMeta";
 import { contractAbis, contractAddresses } from "../lib/contracts";
+import { decodeTxError } from "../lib/revertReason";
 import { applySlippage } from "../lib/routing";
 
 function shortAddress(value: string) {
@@ -275,11 +276,10 @@ export function SwapPage() {
       await allowanceQuery.refetch();
     } catch (error) {
       console.error("Approval failed", error);
-      const msg =
-        error instanceof Error && error.message.includes("User rejected")
-          ? "Transaction rejected by wallet."
-          : "Approval failed. Please try again.";
-      setLastAction(msg);
+      const decoded = decodeTxError(error);
+      setLastAction(
+        decoded.kind === "unknown" ? "Approval failed. Please try again." : decoded.message,
+      );
     } finally {
       setPending(false);
       setPendingAction(null);
@@ -389,15 +389,12 @@ export function SwapPage() {
       ]);
     } catch (error) {
       console.error("Swap failed", error);
-      const rejected =
-        error instanceof Error && error.message.includes("User rejected");
-      const msg = rejected
-        ? "Transaction rejected by wallet."
-        : "Swap failed. Check your balance and try again.";
-      setLastAction(msg);
+      const decoded = decodeTxError(error);
+      setLastAction(decoded.message);
       posthog.capture("swap_failed", {
         ...swapProps,
-        reason: rejected ? "rejected" : "error",
+        reason: decoded.kind,
+        revert_reason: decoded.reason,
       });
     } finally {
       setPending(false);
