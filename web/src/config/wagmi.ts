@@ -10,7 +10,10 @@ export const wagmiConfig = createConfig({
   chains: [monadTestnet],
   connectors: [injected()],
   transports: {
-    [monadTestnet.id]: http(monadTestnet.rpcUrls.default.http[0])
+    // Batching keeps the chunked eth_getLogs calls used by pool analytics
+    // (usePoolAnalytics.ts) to a handful of HTTP round trips instead of one
+    // per 100-block window.
+    [monadTestnet.id]: http(monadTestnet.rpcUrls.default.http[0], { batch: true })
   }
 });
 
