@@ -6,9 +6,12 @@ import { Link, useParams } from "react-router-dom";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 import { monadTestnet } from "../config/chain";
 
+import { PoolAnalyticsChart } from "../components/PoolAnalyticsChart";
 import { TxStatus } from "../components/TxStatus";
 import { useChainGuard } from "../hooks/useChainGuard";
+import { usePoolAnalytics } from "../hooks/usePoolAnalytics";
 import { contractAbis, contractAddresses } from "../lib/contracts";
+import { computeCurrentPrice } from "../lib/poolAnalytics";
 
 function shortPair(value: string) {
   if (value.length < 10) return value;
@@ -90,6 +93,21 @@ export function PoolDetailsPage() {
       };
     }
   });
+
+  const analyticsQuery = usePoolAnalytics(
+    isAddress(pairAddress) ? pairAddress : undefined,
+    tokenDecimalsQuery.data?.token0Decimals ?? 18,
+    tokenDecimalsQuery.data?.token1Decimals ?? 18
+  );
+
+  const currentPrice = pairMetaQuery.data
+    ? computeCurrentPrice(
+        pairMetaQuery.data.reserves[0],
+        pairMetaQuery.data.reserves[1],
+        tokenDecimalsQuery.data?.token0Decimals ?? 18,
+        tokenDecimalsQuery.data?.token1Decimals ?? 18
+      )
+    : undefined;
 
   const lpBalanceQuery = useQuery({
     queryKey: ["lp-balance", pairAddress, address],
@@ -351,6 +369,16 @@ export function PoolDetailsPage() {
         <span>Your LP</span>
         <strong>{formatUnits(lpBalanceQuery.data ?? 0n, 18)}</strong>
       </div>
+      <div className="info-row">
+        <span>Current Price (Token1 per Token0)</span>
+        <strong>{currentPrice !== undefined ? currentPrice.toFixed(6) : "-"}</strong>
+      </div>
+
+      <h3>Analytics</h3>
+      <PoolAnalyticsChart
+        priceSeries={analyticsQuery.data?.priceSeries ?? []}
+        volumeBuckets={analyticsQuery.data?.volumeBuckets ?? []}
+      />
 
       <h3>Add Liquidity</h3>
       <label>
