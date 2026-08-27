@@ -4,7 +4,13 @@ import { renderHook, waitFor } from "@testing-library/react";
 import type { Address } from "viem";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ANALYTICS_WINDOW_BLOCKS, LOG_CHUNK_SIZE, chunkBlockRange } from "../../lib/poolAnalytics";
+import {
+  ANALYTICS_WINDOW_BLOCKS,
+  LOG_CHUNK_SIZE,
+  LOG_REQUEST_CONCURRENCY,
+  MAX_TOTAL_LOG_REQUESTS,
+  chunkBlockRange,
+} from "../../lib/poolAnalytics";
 
 const mockUsePublicClient = vi.fn();
 
@@ -83,6 +89,44 @@ describe("usePoolAnalytics", () => {
     ).toBe(1);
     expect(result.current.data?.fromBlock).toBe(fromBlock);
     expect(result.current.data?.toBlock).toBe(toBlock);
+  });
+
+  it("stays within the approved total eth_getLogs bound for the full default window", async () => {
+    const toBlock = 999_999n;
+    publicClient.getBlockNumber.mockResolvedValue(toBlock);
+    publicClient.getLogs.mockResolvedValue([]);
+
+    const { result } = renderAnalytics(pairAddress);
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    const fromBlock = toBlock - ANALYTICS_WINDOW_BLOCKS;
+    const expectedCallCount = chunkBlockRange(fromBlock, toBlock, LOG_CHUNK_SIZE).length * 2;
+
+    expect(publicClient.getLogs).toHaveBeenCalledTimes(expectedCallCount);
+    expect(publicClient.getLogs.mock.calls.length).toBeLessThanOrEqual(MAX_TOTAL_LOG_REQUESTS);
+  });
+
+  it("never has more than LOG_REQUEST_CONCURRENCY eth_getLogs calls in flight at once", async () => {
+    const toBlock = 999_999n;
+    publicClient.getBlockNumber.mockResolvedValue(toBlock);
+
+    let active = 0;
+    let maxActive = 0;
+    publicClient.getLogs.mockImplementation(async () => {
+      active++;
+      maxActive = Math.max(maxActive, active);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      active--;
+      return [];
+    });
+
+    const { result } = renderAnalytics(pairAddress);
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(maxActive).toBeLessThanOrEqual(LOG_REQUEST_CONCURRENCY);
+    expect(maxActive).toBeGreaterThan(0);
   });
 
   it("clamps fromBlock to 0 when the chain is younger than the window", async () => {

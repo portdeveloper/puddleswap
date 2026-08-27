@@ -1,10 +1,23 @@
 import { formatUnits } from "viem";
 
-// Public RPC caps eth_getLogs at a 100-block range per call; the window is a
-// fixed constant (not user-adjustable) so this can't be widened into
-// something that hammers the RPC.
-export const ANALYTICS_WINDOW_BLOCKS = 3000n;
+// Public RPC caps eth_getLogs at a 100-block range per call. Two event types
+// (Sync + Swap) are scanned per pool view, so the window is derived from the
+// approved total-request bound rather than picked independently — the two
+// numbers can't drift out of sync with each other.
 export const LOG_CHUNK_SIZE = 100n;
+export const LOG_EVENT_TYPE_COUNT = 2; // Sync + Swap
+export const MAX_TOTAL_LOG_REQUESTS = 15;
+const PER_EVENT_CHUNK_BUDGET = Math.floor(MAX_TOTAL_LOG_REQUESTS / LOG_EVENT_TYPE_COUNT);
+
+// Inclusive block range, so the window spans PER_EVENT_CHUNK_BUDGET full
+// chunks: fromBlock..toBlock covers exactly PER_EVENT_CHUNK_BUDGET * LOG_CHUNK_SIZE blocks.
+export const ANALYTICS_WINDOW_BLOCKS = BigInt(PER_EVENT_CHUNK_BUDGET) * LOG_CHUNK_SIZE - 1n;
+
+// Real concurrent in-flight eth_getLogs calls, independent of the total
+// count above — caps how many requests hit the RPC at once, not just how
+// many get made overall.
+export const LOG_REQUEST_CONCURRENCY = 3;
+
 export const VOLUME_BUCKET_COUNT = 10;
 
 export type SyncLogLike = {
@@ -24,6 +37,35 @@ export type SwapLogLike = {
 
 export type PricePoint = { blockNumber: bigint; price: number };
 export type VolumeBucket = { fromBlock: bigint; toBlock: bigint; volume: number };
+
+// Runs `tasks` with at most `concurrency` in flight at once, in original
+// order, never throwing — each task's outcome is captured individually so
+// one failure doesn't cancel the rest (same contract as Promise.allSettled,
+// just throttled).
+export async function runWithConcurrencyLimit<T>(
+  tasks: Array<() => Promise<T>>,
+  concurrency: number,
+): Promise<PromiseSettledResult<T>[]> {
+  const results: PromiseSettledResult<T>[] = new Array(tasks.length);
+  let nextIndex = 0;
+
+  async function worker() {
+    while (nextIndex < tasks.length) {
+      const i = nextIndex++;
+      try {
+        const value = await tasks[i]();
+        results[i] = { status: "fulfilled", value };
+      } catch (reason) {
+        results[i] = { status: "rejected", reason };
+      }
+    }
+  }
+
+  const workerCount = Math.max(1, Math.min(concurrency, tasks.length));
+  await Promise.all(Array.from({ length: workerCount }, () => worker()));
+
+  return results;
+}
 
 export function chunkBlockRange(
   fromBlock: bigint,
