@@ -6,10 +6,14 @@ import { monadTestnet } from "../config/chain";
 import {
   ANALYTICS_WINDOW_BLOCKS,
   LOG_CHUNK_SIZE,
+  LOG_REQUEST_CONCURRENCY,
   chunkBlockRange,
   deriveVolumeBuckets,
   derivePriceSeries,
+  runWithConcurrencyLimit,
   type PricePoint,
+  type SwapLogLike,
+  type SyncLogLike,
   type VolumeBucket,
 } from "../lib/poolAnalytics";
 
@@ -34,6 +38,10 @@ export type PoolAnalytics = {
   fromBlock: bigint;
   toBlock: bigint;
 };
+
+type LogBatch =
+  | { kind: "sync"; logs: SyncLogLike[] }
+  | { kind: "swap"; logs: SwapLogLike[] };
 
 function isFulfilled<T>(result: PromiseSettledResult<T>): result is PromiseFulfilledResult<T> {
   return result.status === "fulfilled";
@@ -63,33 +71,46 @@ export function usePoolAnalytics(
         const fromBlock = toBlock > ANALYTICS_WINDOW_BLOCKS ? toBlock - ANALYTICS_WINDOW_BLOCKS : 0n;
         const chunks = chunkBlockRange(fromBlock, toBlock, LOG_CHUNK_SIZE);
 
-        const [syncResults, swapResults] = await Promise.all([
-          Promise.allSettled(
-            chunks.map(([chunkFrom, chunkTo]) =>
-              publicClient.getLogs({
-                address: pairAddress,
-                event: syncEvent,
-                fromBlock: chunkFrom,
-                toBlock: chunkTo,
-                strict: true,
-              }),
-            ),
-          ),
-          Promise.allSettled(
-            chunks.map(([chunkFrom, chunkTo]) =>
-              publicClient.getLogs({
-                address: pairAddress,
-                event: swapEvent,
-                fromBlock: chunkFrom,
-                toBlock: chunkTo,
-                strict: true,
-              }),
-            ),
-          ),
-        ]);
+        // One combined, concurrency-limited queue for both event types —
+        // Sync and Swap chunks never fan out unbounded against the RPC
+        // together; at most LOG_REQUEST_CONCURRENCY calls are in flight at
+        // any moment, and the window is sized so the total stays within
+        // MAX_TOTAL_LOG_REQUESTS (see poolAnalytics.ts).
+        const tasks: Array<() => Promise<LogBatch>> = [
+          ...chunks.map(([chunkFrom, chunkTo]) => async (): Promise<LogBatch> => ({
+            kind: "sync",
+            logs: await publicClient.getLogs({
+              address: pairAddress,
+              event: syncEvent,
+              fromBlock: chunkFrom,
+              toBlock: chunkTo,
+              strict: true,
+            }),
+          })),
+          ...chunks.map(([chunkFrom, chunkTo]) => async (): Promise<LogBatch> => ({
+            kind: "swap",
+            logs: await publicClient.getLogs({
+              address: pairAddress,
+              event: swapEvent,
+              fromBlock: chunkFrom,
+              toBlock: chunkTo,
+              strict: true,
+            }),
+          })),
+        ];
 
-        const syncLogs = syncResults.filter(isFulfilled).flatMap((result) => result.value);
-        const swapLogs = swapResults.filter(isFulfilled).flatMap((result) => result.value);
+        const results = await runWithConcurrencyLimit(tasks, LOG_REQUEST_CONCURRENCY);
+        const fulfilled = results.filter(isFulfilled).map((result) => result.value);
+
+        const syncLogs: SyncLogLike[] = [];
+        const swapLogs: SwapLogLike[] = [];
+        for (const batch of fulfilled) {
+          if (batch.kind === "sync") {
+            syncLogs.push(...batch.logs);
+          } else {
+            swapLogs.push(...batch.logs);
+          }
+        }
 
         return {
           priceSeries: derivePriceSeries(syncLogs, decimals0, decimals1),

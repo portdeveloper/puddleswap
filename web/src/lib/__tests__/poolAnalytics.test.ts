@@ -1,11 +1,84 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  ANALYTICS_WINDOW_BLOCKS,
+  LOG_CHUNK_SIZE,
+  LOG_EVENT_TYPE_COUNT,
+  MAX_TOTAL_LOG_REQUESTS,
   chunkBlockRange,
   computeCurrentPrice,
   deriveVolumeBuckets,
   derivePriceSeries,
+  runWithConcurrencyLimit,
 } from "../poolAnalytics";
+
+describe("ANALYTICS_WINDOW_BLOCKS", () => {
+  it("is sized so the full window never exceeds the approved total request bound", () => {
+    const chunksPerEvent = chunkBlockRange(0n, ANALYTICS_WINDOW_BLOCKS, LOG_CHUNK_SIZE).length;
+
+    expect(chunksPerEvent * LOG_EVENT_TYPE_COUNT).toBeLessThanOrEqual(MAX_TOTAL_LOG_REQUESTS);
+  });
+});
+
+describe("runWithConcurrencyLimit", () => {
+  it("runs every task and returns results in original order", async () => {
+    const results = await runWithConcurrencyLimit(
+      [
+        () => Promise.resolve("a"),
+        () => Promise.resolve("b"),
+        () => Promise.resolve("c"),
+      ],
+      2,
+    );
+
+    expect(results).toEqual([
+      { status: "fulfilled", value: "a" },
+      { status: "fulfilled", value: "b" },
+      { status: "fulfilled", value: "c" },
+    ]);
+  });
+
+  it("captures a rejection per-task without cancelling the rest", async () => {
+    const results = await runWithConcurrencyLimit(
+      [
+        () => Promise.resolve("ok"),
+        () => Promise.reject(new Error("boom")),
+        () => Promise.resolve("also ok"),
+      ],
+      3,
+    );
+
+    expect(results[0]).toEqual({ status: "fulfilled", value: "ok" });
+    expect(results[1]).toMatchObject({ status: "rejected" });
+    expect(results[2]).toEqual({ status: "fulfilled", value: "also ok" });
+  });
+
+  it("never runs more than the configured number of tasks at once", async () => {
+    let active = 0;
+    let maxActive = 0;
+    const tasks = Array.from({ length: 9 }, () => async () => {
+      active++;
+      maxActive = Math.max(maxActive, active);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      active--;
+      return "done";
+    });
+
+    await runWithConcurrencyLimit(tasks, 3);
+
+    expect(maxActive).toBeLessThanOrEqual(3);
+  });
+
+  it("handles a concurrency limit larger than the task count", async () => {
+    const results = await runWithConcurrencyLimit([() => Promise.resolve(1)], 10);
+
+    expect(results).toEqual([{ status: "fulfilled", value: 1 }]);
+  });
+
+  it("resolves to an empty array for no tasks", async () => {
+    expect(await runWithConcurrencyLimit([], 3)).toEqual([]);
+  });
+});
 
 describe("chunkBlockRange", () => {
   it("splits an exact multiple of the chunk size into even chunks", () => {
