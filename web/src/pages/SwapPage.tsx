@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import posthog from "posthog-js";
 import { Helmet } from "react-helmet-async";
-import { formatUnits, isAddress, type Address, type Hash } from "viem";
+import { formatUnits, isAddress, maxUint256, type Address, type Hash } from "viem";
 import {
   useAccount,
   useConnect,
@@ -69,7 +69,22 @@ export function SwapPage() {
     null,
   );
   const [showSettings, setShowSettings] = useState(false);
+  const [maxApproval, setMaxApproval] = useState(() => {
+    try {
+      return localStorage.getItem("puddleswap-max-approval") === "true";
+    } catch {
+      return false;
+    }
+  });
   const mascotRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("puddleswap-max-approval", String(maxApproval));
+    } catch {
+      // storage unavailable – silent
+    }
+  }, [maxApproval]);
 
   useEffect(() => {
     function onScroll() {
@@ -260,7 +275,7 @@ export function SwapPage() {
         functionName: "approve",
         args: [
           contractAddresses.uniswapV2Router02,
-          quoteQuery.data?.amountInRaw ?? 0n,
+          maxApproval ? maxUint256 : (quoteQuery.data?.amountInRaw ?? 0n),
         ],
       });
 
@@ -751,6 +766,19 @@ export function SwapPage() {
                   %
                 </span>
               </div>
+            </div>
+          )}
+          {showSettings && tokenIn !== MON_TOKEN && (
+            <div className="slippage-row" style={{ paddingBottom: 8 }}>
+              <label htmlFor="max-approval-toggle" className="impact-ack">
+                <input
+                  id="max-approval-toggle"
+                  type="checkbox"
+                  checked={maxApproval}
+                  onChange={(e) => setMaxApproval(e.target.checked)}
+                />
+                Unlimited approval
+              </label>
             </div>
           )}
 
