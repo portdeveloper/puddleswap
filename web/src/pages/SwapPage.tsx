@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { applySlippage, buildSwapTx, type Token } from "@puddleswap/sdk";
 import { useSearchParams } from "react-router-dom";
 import posthog from "posthog-js";
 import { Helmet } from "react-helmet-async";
@@ -8,6 +9,7 @@ import {
   useAccount,
   useConnect,
   usePublicClient,
+  useSendTransaction,
   useSwitchChain,
   useWriteContract,
 } from "wagmi";
@@ -21,7 +23,6 @@ import { useBestQuote } from "../hooks/useBestQuote";
 import { useTokenMeta } from "../hooks/useTokenMeta";
 import { contractAbis, contractAddresses } from "../lib/contracts";
 import { decodeTxError } from "../lib/revertReason";
-import { applySlippage } from "../lib/routing";
 
 function shortAddress(value: string) {
   return `${value.slice(0, 6)}…${value.slice(-4)}`;
@@ -47,6 +48,7 @@ export function SwapPage() {
   const { isCorrectChain } = useChainGuard();
   const { switchChain } = useSwitchChain();
   const { writeContractAsync } = useWriteContract();
+  const { sendTransactionAsync } = useSendTransaction();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [tokenIn, setTokenInState] = useState(() =>
@@ -324,46 +326,16 @@ export function SwapPage() {
     try {
       const minOut = applySlippage(quoteQuery.data.best.amountOut, slippage);
       const deadline = BigInt(Math.floor(Date.now() / 1000) + 60 * 20);
-      const isTokenInMon = tokenIn === MON_TOKEN;
-      const isTokenOutMon = tokenOut === MON_TOKEN;
-
-      let hash: Hash;
-
-      if (isTokenInMon && !isTokenOutMon) {
-        hash = await writeContractAsync({
-          address: contractAddresses.uniswapV2Router02,
-          abi: contractAbis.router,
-          functionName: "swapExactETHForTokens",
-          args: [minOut, quoteQuery.data.best.path, address, deadline],
-          value: quoteQuery.data.amountInRaw,
-        });
-      } else if (!isTokenInMon && isTokenOutMon) {
-        hash = await writeContractAsync({
-          address: contractAddresses.uniswapV2Router02,
-          abi: contractAbis.router,
-          functionName: "swapExactTokensForETH",
-          args: [
-            quoteQuery.data.amountInRaw,
-            minOut,
-            quoteQuery.data.best.path,
-            address,
-            deadline,
-          ],
-        });
-      } else {
-        hash = await writeContractAsync({
-          address: contractAddresses.uniswapV2Router02,
-          abi: contractAbis.router,
-          functionName: "swapExactTokensForTokens",
-          args: [
-            quoteQuery.data.amountInRaw,
-            minOut,
-            quoteQuery.data.best.path,
-            address,
-            deadline,
-          ],
-        });
-      }
+      const transaction = buildSwapTx({
+        tokenIn: tokenIn as Token,
+        tokenOut: tokenOut as Token,
+        amountIn: quoteQuery.data.amountInRaw,
+        amountOutMin: minOut,
+        path: quoteQuery.data.best.path,
+        recipient: address,
+        deadline,
+      });
+      const hash: Hash = await sendTransactionAsync(transaction);
 
       setLastAction(`Swap sent: ${hash}`);
       const swapReceipt = await publicClient.waitForTransactionReceipt({

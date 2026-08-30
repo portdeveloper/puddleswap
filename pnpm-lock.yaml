@@ -12,8 +12,27 @@ importers:
         specifier: ^1.2.2
         version: 1.2.2
 
+  sdk:
+    dependencies:
+      viem:
+        specifier: ^2.25.0
+        version: 2.46.3(bufferutil@4.1.0)(typescript@5.7.3)(utf-8-validate@5.0.10)(zod@4.3.6)
+    devDependencies:
+      '@types/node':
+        specifier: ^22.13.10
+        version: 22.19.13
+      typescript:
+        specifier: ~5.7.2
+        version: 5.7.3
+      vitest:
+        specifier: ^3.0.8
+        version: 3.2.4(@types/debug@4.1.12)(@types/node@22.19.13)(jsdom@26.1.0(bufferutil@4.1.0)(utf-8-validate@5.0.10))
+
   web:
     dependencies:
+      '@puddleswap/sdk':
+        specifier: workspace:*
+        version: link:../sdk
       '@posthog/react':
         specifier: ^1.9.0
         version: 1.9.0(@types/react@18.3.28)(posthog-js@1.374.0)(react@18.3.1)

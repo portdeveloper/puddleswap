@@ -2,10 +2,11 @@
   "name": "puddle",
   "private": true,
   "version": "0.1.0",
+  "packageManager": "pnpm@10.11.0",
   "scripts": {
     "test": "make test",
     "dev": "make dev",
-    "build": "pnpm -C web build",
+    "build": "pnpm -C sdk build && pnpm -C web build",
     "setup": "make setup",
     "sync-artifacts": "make sync-artifacts"
   },
