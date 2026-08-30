@@ -1,0 +1,17 @@
+// Auto-generated from config/addresses/10143.json by scripts/sync-artifacts.mjs.
+
+export const deployment = {
+  "chainId": 10143,
+  "updatedAt": "2026-06-24T00:00:00Z",
+  "contracts": {
+    "wmon": "0x97B3070F9Da6C002343862b35E68Bd8e22608943",
+    "usdc": "0x534b2f3A21130d7a60830c2Df862319e593943A3",
+    "testUSDT": "0x1314b22df27BDcD4F8D11a0f4185943e55748917",
+    "stableFaucet": "0x50959dd2a4ef310f9aa2df9498cE9aC0aB956276",
+    "uniswapV2Factory": "0xd498f5beBD0C9f1FE0135a0Cf942dA67Ee6e8A9B",
+    "uniswapV2Router02": "0x430c23895c8D44883526e3E0B09327dAD8766660",
+    "openRegistrationGate": "0xd1a37dF00238b97F453fC583806711048eB9987c",
+    "tokenRegistry": "0x82289127fda2d521c851C696796c41EDB6b6461D",
+    "stakingRewardsWmonUsdc": "0xe23B3825F950637256e8DE1BF39743E8f29D97F1"
+  }
+} as const;

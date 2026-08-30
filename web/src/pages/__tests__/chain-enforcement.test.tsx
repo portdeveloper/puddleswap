@@ -31,6 +31,7 @@ vi.mock("wagmi", () => ({
   useDisconnect: () => ({ disconnect: vi.fn() }),
   usePublicClient: () => null,
   useWriteContract: () => ({ writeContractAsync: mockWriteContractAsync }),
+  useSendTransaction: () => ({ sendTransactionAsync: vi.fn() }),
   useSwitchChain: () => ({ switchChain: mockSwitchChain }),
   useChainId: () => wagmiState.chain?.id ?? monadTestnet.id,
 }));
