@@ -1,30 +1,33 @@
 import type { Address } from "viem";
 
-import type { QuoteCandidate } from "../types";
+import type { QuoteCandidate } from "./types.js";
 
 export function buildCandidateRoutes(
   tokenIn: Address,
   tokenOut: Address,
-  cores: Address[],
+  cores: readonly Address[]
 ): Address[][] {
   const routes: Address[][] = [[tokenIn, tokenOut]];
+  const inputKey = tokenIn.toLowerCase();
+  const outputKey = tokenOut.toLowerCase();
 
   for (const core of cores) {
-    if (core !== tokenIn && core !== tokenOut) {
+    const coreKey = core.toLowerCase();
+    if (coreKey !== inputKey && coreKey !== outputKey) {
       routes.push([tokenIn, core, tokenOut]);
     }
   }
 
   for (const coreA of cores) {
     for (const coreB of cores) {
-      if (coreA === coreB) {
-        continue;
-      }
+      const coreAKey = coreA.toLowerCase();
+      const coreBKey = coreB.toLowerCase();
       if (
-        coreA === tokenIn ||
-        coreA === tokenOut ||
-        coreB === tokenIn ||
-        coreB === tokenOut
+        coreAKey === coreBKey ||
+        coreAKey === inputKey ||
+        coreAKey === outputKey ||
+        coreBKey === inputKey ||
+        coreBKey === outputKey
       ) {
         continue;
       }
@@ -37,18 +40,7 @@ export function buildCandidateRoutes(
   const seen = new Set<string>();
 
   for (const route of routes) {
-    let hasAdjacentDuplicate = false;
-    for (let i = 1; i < route.length; i++) {
-      if (route[i] === route[i - 1]) {
-        hasAdjacentDuplicate = true;
-        break;
-      }
-    }
-    if (hasAdjacentDuplicate) {
-      continue;
-    }
-
-    const key = route.join("-");
+    const key = route.map((address) => address.toLowerCase()).join("-");
     if (!seen.has(key)) {
       seen.add(key);
       deduped.push(route);
@@ -59,16 +51,12 @@ export function buildCandidateRoutes(
 }
 
 export function selectBestQuote(
-  quotes: QuoteCandidate[],
+  quotes: readonly QuoteCandidate[]
 ): QuoteCandidate | undefined {
   let winner: QuoteCandidate | undefined;
 
   for (const quote of quotes) {
-    if (!quote.success) {
-      continue;
-    }
-
-    if (!winner || quote.amountOut > winner.amountOut) {
+    if (quote.success && (!winner || quote.amountOut > winner.amountOut)) {
       winner = quote;
     }
   }
@@ -78,7 +66,7 @@ export function selectBestQuote(
 
 export function applySlippage(
   amountOut: bigint,
-  slippagePercent: number,
+  slippagePercent: number
 ): bigint {
   const bps = Math.floor(slippagePercent * 100);
   return amountOut - (amountOut * BigInt(bps)) / 10_000n;

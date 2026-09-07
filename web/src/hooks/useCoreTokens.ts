@@ -1,29 +1,25 @@
 import { useQuery } from "@tanstack/react-query";
-import type { Address } from "viem";
+import { createPuddleSwapClient } from "@puddleswap/sdk";
+import type { Address, PublicClient } from "viem";
 import { usePublicClient } from "wagmi";
 import { monadTestnet } from "../config/chain";
-
-import { contractAbis, contractAddresses } from "../lib/contracts";
 
 export function useCoreTokens() {
   const publicClient = usePublicClient({ chainId: monadTestnet.id });
 
   return useQuery({
     queryKey: ["core-tokens"],
-    enabled: Boolean(publicClient && contractAddresses.tokenRegistry),
+    enabled: Boolean(publicClient),
     staleTime: 10_000,
     queryFn: async () => {
-      if (!publicClient || !contractAddresses.tokenRegistry) {
+      if (!publicClient) {
         return [] as Address[];
       }
 
-      const result = await publicClient.readContract({
-        address: contractAddresses.tokenRegistry,
-        abi: contractAbis.registry,
-        functionName: "listCoreTokens"
+      const puddle = createPuddleSwapClient({
+        publicClient: publicClient as unknown as PublicClient
       });
-
-      return result as Address[];
+      return puddle.listCoreTokens();
     }
   });
 }
