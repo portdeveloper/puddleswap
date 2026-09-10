@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Helmet } from "react-helmet-async";
-import { formatUnits, isAddress, parseUnits, type Address } from "viem";
+import { formatUnits, isAddress, isAddressEqual, parseUnits, type Address } from "viem";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 import { monadTestnet } from "../config/chain";
 import { Link } from "react-router-dom";
@@ -23,6 +23,7 @@ export function CreatePoolPage() {
   const [amountB, setAmountB] = useState("100");
   const [status, setStatus] = useState("");
   const [pending, setPending] = useState(false);
+  const sameToken = isAddress(tokenA) && isAddress(tokenB) && isAddressEqual(tokenA, tokenB);
 
   const decimalsQuery = useQuery({
     queryKey: ["pool-decimals", tokenA, tokenB],
@@ -119,10 +120,10 @@ export function CreatePoolPage() {
         contractAddresses.uniswapV2Factory &&
         isAddress(tokenA) &&
         isAddress(tokenB) &&
-        tokenA !== tokenB
+        !sameToken
     ),
     queryFn: async () => {
-      if (!publicClient || !contractAddresses.uniswapV2Factory || !isAddress(tokenA) || !isAddress(tokenB)) {
+      if (!publicClient || !contractAddresses.uniswapV2Factory || !isAddress(tokenA) || !isAddress(tokenB) || sameToken) {
         return undefined;
       }
 
@@ -174,6 +175,7 @@ export function CreatePoolPage() {
       !contractAddresses.uniswapV2Router02 ||
       !isAddress(tokenA) ||
       !isAddress(tokenB) ||
+      sameToken ||
       parsedAmounts.amountARaw === 0n ||
       parsedAmounts.amountBRaw === 0n
     ) {
@@ -277,7 +279,7 @@ export function CreatePoolPage() {
         </button>
       </div>
 
-      <button type="button" disabled={!isCorrectChain || pending || needsApprovalA || needsApprovalB} onClick={createPool}>
+      <button type="button" disabled={!isCorrectChain || pending || needsApprovalA || needsApprovalB || sameToken} onClick={createPool}>
         Create / Add Liquidity
       </button>
 
