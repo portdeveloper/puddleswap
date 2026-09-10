@@ -41,7 +41,9 @@ contract SeedCorePools is Script {
         vm.startBroadcast();
 
         // USDC is a real token — wallet must be pre-funded (no mint)
-        IERC20Mintable(usdtAddress).mint(lpOwner, usdtAmount + (usdtAmount / 2));
+        // Mint USDT to the broadcaster: the router pulls seed tokens from
+        // msg.sender, so LP_OWNER only needs to receive the LP tokens.
+        IERC20Mintable(usdtAddress).mint(msg.sender, usdtAmount + (usdtAmount / 2));
         IWMON(wmonAddress).deposit{value: wmonAmount}();
 
         IERC20Mintable(usdcAddress).approve(routerAddress, type(uint256).max);
