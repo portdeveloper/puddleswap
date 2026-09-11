@@ -230,6 +230,7 @@ export function CreatePoolPage() {
 
       <TokenPicker label="Token A" value={tokenA} onChange={setTokenA} />
       <TokenPicker label="Token B" value={tokenB} onChange={setTokenB} />
+      {sameToken && <p role="alert">Token A and Token B must be different.</p>}
 
       <label>
         Amount A

@@ -71,6 +71,7 @@ describe("CreatePoolPage token identity", () => {
     expect(
       screen.getByRole("button", { name: "Create / Add Liquidity" }),
     ).toBeEnabled();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
   it("disables liquidity submission when both tokens have the same address", async () => {
@@ -88,6 +89,9 @@ describe("CreatePoolPage token identity", () => {
 
     expect(tokenA).toHaveValue(contractAddresses.usdc);
     expect(submit).toBeDisabled();
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Token A and Token B must be different.",
+    );
   });
 
   it("treats checksum and lowercase forms as the same token", async () => {
