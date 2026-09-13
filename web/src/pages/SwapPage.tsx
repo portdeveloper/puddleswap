@@ -23,6 +23,7 @@ import { useBestQuote } from "../hooks/useBestQuote";
 import { useTokenMeta } from "../hooks/useTokenMeta";
 import { contractAbis, contractAddresses } from "../lib/contracts";
 import { decodeTxError } from "../lib/revertReason";
+import { checkInputBalance } from "../lib/swapBalance";
 
 function shortAddress(value: string) {
   return `${value.slice(0, 6)}…${value.slice(-4)}`;
@@ -522,12 +523,16 @@ export function SwapPage() {
     balanceOutRaw !== undefined && balanceOutDecimals !== undefined
       ? formatUnits(balanceOutRaw, balanceOutDecimals)
       : "-";
+  // Native MON input must keep a gas buffer aside (swapExactETHForTokens
+  // sends the amount as msg.value from the same balance that pays gas);
+  // ERC-20 inputs compare amount to balance directly.
+  const inputBalanceCheck = checkInputBalance({
+    isNativeIn: isTokenInMon,
+    balanceInRaw,
+    amountInRaw: quoteQuery.data?.amountInRaw,
+  });
   const hasInsufficientBalance =
-    isConnected &&
-    balanceInRaw !== undefined &&
-    quoteQuery.data?.amountInRaw !== undefined &&
-    quoteQuery.data.amountInRaw > 0n &&
-    balanceInRaw < quoteQuery.data.amountInRaw;
+    isConnected && inputBalanceCheck.insufficient;
 
   // Price-impact guardrails. Warn above 3%; require an explicit acknowledgement
   // above 15% (a trade that size is almost always draining a shallow pool).
@@ -557,7 +562,9 @@ export function SwapPage() {
       : !isCorrectChain
         ? "Switch to Monad Testnet"
         : hasInsufficientBalance
-          ? `Insufficient ${tokenInSymbol} balance`
+          ? inputBalanceCheck.gasReserveShortfall
+            ? "Insufficient MON — keep ~0.01 MON for gas"
+            : `Insufficient ${tokenInSymbol} balance`
           : needsApproval
             ? `Approve ${tokenInSymbol}`
             : "Swap";
