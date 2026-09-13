@@ -1,58 +1,74 @@
-/**
- * Gas buffer reserved when the swap input is native MON.
- *
- * swapExactETHForTokens sends `amountInRaw` as msg.value, drawn from the same
- * native balance that pays gas. Spending the entire balance therefore builds a
- * transaction that cannot cover its own gas and fails after signing. ERC-20
- * inputs are unaffected: their transfer value and gas are separate, so their
- * balance check stays a plain amount comparison.
- */
-export const NATIVE_GAS_BUFFER_WEI = 10_000_000_000_000_000n; // 0.01 MON
+export type NativeGasEstimate =
+  | { kind: "estimated"; costWei: bigint }
+  | { kind: "insufficient-funds" }
+  | { kind: "unavailable"; message: string };
 
-export type InputBalanceCheck = {
-  /** True when the required input (amount, plus gas buffer if native) exceeds the balance. */
-  insufficient: boolean;
-  /**
-   * True when the amount alone fits the balance but the native gas buffer
-   * does not — i.e. only the MON-for-gas reservation makes the swap fail.
-   * Always false for ERC-20 inputs.
-   */
-  gasReserveShortfall: boolean;
-};
+export type InputBalanceStatus =
+  | "ok"
+  | "insufficient"
+  | "gas-shortfall"
+  | "estimating"
+  | "estimate-unavailable";
 
 /**
  * Insufficient-balance check for the swap input, pure on raw bigint values.
  *
- * Native MON input must keep NATIVE_GAS_BUFFER_WEI aside for gas; ERC-20 input
- * only needs the amount itself. Unknown balances (still loading) report
- * sufficient, mirroring the previous inline check so the button stays enabled
- * until real data arrives.
+ * Native MON input pays gas from the same balance that funds the swap value
+ * (swapExactETHForTokens sends the amount as msg.value), so the balance must
+ * cover amount + the transaction's estimated gas cost. ERC-20 input only
+ * needs the amount itself: its transfer value and gas are separate. Unknown
+ * balances (still loading) report ok so the button stays enabled until real
+ * data arrives.
+ *
+ * `nativeGasEstimate` carries the live estimate from the chain.  While it is
+ * undefined the native swap is blocked with "estimating" because we cannot
+ * prove the balance would cover gas.  An explicit "insufficient-funds" or
+ * "unavailable" result is surfaced as a blocking status with a user-facing
+ * reason.
  */
 export function checkInputBalance(params: {
   isNativeIn: boolean;
   balanceInRaw: bigint | undefined;
   amountInRaw: bigint | undefined;
-}): InputBalanceCheck {
-  const { isNativeIn, balanceInRaw, amountInRaw } = params;
+  nativeGasEstimate: NativeGasEstimate | undefined;
+}): InputBalanceStatus {
+  const { isNativeIn, balanceInRaw, amountInRaw, nativeGasEstimate } = params;
 
   if (balanceInRaw === undefined || amountInRaw === undefined) {
-    return { insufficient: false, gasReserveShortfall: false };
+    return "ok";
   }
 
   if (amountInRaw <= 0n) {
-    return { insufficient: false, gasReserveShortfall: false };
+    return "ok";
   }
 
-  const required = isNativeIn
-    ? amountInRaw + NATIVE_GAS_BUFFER_WEI
-    : amountInRaw;
-
-  if (balanceInRaw >= required) {
-    return { insufficient: false, gasReserveShortfall: false };
+  if (!isNativeIn) {
+    return balanceInRaw >= amountInRaw ? "ok" : "insufficient";
   }
 
-  return {
-    insufficient: true,
-    gasReserveShortfall: isNativeIn && balanceInRaw >= amountInRaw,
-  };
+  // Native input: gas estimate is required before we can approve the swap.
+
+  if (nativeGasEstimate === undefined) {
+    return "estimating";
+  }
+
+  if (nativeGasEstimate.kind === "insufficient-funds") {
+    return "gas-shortfall";
+  }
+
+  if (nativeGasEstimate.kind === "unavailable") {
+    return "estimate-unavailable";
+  }
+
+  const { costWei } = nativeGasEstimate;
+
+  if (balanceInRaw < amountInRaw + costWei) {
+    // Balance covers the amount but not amount+gas — gas shortfall.
+    if (balanceInRaw >= amountInRaw) {
+      return "gas-shortfall";
+    }
+    return "insufficient";
+  }
+
+  return "ok";
 }

@@ -1,103 +1,147 @@
 import { describe, expect, it } from "vitest";
 
-import { checkInputBalance, NATIVE_GAS_BUFFER_WEI } from "../swapBalance";
+import { checkInputBalance, type NativeGasEstimate } from "../swapBalance";
 
-// 5 MON in wei-scale integers, with the gas buffer as its own unit.
-const FIVE = 5_000_000_000_000_000_000n;
-const GAS_BUFFER = NATIVE_GAS_BUFFER_WEI; // 0.01 MON
+const FIVE = 5_000_000_000_000_000_000n; // 5 MON in wei
+const GAS_COST = 20_000_000_000_000_000n; // 0.02 MON estimated gas
+
+function estimated(costWei: bigint): NativeGasEstimate {
+  return { kind: "estimated", costWei };
+}
 
 describe("checkInputBalance", () => {
-  it("flags native input equal to the full balance as insufficient", () => {
-    const result = checkInputBalance({
-      isNativeIn: true,
-      balanceInRaw: FIVE,
-      amountInRaw: FIVE,
-    });
-
-    expect(result.insufficient).toBe(true);
-    expect(result.gasReserveShortfall).toBe(true);
-  });
-
-  it("allows native input up to balance minus the gas buffer", () => {
-    const result = checkInputBalance({
-      isNativeIn: true,
-      balanceInRaw: FIVE,
-      amountInRaw: FIVE - GAS_BUFFER,
-    });
-
-    expect(result.insufficient).toBe(false);
-    expect(result.gasReserveShortfall).toBe(false);
-  });
-
-  it("still flags native input past the plain balance", () => {
-    const result = checkInputBalance({
-      isNativeIn: true,
-      balanceInRaw: FIVE,
-      amountInRaw: FIVE + 1n,
-    });
-
-    expect(result.insufficient).toBe(true);
-    expect(result.gasReserveShortfall).toBe(false);
-  });
-
-  it("keeps the ERC-20 comparison unchanged: full balance is fine", () => {
-    const result = checkInputBalance({
-      isNativeIn: false,
-      balanceInRaw: FIVE,
-      amountInRaw: FIVE,
-    });
-
-    expect(result.insufficient).toBe(false);
-    expect(result.gasReserveShortfall).toBe(false);
-  });
-
-  it("keeps the ERC-20 comparison unchanged: over balance is insufficient", () => {
-    const result = checkInputBalance({
-      isNativeIn: false,
-      balanceInRaw: FIVE,
-      amountInRaw: FIVE + 1n,
-    });
-
-    expect(result.insufficient).toBe(true);
-    expect(result.gasReserveShortfall).toBe(false);
-  });
-
-  it("reports sufficient while balances are still loading", () => {
+  it("returns ok when balances are still loading", () => {
     expect(
       checkInputBalance({
         isNativeIn: true,
         balanceInRaw: undefined,
         amountInRaw: FIVE,
+        nativeGasEstimate: estimated(GAS_COST),
       }),
-    ).toEqual({ insufficient: false, gasReserveShortfall: false });
+    ).toBe("ok");
 
     expect(
       checkInputBalance({
         isNativeIn: true,
         balanceInRaw: FIVE,
         amountInRaw: undefined,
+        nativeGasEstimate: estimated(GAS_COST),
       }),
-    ).toEqual({ insufficient: false, gasReserveShortfall: false });
+    ).toBe("ok");
   });
 
-  it("ignores zero-amount quotes the same way the inline check did", () => {
-    const result = checkInputBalance({
-      isNativeIn: true,
-      balanceInRaw: 0n,
-      amountInRaw: 0n,
-    });
-
-    expect(result.insufficient).toBe(false);
+  it("returns ok for zero-amount quotes", () => {
+    expect(
+      checkInputBalance({
+        isNativeIn: true,
+        balanceInRaw: 0n,
+        amountInRaw: 0n,
+        nativeGasEstimate: estimated(GAS_COST),
+      }),
+    ).toBe("ok");
   });
 
-  it("reserves the gas buffer even when the balance itself is tiny", () => {
-    const result = checkInputBalance({
-      isNativeIn: true,
-      balanceInRaw: 1n,
-      amountInRaw: 1n,
-    });
+  it("returns insufficient when native amount exceeds balance", () => {
+    expect(
+      checkInputBalance({
+        isNativeIn: true,
+        balanceInRaw: FIVE,
+        amountInRaw: FIVE + 1n,
+        nativeGasEstimate: estimated(GAS_COST),
+      }),
+    ).toBe("insufficient");
+  });
 
-    expect(result.insufficient).toBe(true);
-    expect(result.gasReserveShortfall).toBe(true);
+  it("returns gas-shortfall when amount fits but amount+gas does not", () => {
+    // balance = 1 MON, amount = 0.99 MON, gas = 0.02 MON → 0.99+0.02 > 1
+    const oneMon = 1_000_000_000_000_000_000n;
+    const amount = oneMon - 10_000_000_000_000_000n; // 0.99 MON
+    expect(
+      checkInputBalance({
+        isNativeIn: true,
+        balanceInRaw: oneMon,
+        amountInRaw: amount,
+        nativeGasEstimate: estimated(GAS_COST),
+      }),
+    ).toBe("gas-shortfall");
+  });
+
+  it("returns ok when amount + gas exactly equals balance", () => {
+    // balance = 5 MON, amount = 4.98 MON, gas = 0.02 MON
+    const amount = FIVE - GAS_COST;
+    expect(
+      checkInputBalance({
+        isNativeIn: true,
+        balanceInRaw: FIVE,
+        amountInRaw: amount,
+        nativeGasEstimate: estimated(GAS_COST),
+      }),
+    ).toBe("ok");
+  });
+
+  it("returns gas-shortfall when native gas estimate is insufficient-funds", () => {
+    expect(
+      checkInputBalance({
+        isNativeIn: true,
+        balanceInRaw: FIVE,
+        amountInRaw: FIVE - GAS_COST,
+        nativeGasEstimate: { kind: "insufficient-funds" },
+      }),
+    ).toBe("gas-shortfall");
+  });
+
+  it("returns estimate-unavailable when native gas estimate failed", () => {
+    expect(
+      checkInputBalance({
+        isNativeIn: true,
+        balanceInRaw: FIVE,
+        amountInRaw: FIVE - GAS_COST,
+        nativeGasEstimate: { kind: "unavailable", message: "RPC error" },
+      }),
+    ).toBe("estimate-unavailable");
+  });
+
+  it("returns estimating when native gas estimate is still loading", () => {
+    expect(
+      checkInputBalance({
+        isNativeIn: true,
+        balanceInRaw: FIVE,
+        amountInRaw: FIVE - GAS_COST,
+        nativeGasEstimate: undefined,
+      }),
+    ).toBe("estimating");
+  });
+
+  it("ERC-20: full balance is ok", () => {
+    expect(
+      checkInputBalance({
+        isNativeIn: false,
+        balanceInRaw: FIVE,
+        amountInRaw: FIVE,
+        nativeGasEstimate: undefined,
+      }),
+    ).toBe("ok");
+  });
+
+  it("ERC-20: over balance is insufficient", () => {
+    expect(
+      checkInputBalance({
+        isNativeIn: false,
+        balanceInRaw: FIVE,
+        amountInRaw: FIVE + 1n,
+        nativeGasEstimate: undefined,
+      }),
+    ).toBe("insufficient");
+  });
+
+  it("ERC-20: ignores gas estimate entirely", () => {
+    expect(
+      checkInputBalance({
+        isNativeIn: false,
+        balanceInRaw: FIVE,
+        amountInRaw: FIVE,
+        nativeGasEstimate: { kind: "insufficient-funds" },
+      }),
+    ).toBe("ok");
   });
 });

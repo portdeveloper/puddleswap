@@ -20,6 +20,7 @@ import { TxStatus } from "../components/TxStatus";
 import { useChainGuard } from "../hooks/useChainGuard";
 import { useCoreTokens } from "../hooks/useCoreTokens";
 import { useBestQuote } from "../hooks/useBestQuote";
+import { useNativeSwapGasEstimate } from "../hooks/useNativeSwapGasEstimate";
 import { useTokenMeta } from "../hooks/useTokenMeta";
 import { contractAbis, contractAddresses } from "../lib/contracts";
 import { decodeTxError } from "../lib/revertReason";
@@ -40,6 +41,11 @@ function resolveTokenParam(param: string | null, fallback: string): string {
   }
 
   return fallback;
+}
+
+function parseSlippagePercent(raw: string): number {
+  const n = Number(raw);
+  return Number.isFinite(n) && n > 0 ? Math.min(n, 50) : 1;
 }
 
 export function SwapPage() {
@@ -257,6 +263,9 @@ export function SwapPage() {
     (allowanceQuery.data ?? 0n) < (quoteQuery.data?.amountInRaw ?? 0n) &&
     (quoteQuery.data?.amountInRaw ?? 0n) > 0n;
 
+  const isTokenInMon = tokenIn === MON_TOKEN;
+  const isTokenOutMon = tokenOut === MON_TOKEN;
+
   async function handleApprove() {
     if (
       !isCorrectChain ||
@@ -315,6 +324,12 @@ export function SwapPage() {
       return;
     }
 
+    // Never submit a swap when the input balance check is not ok.
+    if (blocksSwapSubmission) {
+      setLastAction(balanceStatusLabel);
+      return;
+    }
+
     // Never submit a high-impact swap the user hasn't explicitly acknowledged.
     if (impactBlocked) {
       setLastAction("Confirm the high price-impact warning before swapping.");
@@ -325,11 +340,6 @@ export function SwapPage() {
     setPendingAction("swap");
     setLastAction("Submitting swap…");
 
-    const rawSlippage = Number(slippagePercent);
-    const slippage =
-      Number.isFinite(rawSlippage) && rawSlippage > 0
-        ? Math.min(rawSlippage, 50)
-        : 1;
     const swapProps = {
       token_in: tokenInSymbol,
       token_out: tokenOutSymbol,
@@ -491,8 +501,6 @@ export function SwapPage() {
     return tokenAddress;
   }
 
-  const isTokenInMon = tokenIn === MON_TOKEN;
-  const isTokenOutMon = tokenOut === MON_TOKEN;
   const tokenInSymbol = getTokenLabel(tokenIn);
   const tokenOutSymbol = getTokenLabel(tokenOut);
 
@@ -523,16 +531,42 @@ export function SwapPage() {
     balanceOutRaw !== undefined && balanceOutDecimals !== undefined
       ? formatUnits(balanceOutRaw, balanceOutDecimals)
       : "-";
-  // Native MON input must keep a gas buffer aside (swapExactETHForTokens
-  // sends the amount as msg.value from the same balance that pays gas);
-  // ERC-20 inputs compare amount to balance directly.
-  const inputBalanceCheck = checkInputBalance({
+
+  const slippage = parseSlippagePercent(slippagePercent);
+
+  const nativeGasEstimateQuery = useNativeSwapGasEstimate({
+    enabled: isConnected && isTokenInMon && Boolean(quoteQuery.data?.best),
+    account: address,
+    amountInRaw: quoteQuery.data?.amountInRaw,
+    path: quoteQuery.data?.best?.path as `0x${string}`[] | undefined,
+    minOut: quoteQuery.data?.best
+      ? applySlippage(quoteQuery.data.best.amountOut, slippage)
+      : undefined,
+  });
+
+  const inputBalanceStatus = checkInputBalance({
     isNativeIn: isTokenInMon,
     balanceInRaw,
     amountInRaw: quoteQuery.data?.amountInRaw,
+    nativeGasEstimate: isTokenInMon ? nativeGasEstimateQuery.data : undefined,
   });
-  const hasInsufficientBalance =
-    isConnected && inputBalanceCheck.insufficient;
+
+  const blocksSwapSubmission = isConnected && inputBalanceStatus !== "ok";
+
+  const balanceStatusLabel = (() => {
+    switch (inputBalanceStatus) {
+      case "insufficient":
+        return `Insufficient ${tokenInSymbol} balance`;
+      case "gas-shortfall":
+        return "Insufficient MON — not enough to cover gas";
+      case "estimating":
+        return "Estimating gas…";
+      case "estimate-unavailable":
+        return "Gas estimate unavailable";
+      default:
+        return "";
+    }
+  })();
 
   // Price-impact guardrails. Warn above 3%; require an explicit acknowledgement
   // above 15% (a trade that size is almost always draining a shallow pool).
@@ -561,10 +595,8 @@ export function SwapPage() {
       ? "Connect Wallet"
       : !isCorrectChain
         ? "Switch to Monad Testnet"
-        : hasInsufficientBalance
-          ? inputBalanceCheck.gasReserveShortfall
-            ? "Insufficient MON — keep ~0.01 MON for gas"
-            : `Insufficient ${tokenInSymbol} balance`
+        : blocksSwapSubmission
+          ? balanceStatusLabel
           : needsApproval
             ? `Approve ${tokenInSymbol}`
             : "Swap";
@@ -573,14 +605,14 @@ export function SwapPage() {
     (!isConnected
       ? connectors.length === 0
       : isCorrectChain &&
-        (hasInsufficientBalance ||
+        (blocksSwapSubmission ||
           (!needsApproval && !quoteQuery.data?.best) ||
           (!needsApproval && impactBlocked)));
 
   const isReady =
     isConnected &&
     isCorrectChain &&
-    !hasInsufficientBalance &&
+    !blocksSwapSubmission &&
     (needsApproval || Boolean(quoteQuery.data?.best));
 
   const routeLabels =
@@ -945,6 +977,16 @@ export function SwapPage() {
               </label>
             </div>
           )}
+
+          {/* Gas estimate unavailable */}
+          {isTokenInMon &&
+            nativeGasEstimateQuery.data?.kind === "unavailable" && (
+              <div className="impact-warning" role="alert">
+                Could not estimate gas cost:{" "}
+                {nativeGasEstimateQuery.data.message}. The swap cannot proceed
+                until the estimate is available.
+              </div>
+            )}
 
           {/* CTA */}
           <button
