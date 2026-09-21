@@ -7,7 +7,6 @@ script = "script"
 evm_version = "cancun"
 optimizer = true
 optimizer_runs = 200
-ffi = true
 auto_detect_solc = true
 
 [fmt]

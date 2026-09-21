@@ -5,7 +5,8 @@ SHELL := /bin/bash
 setup: setup-contracts setup-web
 
 setup-contracts:
-	cd contracts && forge install --no-git foundry-rs/forge-std OpenZeppelin/openzeppelin-contracts Uniswap/v2-core Uniswap/v2-periphery Uniswap/solidity-lib
+	git submodule update --init --recursive
+	git submodule status --recursive
 
 setup-web:
 	pnpm install

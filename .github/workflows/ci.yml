@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - uses: pnpm/action-setup@v4
 
@@ -26,6 +28,10 @@ jobs:
           version: stable
 
       - run: make setup
+      - name: Verify installed contract dependencies
+        run: |
+          echo "Installed contract dependencies:"
+          git submodule status --recursive
       - run: make test
       - run: pnpm --dir web lint
       - run: pnpm --dir web typecheck
