@@ -563,6 +563,8 @@ export function SwapPage() {
         return "Estimating gas…";
       case "estimate-unavailable":
         return "Gas estimate unavailable";
+      case "balance-unavailable":
+        return "Balance unavailable";
       default:
         return "";
     }

@@ -10,7 +10,9 @@ function estimated(costWei: bigint): NativeGasEstimate {
 }
 
 describe("checkInputBalance", () => {
-  it("returns ok when balances are still loading", () => {
+  it("blocks native input while the balance read is unavailable", () => {
+    // Loading or failed balance reads both surface as undefined; native
+    // submission must stay blocked either way.
     expect(
       checkInputBalance({
         isNativeIn: true,
@@ -18,14 +20,54 @@ describe("checkInputBalance", () => {
         amountInRaw: FIVE,
         nativeGasEstimate: estimated(GAS_COST),
       }),
-    ).toBe("ok");
+    ).toBe("balance-unavailable");
 
+    expect(
+      checkInputBalance({
+        isNativeIn: true,
+        balanceInRaw: undefined,
+        amountInRaw: FIVE,
+        nativeGasEstimate: undefined,
+      }),
+    ).toBe("balance-unavailable");
+
+    expect(
+      checkInputBalance({
+        isNativeIn: true,
+        balanceInRaw: undefined,
+        amountInRaw: FIVE,
+        nativeGasEstimate: { kind: "unavailable", message: "RPC error" },
+      }),
+    ).toBe("balance-unavailable");
+  });
+
+  it("returns ok when there is no quote amount yet", () => {
     expect(
       checkInputBalance({
         isNativeIn: true,
         balanceInRaw: FIVE,
         amountInRaw: undefined,
         nativeGasEstimate: estimated(GAS_COST),
+      }),
+    ).toBe("ok");
+
+    expect(
+      checkInputBalance({
+        isNativeIn: true,
+        balanceInRaw: undefined,
+        amountInRaw: undefined,
+        nativeGasEstimate: undefined,
+      }),
+    ).toBe("ok");
+  });
+
+  it("ERC-20: treats a still-loading balance as ok", () => {
+    expect(
+      checkInputBalance({
+        isNativeIn: false,
+        balanceInRaw: undefined,
+        amountInRaw: FIVE,
+        nativeGasEstimate: undefined,
       }),
     ).toBe("ok");
   });

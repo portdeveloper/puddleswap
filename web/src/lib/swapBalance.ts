@@ -8,7 +8,8 @@ export type InputBalanceStatus =
   | "insufficient"
   | "gas-shortfall"
   | "estimating"
-  | "estimate-unavailable";
+  | "estimate-unavailable"
+  | "balance-unavailable";
 
 /**
  * Insufficient-balance check for the swap input, pure on raw bigint values.
@@ -16,15 +17,17 @@ export type InputBalanceStatus =
  * Native MON input pays gas from the same balance that funds the swap value
  * (swapExactETHForTokens sends the amount as msg.value), so the balance must
  * cover amount + the transaction's estimated gas cost. ERC-20 input only
- * needs the amount itself: its transfer value and gas are separate. Unknown
- * balances (still loading) report ok so the button stays enabled until real
- * data arrives.
+ * needs the amount itself: its transfer value and gas are separate.
  *
- * `nativeGasEstimate` carries the live estimate from the chain.  While it is
- * undefined the native swap is blocked with "estimating" because we cannot
- * prove the balance would cover gas.  An explicit "insufficient-funds" or
- * "unavailable" result is surfaced as a blocking status with a user-facing
- * reason.
+ * Native input is blocked until every read it depends on is available:
+ * a still-loading or failed balance read reports "balance-unavailable", an
+ * undefined gas estimate reports "estimating", and an explicit
+ * "insufficient-funds" or "unavailable" estimate is surfaced as a blocking
+ * status with a user-facing reason. ERC-20 keeps the permissive behaviour of
+ * treating a loading balance as "ok" until real data arrives.
+ *
+ * When there is no amount yet (no quote, or a zero-amount preview) the check
+ * reports "ok": the page independently refuses to submit without a quote.
  */
 export function checkInputBalance(params: {
   isNativeIn: boolean;
@@ -34,19 +37,23 @@ export function checkInputBalance(params: {
 }): InputBalanceStatus {
   const { isNativeIn, balanceInRaw, amountInRaw, nativeGasEstimate } = params;
 
-  if (balanceInRaw === undefined || amountInRaw === undefined) {
-    return "ok";
-  }
-
-  if (amountInRaw <= 0n) {
+  if (amountInRaw === undefined || amountInRaw <= 0n) {
     return "ok";
   }
 
   if (!isNativeIn) {
+    if (balanceInRaw === undefined) {
+      return "ok";
+    }
     return balanceInRaw >= amountInRaw ? "ok" : "insufficient";
   }
 
-  // Native input: gas estimate is required before we can approve the swap.
+  // Native input: both the balance and a usable gas estimate are required
+  // before we can approve the swap.
+
+  if (balanceInRaw === undefined) {
+    return "balance-unavailable";
+  }
 
   if (nativeGasEstimate === undefined) {
     return "estimating";
