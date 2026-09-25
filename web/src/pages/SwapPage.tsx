@@ -43,9 +43,20 @@ function resolveTokenParam(param: string | null, fallback: string): string {
   return fallback;
 }
 
-function parseSlippagePercent(raw: string): number {
-  const n = Number(raw);
-  return Number.isFinite(n) && n > 0 ? Math.min(n, 50) : 1;
+// eslint-disable-next-line react-refresh/only-export-components
+export function parseSlippagePercent(raw: string): number {
+  if (typeof raw !== "string") {
+    return 1;
+  }
+  const trimmed = raw.trim();
+  if (trimmed === "") {
+    return 1;
+  }
+  const n = Number(trimmed);
+  if (!Number.isFinite(n) || n < 0) {
+    return 1;
+  }
+  return n === 0 ? 0 : Math.min(n, 50);
 }
 
 export function SwapPage() {
