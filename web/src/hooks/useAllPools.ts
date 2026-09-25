@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { formatUnits, type Address } from "viem";
+import { BaseError, ContractFunctionRevertedError, formatUnits, type Address } from "viem";
 import { useAccount, usePublicClient } from "wagmi";
 import { monadTestnet } from "../config/chain";
 
@@ -23,6 +23,62 @@ export interface PoolInfo {
   sharePercent: string;
 }
 
+interface PairMeta {
+  pairAddress: Address;
+  token0: Address;
+  token1: Address;
+  reserves: [bigint, bigint];
+  totalSupply: bigint;
+  lpBalance: bigint;
+}
+
+type Client = NonNullable<ReturnType<typeof usePublicClient>>;
+
+// Lists a pair only when both tokens are registered and active (so old testUSDC
+// pools stay hidden). The core list is not enough: `registerBasic` tokens are
+// active but not core.
+async function filterToActiveTokens(publicClient: Client, pairMetas: PairMeta[]): Promise<PairMeta[]> {
+  const registry = contractAddresses.tokenRegistry;
+  if (!registry || pairMetas.length === 0) return pairMetas;
+
+  const tokens = new Map<string, Address>();
+  for (const meta of pairMetas) {
+    tokens.set(meta.token0.toLowerCase(), meta.token0);
+    tokens.set(meta.token1.toLowerCase(), meta.token1);
+  }
+  const uniqueTokens = [...tokens.values()];
+
+  const results = await publicClient.multicall({
+    contracts: uniqueTokens.map((token) => ({
+      address: registry,
+      abi: contractAbis.registry,
+      functionName: "getToken" as const,
+      args: [token] as const,
+    })),
+    multicallAddress: multicall3Address,
+  });
+
+  const active = new Set<string>();
+  uniqueTokens.forEach((token, i) => {
+    const result = results[i];
+    if (result.status === "success") {
+      if (result.result.active) active.add(token.toLowerCase());
+      return;
+    }
+    // A revert is the registry answering "not registered". Any other failure is
+    // a read that never happened, so fail the query and keep the last good list
+    // rather than showing none.
+    const reverted =
+      result.error instanceof BaseError &&
+      result.error.walk((e) => e instanceof ContractFunctionRevertedError) !== null;
+    if (!reverted) throw result.error;
+  });
+
+  return pairMetas.filter(
+    (meta) => active.has(meta.token0.toLowerCase()) && active.has(meta.token1.toLowerCase()),
+  );
+}
+
 export function useAllPools() {
   const publicClient = usePublicClient({ chainId: monadTestnet.id });
   const { address: userAddress } = useAccount();
@@ -37,22 +93,11 @@ export function useAllPools() {
         return [];
       }
 
-      const [length, coreTokensRaw] = await Promise.all([
-        publicClient.readContract({
-          address: contractAddresses.uniswapV2Factory,
-          abi: contractAbis.factory,
-          functionName: "allPairsLength",
-        }),
-        contractAddresses.tokenRegistry
-          ? publicClient.readContract({
-              address: contractAddresses.tokenRegistry,
-              abi: contractAbis.registry,
-              functionName: "listCoreTokens",
-            }) as Promise<Address[]>
-          : Promise.resolve([] as Address[]),
-      ]);
-
-      const coreTokens = new Set(coreTokensRaw.map((t) => t.toLowerCase()));
+      const length = await publicClient.readContract({
+        address: contractAddresses.uniswapV2Factory,
+        abi: contractAbis.factory,
+        functionName: "allPairsLength",
+      });
 
       const count = Number(length);
       if (count === 0) return [];
@@ -94,16 +139,7 @@ export function useAllPools() {
 
       const fieldsPerPair = userAddress ? 5 : 4;
 
-      // Collect unique token addresses for symbol/decimals lookup
-      const tokenSet = new Set<string>();
-      const pairMetas: Array<{
-        pairAddress: Address;
-        token0: Address;
-        token1: Address;
-        reserves: [bigint, bigint];
-        totalSupply: bigint;
-        lpBalance: bigint;
-      }> = [];
+      const pairMetas: PairMeta[] = [];
 
       for (let i = 0; i < pairAddresses.length; i++) {
         const base = i * fieldsPerPair;
@@ -128,14 +164,6 @@ export function useAllPools() {
         const totalSupply = totalSupplyResult.result as bigint;
         const lpBalance = lpBalanceResult?.status === "success" ? (lpBalanceResult.result as bigint) : 0n;
 
-        // Skip pools that reference tokens not in the registry (e.g. retired testUSDC).
-        if (coreTokens.size > 0 && (!coreTokens.has(token0.toLowerCase()) || !coreTokens.has(token1.toLowerCase()))) {
-          continue;
-        }
-
-        tokenSet.add(token0);
-        tokenSet.add(token1);
-
         pairMetas.push({
           pairAddress: pairAddresses[i],
           token0,
@@ -144,6 +172,15 @@ export function useAllPools() {
           totalSupply,
           lpBalance,
         });
+      }
+
+      const listedMetas = await filterToActiveTokens(publicClient, pairMetas);
+
+      // Collect unique token addresses for symbol/decimals lookup
+      const tokenSet = new Set<string>();
+      for (const meta of listedMetas) {
+        tokenSet.add(meta.token0);
+        tokenSet.add(meta.token1);
       }
 
       // Fetch symbol + decimals for all unique tokens
@@ -168,7 +205,7 @@ export function useAllPools() {
         });
       }
 
-      return pairMetas.map((meta) => {
+      return listedMetas.map((meta) => {
         const t0 = tokenMeta.get(meta.token0.toLowerCase()) ?? { symbol: "???", decimals: 18 };
         const t1 = tokenMeta.get(meta.token1.toLowerCase()) ?? { symbol: "???", decimals: 18 };
 
