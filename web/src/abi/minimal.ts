@@ -262,6 +262,28 @@ export const registryAbi = [
   },
   {
     type: "function",
+    name: "getToken",
+    stateMutability: "view",
+    inputs: [{ name: "token", type: "address" }],
+    outputs: [
+      {
+        name: "",
+        type: "tuple",
+        components: [
+          { name: "token", type: "address" },
+          { name: "symbol", type: "string" },
+          { name: "name", type: "string" },
+          { name: "decimals", type: "uint8" },
+          { name: "level", type: "uint8" },
+          { name: "imageURI", type: "string" },
+          { name: "isCore", type: "bool" },
+          { name: "active", type: "bool" }
+        ]
+      }
+    ]
+  },
+  {
+    type: "function",
     name: "listCoreTokens",
     stateMutability: "view",
     inputs: [],
