@@ -115,11 +115,13 @@ export function useAllPools() {
         multicallAddress: multicall3Address,
       });
 
-      const pairAddresses = pairResults
-        .filter((r) => r.status === "success")
-        .map((r) => r.result as Address);
+      for (const result of pairResults) {
+        if (result.status !== "success") {
+          throw result.error ?? new Error("Failed to fetch pair address");
+        }
+      }
 
-      if (pairAddresses.length === 0) return [];
+      const pairAddresses = pairResults.map((r) => r.result as Address);
 
       // Fetch token0, token1, reserves, totalSupply for each pair
       const metaCalls = pairAddresses.flatMap((pair) => [
