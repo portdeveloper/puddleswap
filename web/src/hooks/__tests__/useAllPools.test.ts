@@ -52,7 +52,7 @@ const symbols: Record<string, string> = {
   [STRANGER]: "ANON",
 };
 
-function createPublicClient(pairs: Pair[], registry: Record<string, RegistryEntry>) {
+function createPublicClient(pairs: Pair[], registry: Record<string, RegistryEntry>, options?: { pairFails?: (index: number) => boolean }) {
   const readContract = vi.fn(async ({ functionName }: { functionName: string }) => {
     if (functionName === "allPairsLength") return BigInt(pairs.length);
     throw new Error(`unexpected readContract ${functionName}`);
@@ -63,8 +63,13 @@ function createPublicClient(pairs: Pair[], registry: Record<string, RegistryEntr
       contracts.map(({ address, functionName, args }) => {
         const byAddress = pairs.find((p) => p.address === address);
         switch (functionName) {
-          case "allPairs":
-            return { status: "success", result: pairs[Number(args![0])].address };
+          case "allPairs": {
+            const index = Number(args![0]);
+            if (options?.pairFails?.(index)) {
+              return { status: "failure", error: new HttpRequestError({ url: "http://rpc.test" }) };
+            }
+            return { status: "success", result: pairs[index].address };
+          }
           case "token0":
             return { status: "success", result: byAddress!.token0 };
           case "token1":
@@ -108,8 +113,8 @@ function renderPools() {
   return renderHook(() => useAllPools(), { wrapper });
 }
 
-async function loadPools(pairs: Pair[], registry: Record<string, RegistryEntry>) {
-  const client = createPublicClient(pairs, registry);
+async function loadPools(pairs: Pair[], registry: Record<string, RegistryEntry>, options?: { pairFails?: (index: number) => boolean }) {
+  const client = createPublicClient(pairs, registry, options);
   mockUsePublicClient.mockReturnValue(client);
   const { result } = renderPools();
   await waitFor(() => expect(result.current.isPending).toBe(false));
@@ -199,5 +204,59 @@ describe("useAllPools registry eligibility", () => {
     const readTokens = registryCalls.map((c) => c.args![0]);
     expect(readTokens).toHaveLength(3);
     expect(new Set(readTokens)).toEqual(new Set([BUILDER, USDC, WMON]));
+  });
+});
+
+describe("useAllPools pair enumeration failure handling", () => {
+  beforeEach(() => {
+    mockUsePublicClient.mockReset();
+  });
+
+  it("fails the query when an entire allPairs batch fails", async () => {
+    const { result } = await loadPools(
+      [pair(WMON, USDC)],
+      { [USDC]: coreActive, [WMON]: coreActive },
+      { pairFails: () => true },
+    );
+    expect(result.current.isError).toBe(true);
+    expect(result.current.data).toBeUndefined();
+  });
+
+  it("fails the query when allPairs fails for only some pairs in a batch", async () => {
+    const { result } = await loadPools(
+      [pair(WMON, USDC), pair(BUILDER, USDC)],
+      { [USDC]: coreActive, [WMON]: coreActive, [BUILDER]: basicActive },
+      { pairFails: (i) => i === 1 },
+    );
+    expect(result.current.isError).toBe(true);
+    expect(result.current.data).toBeUndefined();
+  });
+
+  it("returns an empty list when allPairsLength is genuinely zero", async () => {
+    const { result } = await loadPools([], {});
+    expect(result.current.isSuccess).toBe(true);
+    expect(result.current.data).toEqual([]);
+  });
+
+  it("preserves the last successful pool list during a failed background refresh", async () => {
+    let failRefresh = false;
+    const { result } = await loadPools(
+      [pair(WMON, USDC)],
+      { [USDC]: coreActive, [WMON]: coreActive },
+      { pairFails: () => failRefresh },
+    );
+
+    expect(result.current.isSuccess).toBe(true);
+    expect(result.current.data).toHaveLength(1);
+    expect(result.current.data?.[0].symbol0).toBe("WMON");
+
+    // Next background fetch fails
+    failRefresh = true;
+    await result.current.refetch().catch(() => {});
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    // The previous pool list is preserved rather than dropped to [] or undefined
+    expect(result.current.data).toHaveLength(1);
+    expect(result.current.data?.[0].symbol0).toBe("WMON");
   });
 });
