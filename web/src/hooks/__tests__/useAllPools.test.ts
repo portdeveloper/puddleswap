@@ -52,7 +52,19 @@ const symbols: Record<string, string> = {
   [STRANGER]: "ANON",
 };
 
-function createPublicClient(pairs: Pair[], registry: Record<string, RegistryEntry>, options?: { pairFails?: (index: number) => boolean }) {
+// `decimalsFails` distinguishes the two ways a decimals read can not produce a
+// number: the request never reached the node, or the call reverted. Neither
+// leaves a unit to format reserves in.
+type DecimalsFailure = "transport" | "revert";
+
+interface ClientOptions {
+  pairFails?: (index: number) => boolean;
+  decimals?: Record<string, number>;
+  decimalsFails?: (token: Address) => DecimalsFailure | undefined;
+  symbolFails?: (token: Address) => boolean;
+}
+
+function createPublicClient(pairs: Pair[], registry: Record<string, RegistryEntry>, options?: ClientOptions) {
   const readContract = vi.fn(async ({ functionName }: { functionName: string }) => {
     if (functionName === "allPairsLength") return BigInt(pairs.length);
     throw new Error(`unexpected readContract ${functionName}`);
@@ -79,9 +91,22 @@ function createPublicClient(pairs: Pair[], registry: Record<string, RegistryEntr
           case "totalSupply":
             return { status: "success", result: 1_000n };
           case "symbol":
+            if (options?.symbolFails?.(address)) {
+              return { status: "failure", error: new HttpRequestError({ url: "http://rpc.test" }) };
+            }
             return { status: "success", result: symbols[address] };
-          case "decimals":
-            return { status: "success", result: 18 };
+          case "decimals": {
+            const failure = options?.decimalsFails?.(address);
+            if (failure === "transport") {
+              return { status: "failure", error: new HttpRequestError({ url: "http://rpc.test" }) };
+            }
+            if (failure === "revert") {
+              const revert = new ContractFunctionRevertedError({ abi: [], functionName: "decimals" });
+              const error = new ContractFunctionExecutionError(revert, { abi: [], functionName: "decimals" });
+              return { status: "failure", error };
+            }
+            return { status: "success", result: options?.decimals?.[address] ?? 18 };
+          }
           case "getToken": {
             const token = args![0] as Address;
             const entry = registry[token] ?? "unregistered";
@@ -113,7 +138,7 @@ function renderPools() {
   return renderHook(() => useAllPools(), { wrapper });
 }
 
-async function loadPools(pairs: Pair[], registry: Record<string, RegistryEntry>, options?: { pairFails?: (index: number) => boolean }) {
+async function loadPools(pairs: Pair[], registry: Record<string, RegistryEntry>, options?: ClientOptions) {
   const client = createPublicClient(pairs, registry, options);
   mockUsePublicClient.mockReturnValue(client);
   const { result } = renderPools();
@@ -258,5 +283,98 @@ describe("useAllPools pair enumeration failure handling", () => {
     // The previous pool list is preserved rather than dropped to [] or undefined
     expect(result.current.data).toHaveLength(1);
     expect(result.current.data?.[0].symbol0).toBe("WMON");
+  });
+});
+
+describe("useAllPools token decimals handling", () => {
+  beforeEach(() => {
+    mockUsePublicClient.mockReset();
+  });
+
+  it("fails the query when a token's decimals read never reaches the node", async () => {
+    // Substituting 18 published a successful list in units nobody measured.
+    const { result } = await loadPools(
+      [pair(WMON, USDC)],
+      { [USDC]: coreActive, [WMON]: coreActive },
+      { decimalsFails: (token) => (token === USDC ? "transport" : undefined) },
+    );
+    expect(result.current.isError).toBe(true);
+    expect(result.current.data).toBeUndefined();
+  });
+
+  it("fails the query when a token's decimals call reverts", async () => {
+    // A revert is a usable answer for the registry ("not registered") but not
+    // here: it still does not say how to scale the reserve, and dropping the
+    // pair instead would change which pools are eligible.
+    const { result } = await loadPools(
+      [pair(WMON, USDC)],
+      { [USDC]: coreActive, [WMON]: coreActive },
+      { decimalsFails: (token) => (token === USDC ? "revert" : undefined) },
+    );
+    expect(result.current.isError).toBe(true);
+    expect(result.current.data).toBeUndefined();
+  });
+
+  it("formats each reserve in the decimals the token actually reported", async () => {
+    // reserves are [1000n, 2000n]; token1 is USDC at 6 decimals, so 2000n is
+    // 0.002, not the 0.000000000000002 that an assumed 18 produced.
+    const { result } = await loadPools(
+      [pair(WMON, USDC)],
+      { [USDC]: coreActive, [WMON]: coreActive },
+      { decimals: { [USDC]: 6, [WMON]: 18 } },
+    );
+    expect(result.current.isSuccess).toBe(true);
+    const pool = result.current.data![0];
+    expect(pool.decimals0).toBe(18);
+    expect(pool.decimals1).toBe(6);
+    expect(pool.reserve1Formatted).toBe("0.002");
+    expect(pool.reserve0Formatted).toBe("0.000000000000001");
+  });
+
+  it("keeps a decimals reading of zero, which is a reading and not a failure", async () => {
+    const { result } = await loadPools(
+      [pair(WMON, USDC)],
+      { [USDC]: coreActive, [WMON]: coreActive },
+      { decimals: { [USDC]: 0, [WMON]: 18 } },
+    );
+    expect(result.current.isSuccess).toBe(true);
+    const pool = result.current.data![0];
+    expect(pool.decimals1).toBe(0);
+    expect(pool.reserve1Formatted).toBe("2000");
+  });
+
+  it("preserves the last successful pool list when a decimals refresh fails", async () => {
+    let failRefresh = false;
+    const { result } = await loadPools(
+      [pair(WMON, USDC)],
+      { [USDC]: coreActive, [WMON]: coreActive },
+      { decimalsFails: (token) => (failRefresh && token === USDC ? "transport" : undefined) },
+    );
+
+    expect(result.current.isSuccess).toBe(true);
+    expect(result.current.data).toHaveLength(1);
+
+    failRefresh = true;
+    await result.current.refetch().catch(() => {});
+
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    // The previous list stands rather than being dropped or re-unitised.
+    expect(result.current.data).toHaveLength(1);
+    expect(result.current.data?.[0].symbol1).toBe("USDC");
+  });
+
+  it("leaves the symbol fallback alone: a failed symbol read still lists the pool", async () => {
+    // The two reads share a batch, so it would be easy to make a missing symbol
+    // fail the query too. A symbol is cosmetic; only the decimals decide units.
+    const { result } = await loadPools(
+      [pair(WMON, USDC)],
+      { [USDC]: coreActive, [WMON]: coreActive },
+      { symbolFails: (token) => token === USDC, decimals: { [USDC]: 6, [WMON]: 18 } },
+    );
+    expect(result.current.isSuccess).toBe(true);
+    const pool = result.current.data![0];
+    expect(pool.symbol1).toBe("???");
+    expect(pool.decimals1).toBe(6);
+    expect(pool.reserve1Formatted).toBe("0.002");
   });
 });

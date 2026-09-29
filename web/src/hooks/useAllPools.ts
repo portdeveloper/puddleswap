@@ -201,15 +201,35 @@ export function useAllPools() {
       for (let i = 0; i < uniqueTokens.length; i++) {
         const symbolResult = tokenInfoResults[i * 2];
         const decimalsResult = tokenInfoResults[i * 2 + 1];
+        // A decimals read that did not succeed leaves no unit to format reserves
+        // in. Substituting 18 published the list in units nobody measured, so
+        // fail the query instead: an initial failure is visible and a failed
+        // refresh keeps the last good list. Unlike the registry read above, a
+        // revert is not a usable answer here either -- "no decimals" still does
+        // not say how to scale the reserve -- and dropping the pair instead
+        // would change which pools are eligible.
+        if (decimalsResult?.status !== "success") {
+          throw (
+            decimalsResult?.error ??
+            new Error(`Failed to read decimals for token ${uniqueTokens[i]}`)
+          );
+        }
         tokenMeta.set(uniqueTokens[i].toLowerCase(), {
+          // The symbol is cosmetic, so it keeps its fallback.
           symbol: symbolResult?.status === "success" ? (symbolResult.result as string) : "???",
-          decimals: decimalsResult?.status === "success" ? Number(decimalsResult.result) : 18,
+          decimals: Number(decimalsResult.result),
         });
       }
 
       return listedMetas.map((meta) => {
-        const t0 = tokenMeta.get(meta.token0.toLowerCase()) ?? { symbol: "???", decimals: 18 };
-        const t1 = tokenMeta.get(meta.token1.toLowerCase()) ?? { symbol: "???", decimals: 18 };
+        // Every listed pair's tokens went into the lookup above, so a miss here
+        // is not reachable -- but the old fallback invented 18 decimals for it,
+        // which is the same defect in a quieter place.
+        const t0 = tokenMeta.get(meta.token0.toLowerCase());
+        const t1 = tokenMeta.get(meta.token1.toLowerCase());
+        if (!t0 || !t1) {
+          throw new Error(`Missing token metadata for pair ${meta.pairAddress}`);
+        }
 
         const sharePercent =
           meta.totalSupply > 0n && meta.lpBalance > 0n
