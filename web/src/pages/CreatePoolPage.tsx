@@ -30,7 +30,10 @@ export function CreatePoolPage() {
     enabled: Boolean(publicClient && isAddress(tokenA) && isAddress(tokenB)),
     queryFn: async () => {
       if (!publicClient || !isAddress(tokenA) || !isAddress(tokenB)) {
-        return { decimalsA: 18, decimalsB: 18 };
+        // `enabled` already demands all three, so this is unreachable. It used to
+        // hand back 18/18, which is an invented unit sitting in a quiet branch;
+        // fail instead of guessing, as #40 did for the reserve path.
+        throw new Error("Cannot read token decimals without a client and two valid tokens");
       }
 
       const [decimalsA, decimalsB] = await Promise.all([
@@ -53,14 +56,21 @@ export function CreatePoolPage() {
     }
   });
 
+  const decimals = decimalsQuery.data;
+
+  // Until both decimals have actually been read there is no unit to parse into,
+  // so there is no amount -- not a zero, and certainly not an 18-decimal guess.
+  // Everything downstream keys off this being null: the approval value, the
+  // allowance comparison, the submitted amounts and the buttons.
   const parsedAmounts = useMemo(() => {
-    const decimalsA = decimalsQuery.data?.decimalsA ?? 18;
-    const decimalsB = decimalsQuery.data?.decimalsB ?? 18;
+    if (!decimals) {
+      return null;
+    }
 
     try {
       return {
-        amountARaw: parseUnits(amountA || "0", decimalsA),
-        amountBRaw: parseUnits(amountB || "0", decimalsB)
+        amountARaw: parseUnits(amountA || "0", decimals.decimalsA),
+        amountBRaw: parseUnits(amountB || "0", decimals.decimalsB)
       };
     } catch {
       return {
@@ -68,7 +78,9 @@ export function CreatePoolPage() {
         amountBRaw: 0n
       };
     }
-  }, [amountA, amountB, decimalsQuery.data]);
+  }, [amountA, amountB, decimals]);
+
+  const unitsKnown = parsedAmounts !== null;
 
   const allowanceQuery = useQuery({
     queryKey: ["pool-allowances", address, tokenA, tokenB, contractAddresses.uniswapV2Router02],
@@ -138,11 +150,19 @@ export function CreatePoolPage() {
     }
   });
 
-  const needsApprovalA = (allowanceQuery.data?.allowanceA ?? 0n) < parsedAmounts.amountARaw;
-  const needsApprovalB = (allowanceQuery.data?.allowanceB ?? 0n) < parsedAmounts.amountBRaw;
+  const needsApprovalA = unitsKnown && (allowanceQuery.data?.allowanceA ?? 0n) < parsedAmounts.amountARaw;
+  const needsApprovalB = unitsKnown && (allowanceQuery.data?.allowanceB ?? 0n) < parsedAmounts.amountBRaw;
 
   async function approveToken(token: Address) {
     if (!contractAddresses.uniswapV2Router02) {
+      return;
+    }
+
+    // A disabled button is not a guard: a click can land between the query
+    // resolving and the re-render. Approving on an invented unit would set an
+    // allowance of parseUnits(amount, 18) on a token that may not use 18.
+    if (!parsedAmounts) {
+      setStatus("Waiting for token decimals before approving.");
       return;
     }
 
@@ -176,6 +196,7 @@ export function CreatePoolPage() {
       !isAddress(tokenA) ||
       !isAddress(tokenB) ||
       sameToken ||
+      !parsedAmounts ||
       parsedAmounts.amountARaw === 0n ||
       parsedAmounts.amountBRaw === 0n
     ) {
@@ -255,32 +276,43 @@ export function CreatePoolPage() {
 
       <div className="info-row">
         <span>Parsed A</span>
-        <strong>{formatUnits(parsedAmounts.amountARaw, decimalsQuery.data?.decimalsA ?? 18)}</strong>
+        <strong>{parsedAmounts && decimals ? formatUnits(parsedAmounts.amountARaw, decimals.decimalsA) : "—"}</strong>
       </div>
 
       <div className="info-row">
         <span>Parsed B</span>
-        <strong>{formatUnits(parsedAmounts.amountBRaw, decimalsQuery.data?.decimalsB ?? 18)}</strong>
+        <strong>{parsedAmounts && decimals ? formatUnits(parsedAmounts.amountBRaw, decimals.decimalsB) : "—"}</strong>
       </div>
+
+      {isAddress(tokenA) && isAddress(tokenB) && !sameToken && !decimals && (
+        <div className="info-row">
+          <span>Token decimals</span>
+          <strong role="status">
+            {decimalsQuery.isError
+              ? "Could not read decimals — amounts and approvals are disabled"
+              : "Reading decimals…"}
+          </strong>
+        </div>
+      )}
 
       <div className="button-row">
         <button
           type="button"
-          disabled={!isCorrectChain || pending || !needsApprovalA || !isAddress(tokenA)}
+          disabled={!isCorrectChain || pending || !unitsKnown || !needsApprovalA || !isAddress(tokenA)}
           onClick={() => approveToken(tokenA as Address)}
         >
           Approve Token A
         </button>
         <button
           type="button"
-          disabled={!isCorrectChain || pending || !needsApprovalB || !isAddress(tokenB)}
+          disabled={!isCorrectChain || pending || !unitsKnown || !needsApprovalB || !isAddress(tokenB)}
           onClick={() => approveToken(tokenB as Address)}
         >
           Approve Token B
         </button>
       </div>
 
-      <button type="button" disabled={!isCorrectChain || pending || needsApprovalA || needsApprovalB || sameToken} onClick={createPool}>
+      <button type="button" disabled={!isCorrectChain || pending || !unitsKnown || needsApprovalA || needsApprovalB || sameToken} onClick={createPool}>
         Create / Add Liquidity
       </button>
 
