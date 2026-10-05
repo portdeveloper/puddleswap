@@ -71,7 +71,10 @@ export function PoolDetailsPage() {
     enabled: Boolean(publicClient && pairMetaQuery.data),
     queryFn: async () => {
       if (!publicClient || !pairMetaQuery.data) {
-        return { token0Decimals: 18, token1Decimals: 18 };
+        // `enabled` already demands both, so this is unreachable. It used to hand
+        // back 18/18, an invented unit in a quiet branch; fail instead of
+        // guessing, as #42 did for Create Pool.
+        throw new Error("Cannot read token decimals without a client and loaded pair metadata");
       }
 
       const [token0Decimals, token1Decimals] = await Promise.all([
@@ -168,26 +171,37 @@ export function PoolDetailsPage() {
     }
   });
 
-  const parsedInputs = useMemo(() => {
-    const token0Decimals = tokenDecimalsQuery.data?.token0Decimals ?? 18;
-    const token1Decimals = tokenDecimalsQuery.data?.token1Decimals ?? 18;
+  const tokenDecimals = tokenDecimalsQuery.data;
+
+  // Until both underlying decimals have been read there is no unit, so there is
+  // no deposit amount -- not a zero, and not an 18-decimal guess. `null` is what
+  // the handler and the button key off.
+  const deposits = useMemo(() => {
+    if (!tokenDecimals) {
+      return null;
+    }
 
     try {
       return {
-        amount0: parseUnits(addAmountToken0 || "0", token0Decimals),
-        amount1: parseUnits(addAmountToken1 || "0", token1Decimals),
-        lpAmount: parseUnits(removeLpAmount || "0", 18)
+        amount0: parseUnits(addAmountToken0 || "0", tokenDecimals.token0Decimals),
+        amount1: parseUnits(addAmountToken1 || "0", tokenDecimals.token1Decimals)
       };
     } catch {
-      return {
-        amount0: 0n,
-        amount1: 0n,
-        lpAmount: 0n
-      };
+      return { amount0: 0n, amount1: 0n };
     }
-  }, [addAmountToken0, addAmountToken1, removeLpAmount, tokenDecimalsQuery.data]);
+  }, [addAmountToken0, addAmountToken1, tokenDecimals]);
 
-  const needsLpApproval = (lpAllowanceQuery.data ?? 0n) < parsedInputs.lpAmount;
+  // The LP token is the pair's own, always 18, so this never depended on the
+  // reads above and the remove-liquidity flow is unaffected by them.
+  const lpAmount = useMemo(() => {
+    try {
+      return parseUnits(removeLpAmount || "0", 18);
+    } catch {
+      return 0n;
+    }
+  }, [removeLpAmount]);
+
+  const needsLpApproval = (lpAllowanceQuery.data ?? 0n) < lpAmount;
 
   async function approveLp() {
     if (!isAddress(pairAddress) || !contractAddresses.uniswapV2Router02) {
@@ -201,7 +215,7 @@ export function PoolDetailsPage() {
         address: pairAddress,
         abi: contractAbis.pair,
         functionName: "approve",
-        args: [contractAddresses.uniswapV2Router02, parsedInputs.lpAmount]
+        args: [contractAddresses.uniswapV2Router02, lpAmount]
       });
 
       setStatus(`LP approval sent: ${hash}`);
@@ -223,8 +237,9 @@ export function PoolDetailsPage() {
       !address ||
       !pairMetaQuery.data ||
       !contractAddresses.uniswapV2Router02 ||
-      parsedInputs.amount0 === 0n ||
-      parsedInputs.amount1 === 0n
+      !deposits ||
+      deposits.amount0 === 0n ||
+      deposits.amount1 === 0n
     ) {
       return;
     }
@@ -240,10 +255,10 @@ export function PoolDetailsPage() {
         args: [
           pairMetaQuery.data.token0,
           pairMetaQuery.data.token1,
-          parsedInputs.amount0,
-          parsedInputs.amount1,
-          (parsedInputs.amount0 * 98n) / 100n,
-          (parsedInputs.amount1 * 98n) / 100n,
+          deposits.amount0,
+          deposits.amount1,
+          (deposits.amount0 * 98n) / 100n,
+          (deposits.amount1 * 98n) / 100n,
           address,
           BigInt(Math.floor(Date.now() / 1000) + 60 * 20)
         ]
@@ -268,7 +283,7 @@ export function PoolDetailsPage() {
       !address ||
       !pairMetaQuery.data ||
       !contractAddresses.uniswapV2Router02 ||
-      parsedInputs.lpAmount === 0n
+      lpAmount === 0n
     ) {
       return;
     }
@@ -283,8 +298,8 @@ export function PoolDetailsPage() {
       let minAmount1 = 1n;
 
       if (totalSupply > 0n) {
-        const expectedAmount0 = (parsedInputs.lpAmount * reserves[0]) / totalSupply;
-        const expectedAmount1 = (parsedInputs.lpAmount * reserves[1]) / totalSupply;
+        const expectedAmount0 = (lpAmount * reserves[0]) / totalSupply;
+        const expectedAmount1 = (lpAmount * reserves[1]) / totalSupply;
         minAmount0 = (expectedAmount0 * 98n) / 100n;
         minAmount1 = (expectedAmount1 * 98n) / 100n;
       }
@@ -296,7 +311,7 @@ export function PoolDetailsPage() {
         args: [
           pairMetaQuery.data.token0,
           pairMetaQuery.data.token1,
-          parsedInputs.lpAmount,
+          lpAmount,
           minAmount0,
           minAmount1,
           address,
@@ -401,7 +416,15 @@ export function PoolDetailsPage() {
           spellCheck={false}
         />
       </label>
-      <button type="button" disabled={!isCorrectChain || pending} onClick={addLiquidity}>
+      {!tokenDecimals && (
+        <p role="status">
+          {tokenDecimalsQuery.isError
+            ? "Could not read token decimals — deposits are disabled"
+            : "Reading token decimals…"}
+        </p>
+      )}
+
+      <button type="button" disabled={!isCorrectChain || pending || !deposits} onClick={addLiquidity}>
         Add Liquidity
       </button>
 
@@ -422,7 +445,7 @@ export function PoolDetailsPage() {
         </button>
         <button
           type="button"
-          disabled={!isCorrectChain || pending || needsLpApproval || parsedInputs.lpAmount === 0n}
+          disabled={!isCorrectChain || pending || needsLpApproval || lpAmount === 0n}
           onClick={removeLiquidity}
         >
           Remove Liquidity
