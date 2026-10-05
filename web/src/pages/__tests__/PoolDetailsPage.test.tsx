@@ -67,8 +67,15 @@ vi.mock("../../components/PoolAnalyticsChart", () => ({
   PoolAnalyticsChart: () => React.createElement("div", { "data-testid": "chart" }),
 }));
 
+// A spy rather than a stub: the display tests check which units the page hands
+// the analytics scan, because a scan normalised with invented 18s is the bug.
+const { mockUsePoolAnalytics } = vi.hoisted(() => ({
+  mockUsePoolAnalytics: vi.fn<(pair?: string, decimals0?: number, decimals1?: number) => { data: undefined; isLoading: boolean }>(
+    () => ({ data: undefined, isLoading: false })
+  ),
+}));
 vi.mock("../../hooks/usePoolAnalytics", () => ({
-  usePoolAnalytics: () => ({ data: undefined, isLoading: false }),
+  usePoolAnalytics: mockUsePoolAnalytics,
 }));
 
 vi.mock("../../hooks/useChainGuard", () => ({
@@ -237,5 +244,96 @@ describe("PoolDetailsPage deposit decimals gate", () => {
     const call = mockWriteContractAsync.mock.calls[0][0];
     expect(call.args[2]).toBe(10000000n);
     expect(call.args[3]).toBe(10000000000000000000n);
+  });
+});
+
+describe("PoolDetailsPage displayed values (issue #45)", () => {
+  beforeEach(reset);
+
+  // The page renders each value as "<span>label</span><strong>value</strong>".
+  const valueOf = (label: string) => screen.getAllByText(label).at(-1)!.nextElementSibling!.textContent;
+  const lastAnalyticsUnits = () => mockUsePoolAnalytics.mock.calls.at(-1)!.slice(1);
+
+  // The reproduction from the issue: 10 of a 6-decimal token against 10 of an
+  // 18-decimal one. With an 18/18 guess Reserve0 read 0.00000000001 and the price
+  // 1000000000000.
+  const RESERVES_6_18: [bigint, bigint] = [10_000_000n, 10_000_000_000_000_000_000n];
+
+  it("shows reserves and price as unknown, with the reason, while decimals are pending", () => {
+    decimalsState = {};
+    pairMeta = { token0: TOKEN0, token1: TOKEN1, reserves: RESERVES_6_18, totalSupply: 10_000n };
+    render(React.createElement(PoolDetailsPage));
+
+    expect(valueOf("Reserve0")).toBe("reading token decimals…");
+    expect(valueOf("Reserve1")).toBe("reading token decimals…");
+    expect(valueOf("Current Price (Token1 per Token0)")).toBe("reading token decimals…");
+    expect(lastAnalyticsUnits()).toEqual([undefined, undefined]);
+  });
+
+  it("says the units are unavailable when the decimals read failed", () => {
+    decimalsState = { isError: true };
+    pairMeta = { token0: TOKEN0, token1: TOKEN1, reserves: RESERVES_6_18, totalSupply: 10_000n };
+    render(React.createElement(PoolDetailsPage));
+
+    expect(valueOf("Reserve0")).toBe("token decimals unavailable");
+    expect(valueOf("Reserve1")).toBe("token decimals unavailable");
+    expect(valueOf("Current Price (Token1 per Token0)")).toBe("token decimals unavailable");
+    expect(lastAnalyticsUnits()).toEqual([undefined, undefined]);
+  });
+
+  it("formats each reserve in its own token's units once both are known (6/18)", () => {
+    decimalsState = { data: { token0Decimals: 6, token1Decimals: 18 } };
+    pairMeta = { token0: TOKEN0, token1: TOKEN1, reserves: RESERVES_6_18, totalSupply: 10_000n };
+    render(React.createElement(PoolDetailsPage));
+
+    expect(valueOf("Reserve0")).toBe("10");
+    expect(valueOf("Reserve1")).toBe("10");
+    expect(valueOf("Current Price (Token1 per Token0)")).toBe("1.000000");
+    expect(lastAnalyticsUnits()).toEqual([6, 18]);
+  });
+
+  it("treats real zero decimals as known units", () => {
+    decimalsState = { data: { token0Decimals: 0, token1Decimals: 18 } };
+    pairMeta = { token0: TOKEN0, token1: TOKEN1, reserves: [5n, 5_000_000_000_000_000_000n], totalSupply: 10_000n };
+    render(React.createElement(PoolDetailsPage));
+
+    expect(valueOf("Reserve0")).toBe("5");
+    expect(valueOf("Reserve1")).toBe("5");
+    expect(valueOf("Current Price (Token1 per Token0)")).toBe("1.000000");
+    expect(lastAnalyticsUnits()).toEqual([0, 18]);
+  });
+
+  it("keeps the last verified units when a background refresh fails", () => {
+    decimalsState = { data: { token0Decimals: 6, token1Decimals: 18 }, isError: true };
+    pairMeta = { token0: TOKEN0, token1: TOKEN1, reserves: RESERVES_6_18, totalSupply: 10_000n };
+    render(React.createElement(PoolDetailsPage));
+
+    expect(valueOf("Reserve0")).toBe("10");
+    expect(valueOf("Current Price (Token1 per Token0)")).toBe("1.000000");
+    expect(lastAnalyticsUnits()).toEqual([6, 18]);
+  });
+
+  it("does not carry the previous pair's units to a new pair", () => {
+    decimalsFor = (t0) => (t0 === TOKEN0 ? { data: { token0Decimals: 6, token1Decimals: 18 } } : {});
+    pairMeta = { token0: TOKEN0, token1: TOKEN1, reserves: RESERVES_6_18, totalSupply: 10_000n };
+    render(React.createElement(PoolDetailsPage));
+    expect(valueOf("Reserve0")).toBe("10");
+
+    const OTHER0 = "0x00000000000000000000000000000000000000c1" as Address;
+    const OTHER1 = "0x00000000000000000000000000000000000000c2" as Address;
+    params = { pairAddress: "0x00000000000000000000000000000000000000a2" };
+    pairMeta = { token0: OTHER0, token1: OTHER1, reserves: RESERVES_6_18, totalSupply: 10_000n };
+    render(React.createElement(PoolDetailsPage));
+
+    expect(valueOf("Reserve0")).toBe("reading token decimals…");
+    expect(valueOf("Current Price (Token1 per Token0)")).toBe("reading token decimals…");
+    expect(lastAnalyticsUnits()).toEqual([undefined, undefined]);
+  });
+
+  it("keeps LP balance at the pair token's fixed 18 decimals with the units unread", () => {
+    decimalsState = {};
+    render(React.createElement(PoolDetailsPage));
+    // lp-balance is mocked as 1_000n wei of an 18-decimal LP token.
+    expect(valueOf("Your LP")).toBe("0.000000000000001");
   });
 });

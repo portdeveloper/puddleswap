@@ -41,6 +41,20 @@ function renderAnalytics(address: Address | undefined, decimals0 = 18, decimals1
   return renderHook(() => usePoolAnalytics(address, decimals0, decimals1), { wrapper });
 }
 
+/// No defaults on purpose: a default parameter turns an explicit `undefined` into 18, which is the
+/// very substitution issue #45 removes, and the first version of the test below passed 18/18 that way.
+function renderAnalyticsUnits(address: Address | undefined, decimals0: number | undefined, decimals1: number | undefined) {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+
+  function wrapper({ children }: PropsWithChildren) {
+    return createElement(QueryClientProvider, { client: queryClient }, children);
+  }
+
+  return renderHook(() => usePoolAnalytics(address, decimals0, decimals1), { wrapper });
+}
+
 describe("usePoolAnalytics", () => {
   let publicClient: ReturnType<typeof createPublicClient>;
 
@@ -202,5 +216,26 @@ describe("usePoolAnalytics", () => {
 
     expect(publicClient.getBlockNumber).not.toHaveBeenCalled();
     expect(publicClient.getLogs).not.toHaveBeenCalled();
+  });
+
+  it("fetches nothing while either token's decimals are unknown (issue #45)", async () => {
+    // Every price and volume is normalised by these; scanning without them would
+    // produce analytics in invented units.
+    for (const [d0, d1] of [[undefined, 18], [6, undefined], [undefined, undefined]] as const) {
+      const { result } = renderAnalyticsUnits(pairAddress, d0, d1);
+      await new Promise((r) => setTimeout(r, 20));
+      expect(result.current.fetchStatus).toBe("idle");
+      expect(result.current.data).toBeUndefined();
+    }
+    expect(publicClient.getBlockNumber).not.toHaveBeenCalled();
+    expect(publicClient.getLogs).not.toHaveBeenCalled();
+  });
+
+  it("does fetch once both decimals are known, including a real zero", async () => {
+    publicClient.getBlockNumber.mockResolvedValue(1_000n);
+    publicClient.getLogs.mockResolvedValue([]);
+    const { result } = renderAnalyticsUnits(pairAddress, 0, 18);
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(publicClient.getBlockNumber).toHaveBeenCalled();
   });
 });
