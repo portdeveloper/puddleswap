@@ -211,6 +211,34 @@ export function PoolDetailsPage() {
 
   const needsLpApproval = (lpAllowanceQuery.data ?? 0n) < lpAmount;
 
+  // The minimum outputs are this LP amount's share of the reserves, and the share
+  // needs the LP total supply. Without a positive reading there is no removal --
+  // not one with one-unit floors that accept almost any output. A failed refetch
+  // keeps this pair's earlier reading; the supply query is keyed by pair address,
+  // so a new pair starts from no reading.
+  const lpTotalSupply = lpTotalSupplyQuery.data;
+  const removalMinimums = useMemo(() => {
+    const reserves = pairMetaQuery.data?.reserves;
+    if (!reserves || lpTotalSupply === undefined || lpTotalSupply <= 0n) {
+      return null;
+    }
+
+    const expectedAmount0 = (lpAmount * reserves[0]) / lpTotalSupply;
+    const expectedAmount1 = (lpAmount * reserves[1]) / lpTotalSupply;
+    return {
+      minAmount0: (expectedAmount0 * 98n) / 100n,
+      minAmount1: (expectedAmount1 * 98n) / 100n
+    };
+  }, [lpAmount, lpTotalSupply, pairMetaQuery.data]);
+  const supplyUnavailable =
+    lpTotalSupply === undefined
+      ? lpTotalSupplyQuery.isError
+        ? "Could not read LP total supply — removal is disabled"
+        : "Reading LP total supply…"
+      : lpTotalSupply <= 0n
+        ? "This pool has no LP supply — removal is disabled"
+        : null;
+
   async function approveLp() {
     if (!isAddress(pairAddress) || !contractAddresses.uniswapV2Router02) {
       return;
@@ -291,7 +319,8 @@ export function PoolDetailsPage() {
       !address ||
       !pairMetaQuery.data ||
       !contractAddresses.uniswapV2Router02 ||
-      lpAmount === 0n
+      lpAmount === 0n ||
+      !removalMinimums
     ) {
       return;
     }
@@ -300,17 +329,7 @@ export function PoolDetailsPage() {
     setStatus("Submitting remove-liquidity tx…");
 
     try {
-      const totalSupply = lpTotalSupplyQuery.data ?? 0n;
-      const reserves = pairMetaQuery.data.reserves;
-      let minAmount0 = 1n;
-      let minAmount1 = 1n;
-
-      if (totalSupply > 0n) {
-        const expectedAmount0 = (lpAmount * reserves[0]) / totalSupply;
-        const expectedAmount1 = (lpAmount * reserves[1]) / totalSupply;
-        minAmount0 = (expectedAmount0 * 98n) / 100n;
-        minAmount1 = (expectedAmount1 * 98n) / 100n;
-      }
+      const { minAmount0, minAmount1 } = removalMinimums;
 
       const hash = await writeContractAsync({
         address: contractAddresses.uniswapV2Router02,
@@ -455,12 +474,13 @@ export function PoolDetailsPage() {
         </button>
         <button
           type="button"
-          disabled={!isCorrectChain || pending || needsLpApproval || lpAmount === 0n}
+          disabled={!isCorrectChain || pending || needsLpApproval || lpAmount === 0n || !removalMinimums}
           onClick={removeLiquidity}
         >
           Remove Liquidity
         </button>
       </div>
+      {supplyUnavailable && <p role="status">{supplyUnavailable}</p>}
 
       {status && <TxStatus message={status} />}
     </section>

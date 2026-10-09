@@ -20,6 +20,14 @@ interface DecimalsState {
 let decimalsState: DecimalsState = { data: { token0Decimals: 18, token1Decimals: 18 } };
 let decimalsFor: ((t0?: string, t1?: string) => DecimalsState) | null = null;
 let pairMeta: { token0: Address; token1: Address; reserves: [bigint, bigint]; totalSupply: bigint } | undefined;
+// The LP total-supply query is what issue #47 is about. `supplyFor` answers per
+// pair address, so a pair change can be seen to start from no reading.
+interface SupplyState {
+  data?: bigint;
+  isError?: boolean;
+}
+let supplyState: SupplyState = { data: 10_000n };
+let supplyFor: ((pair?: string) => SupplyState) | null = null;
 let chainState = { isCorrectChain: true };
 let params: { pairAddress?: string } = { pairAddress: PAIR };
 
@@ -43,8 +51,10 @@ vi.mock("@tanstack/react-query", () => ({
       }
       case "lp-balance":
         return { data: 1_000n, refetch };
-      case "lp-total-supply":
-        return { data: 10_000n, refetch };
+      case "lp-total-supply": {
+        const state = supplyFor ? supplyFor(queryKey[1] as string | undefined) : supplyState;
+        return { ...state, refetch };
+      }
       case "lp-allowance":
         return { data: maxUint256, refetch };
       default:
@@ -88,6 +98,8 @@ function reset() {
   vi.clearAllMocks();
   decimalsState = { data: { token0Decimals: 18, token1Decimals: 18 } };
   decimalsFor = null;
+  supplyState = { data: 10_000n };
+  supplyFor = null;
   pairMeta = { token0: TOKEN0, token1: TOKEN1, reserves: [1_000n, 2_000n], totalSupply: 10_000n };
   chainState = { isCorrectChain: true };
   params = { pairAddress: PAIR };
@@ -335,5 +347,119 @@ describe("PoolDetailsPage displayed values (issue #45)", () => {
     render(React.createElement(PoolDetailsPage));
     // lp-balance is mocked as 1_000n wei of an 18-decimal LP token.
     expect(valueOf("Your LP")).toBe("0.000000000000001");
+  });
+});
+
+describe("PoolDetailsPage remove-liquidity readiness (issue #47)", () => {
+  beforeEach(reset);
+
+  // Asymmetric reserves, so a token0/token1 mix-up changes the numbers: 1 LP of
+  // 4 is a quarter of each reserve, 250_000 and 750_000, and 98% of those.
+  const RESERVES: [bigint, bigint] = [1_000_000n, 3_000_000n];
+  const SUPPLY = 4_000_000_000_000_000_000n;
+
+  async function typeLp(value: string) {
+    const user = userEvent.setup();
+    const lp = screen.getAllByRole("textbox").at(-1)!;
+    await user.clear(lp);
+    await user.type(lp, value);
+    return user;
+  }
+
+  async function expectNoRemoval(statusText: RegExp) {
+    const user = await typeLp("1");
+    expect(screen.getByRole("status")).toHaveTextContent(statusText);
+    const btn = screen.getByRole("button", { name: "Remove Liquidity" });
+    expect(btn).toBeDisabled();
+    await user.click(btn);
+    expect(mockWriteContractAsync).not.toHaveBeenCalled();
+  }
+
+  it("sends nothing while the LP total supply is still being read", async () => {
+    supplyState = {};
+    render(React.createElement(PoolDetailsPage));
+    await expectNoRemoval(/reading lp total supply/i);
+  });
+
+  it("sends nothing, and says why, when the LP total supply read failed", async () => {
+    supplyState = { isError: true };
+    render(React.createElement(PoolDetailsPage));
+    await expectNoRemoval(/could not read lp total supply/i);
+  });
+
+  it("sends nothing when the LP total supply reads as zero", async () => {
+    // The old handler took a zero as "skip the share" and sent 1n minimums.
+    supplyState = { data: 0n };
+    render(React.createElement(PoolDetailsPage));
+    await expectNoRemoval(/no lp supply/i);
+  });
+
+  it("sends nothing while the pair data itself is unread", async () => {
+    pairMeta = undefined;
+    render(React.createElement(PoolDetailsPage));
+    const user = await typeLp("1");
+    const btn = screen.getByRole("button", { name: "Remove Liquidity" });
+    expect(btn).toBeDisabled();
+    await user.click(btn);
+    expect(mockWriteContractAsync).not.toHaveBeenCalled();
+  });
+
+  it("submits minimums of 98% of this LP amount's share of each reserve", async () => {
+    pairMeta = { token0: TOKEN0, token1: TOKEN1, reserves: RESERVES, totalSupply: SUPPLY };
+    supplyState = { data: SUPPLY };
+    mockWriteContractAsync.mockResolvedValue("0xhash");
+    render(React.createElement(PoolDetailsPage));
+    const user = await typeLp("1");
+
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Remove Liquidity" }));
+
+    const call = mockWriteContractAsync.mock.calls[0][0];
+    expect(call.functionName).toBe("removeLiquidity");
+    expect(call.args.slice(2, 5)).toEqual([1_000_000_000_000_000_000n, 245_000n, 735_000n]);
+  });
+
+  it("keeps removing on a failed REFETCH, from this pair's earlier reading", async () => {
+    pairMeta = { token0: TOKEN0, token1: TOKEN1, reserves: RESERVES, totalSupply: SUPPLY };
+    supplyState = { data: SUPPLY, isError: true };
+    mockWriteContractAsync.mockResolvedValue("0xhash");
+    render(React.createElement(PoolDetailsPage));
+    const user = await typeLp("1");
+
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Remove Liquidity" }));
+
+    expect(mockWriteContractAsync.mock.calls[0][0].args.slice(3, 5)).toEqual([245_000n, 735_000n]);
+  });
+
+  it("does not reuse the previous pair's supply when the pair changes", async () => {
+    supplyFor = (pair) => (pair === PAIR ? { data: SUPPLY } : {});
+    pairMeta = { token0: TOKEN0, token1: TOKEN1, reserves: RESERVES, totalSupply: SUPPLY };
+    render(React.createElement(PoolDetailsPage));
+    await typeLp("1");
+    expect(screen.getByRole("button", { name: "Remove Liquidity" })).toBeEnabled();
+
+    params = { pairAddress: "0x00000000000000000000000000000000000000a2" };
+    render(React.createElement(PoolDetailsPage));
+    await typeLp("1");
+
+    const buttons = screen.getAllByRole("button", { name: "Remove Liquidity" });
+    expect(buttons.at(-1)).toBeDisabled();
+    expect(screen.getAllByRole("status").at(-1)).toHaveTextContent(/reading lp total supply/i);
+    expect(mockWriteContractAsync).not.toHaveBeenCalled();
+  });
+
+  it("still gates removal on the chain once the supply IS known", async () => {
+    // chain-enforcement.test.tsx mocks every query as `data: undefined`, so the
+    // supply clause now disables Remove Liquidity there on its own. Keep the chain
+    // clause tested here, where only the wrong chain can disable it.
+    chainState = { isCorrectChain: false };
+    render(React.createElement(PoolDetailsPage));
+    const user = await typeLp("1");
+
+    const btn = screen.getByRole("button", { name: "Remove Liquidity" });
+    expect(btn).toBeDisabled();
+    await user.click(btn);
+    expect(mockWriteContractAsync).not.toHaveBeenCalled();
   });
 });
