@@ -28,6 +28,11 @@ interface SupplyState {
 }
 let supplyState: SupplyState = { data: 10_000n };
 let supplyFor: ((pair?: string) => SupplyState) | null = null;
+// React Query gives a new key no data unless the query asks for placeholderData,
+// which hands it the previous key's value. The mock keeps the last value it served
+// and honours that option, so a query that opted in would carry one pair's supply
+// to the next here too.
+let lastSupplyData: bigint | undefined;
 let chainState = { isCorrectChain: true };
 let params: { pairAddress?: string } = { pairAddress: PAIR };
 
@@ -38,7 +43,7 @@ vi.mock("wagmi", () => ({
 }));
 
 vi.mock("@tanstack/react-query", () => ({
-  useQuery: ({ queryKey }: { queryKey: readonly unknown[] }) => {
+  useQuery: ({ queryKey, placeholderData }: { queryKey: readonly unknown[]; placeholderData?: unknown }) => {
     const refetch = vi.fn();
     switch (queryKey[0]) {
       case "pair-meta":
@@ -53,6 +58,10 @@ vi.mock("@tanstack/react-query", () => ({
         return { data: 1_000n, refetch };
       case "lp-total-supply": {
         const state = supplyFor ? supplyFor(queryKey[1] as string | undefined) : supplyState;
+        if (state.data === undefined && typeof placeholderData === "function" && lastSupplyData !== undefined) {
+          return { ...state, data: placeholderData(lastSupplyData), isPlaceholderData: true, refetch };
+        }
+        if (state.data !== undefined) lastSupplyData = state.data;
         return { ...state, refetch };
       }
       case "lp-allowance":
@@ -100,6 +109,7 @@ function reset() {
   decimalsFor = null;
   supplyState = { data: 10_000n };
   supplyFor = null;
+  lastSupplyData = undefined;
   pairMeta = { token0: TOKEN0, token1: TOKEN1, reserves: [1_000n, 2_000n], totalSupply: 10_000n };
   chainState = { isCorrectChain: true };
   params = { pairAddress: PAIR };
@@ -433,19 +443,23 @@ describe("PoolDetailsPage remove-liquidity readiness (issue #47)", () => {
   });
 
   it("does not reuse the previous pair's supply when the pair changes", async () => {
+    // One page, re-rendered on a new pair whose supply is still being read. The
+    // first pair's supply must not stand in for it: that would be the new pair's
+    // reserves divided by another pair's supply, submitted as minimums.
     supplyFor = (pair) => (pair === PAIR ? { data: SUPPLY } : {});
     pairMeta = { token0: TOKEN0, token1: TOKEN1, reserves: RESERVES, totalSupply: SUPPLY };
-    render(React.createElement(PoolDetailsPage));
-    await typeLp("1");
+    mockWriteContractAsync.mockResolvedValue("0xhash");
+    const { rerender } = render(React.createElement(PoolDetailsPage));
+    const user = await typeLp("1");
     expect(screen.getByRole("button", { name: "Remove Liquidity" })).toBeEnabled();
 
     params = { pairAddress: "0x00000000000000000000000000000000000000a2" };
-    render(React.createElement(PoolDetailsPage));
-    await typeLp("1");
+    rerender(React.createElement(PoolDetailsPage));
 
-    const buttons = screen.getAllByRole("button", { name: "Remove Liquidity" });
-    expect(buttons.at(-1)).toBeDisabled();
-    expect(screen.getAllByRole("status").at(-1)).toHaveTextContent(/reading lp total supply/i);
+    const btn = screen.getByRole("button", { name: "Remove Liquidity" });
+    expect(screen.getByRole("status")).toHaveTextContent(/reading lp total supply/i);
+    expect(btn).toBeDisabled();
+    await user.click(btn);
     expect(mockWriteContractAsync).not.toHaveBeenCalled();
   });
 
