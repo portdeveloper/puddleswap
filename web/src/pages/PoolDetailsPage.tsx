@@ -97,18 +97,28 @@ export function PoolDetailsPage() {
     }
   });
 
+  // The pair's units: both underlying decimals, read from the tokens. React Query
+  // keeps `data` when a background refetch fails, so a pair that was read once
+  // keeps its verified units; a pair that was never read has none. Real zero
+  // decimals are a unit like any other, which is why nothing here tests truthiness
+  // of the numbers themselves.
+  const tokenDecimals = tokenDecimalsQuery.data;
+  const unitsPending = tokenDecimalsQuery.isError ? "token decimals unavailable" : "reading token decimals…";
+
   const analyticsQuery = usePoolAnalytics(
     isAddress(pairAddress) ? pairAddress : undefined,
-    tokenDecimalsQuery.data?.token0Decimals ?? 18,
-    tokenDecimalsQuery.data?.token1Decimals ?? 18
+    tokenDecimals?.token0Decimals,
+    tokenDecimals?.token1Decimals
   );
 
-  const currentPrice = pairMetaQuery.data
+  // No price without units: an 18/18 guess on a 6/18 pair is off by 10^12 and
+  // looks entirely plausible on screen.
+  const currentPrice = pairMetaQuery.data && tokenDecimals
     ? computeCurrentPrice(
         pairMetaQuery.data.reserves[0],
         pairMetaQuery.data.reserves[1],
-        tokenDecimalsQuery.data?.token0Decimals ?? 18,
-        tokenDecimalsQuery.data?.token1Decimals ?? 18
+        tokenDecimals.token0Decimals,
+        tokenDecimals.token1Decimals
       )
     : undefined;
 
@@ -170,8 +180,6 @@ export function PoolDetailsPage() {
       return allowance as bigint;
     }
   });
-
-  const tokenDecimals = tokenDecimalsQuery.data;
 
   // Until both underlying decimals have been read there is no unit, so there is
   // no deposit amount -- not a zero, and not an 18-decimal guess. `null` is what
@@ -371,13 +379,13 @@ export function PoolDetailsPage() {
       <div className="info-row">
         <span>Reserve0</span>
         <strong>
-          {pairMetaQuery.data ? formatUnits(pairMetaQuery.data.reserves[0], tokenDecimalsQuery.data?.token0Decimals ?? 18) : "-"}
+          {!pairMetaQuery.data ? "-" : tokenDecimals ? formatUnits(pairMetaQuery.data.reserves[0], tokenDecimals.token0Decimals) : unitsPending}
         </strong>
       </div>
       <div className="info-row">
         <span>Reserve1</span>
         <strong>
-          {pairMetaQuery.data ? formatUnits(pairMetaQuery.data.reserves[1], tokenDecimalsQuery.data?.token1Decimals ?? 18) : "-"}
+          {!pairMetaQuery.data ? "-" : tokenDecimals ? formatUnits(pairMetaQuery.data.reserves[1], tokenDecimals.token1Decimals) : unitsPending}
         </strong>
       </div>
       <div className="info-row">
@@ -386,7 +394,9 @@ export function PoolDetailsPage() {
       </div>
       <div className="info-row">
         <span>Current Price (Token1 per Token0)</span>
-        <strong>{currentPrice !== undefined ? currentPrice.toFixed(6) : "-"}</strong>
+        <strong>
+          {currentPrice !== undefined ? currentPrice.toFixed(6) : pairMetaQuery.data && !tokenDecimals ? unitsPending : "-"}
+        </strong>
       </div>
 
       <h3>Analytics</h3>

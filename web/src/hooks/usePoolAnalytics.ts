@@ -49,17 +49,21 @@ function isFulfilled<T>(result: PromiseSettledResult<T>): result is PromiseFulfi
 
 export function usePoolAnalytics(
   pairAddress: Address | undefined,
-  decimals0: number,
-  decimals1: number,
+  // Undefined until the token's own `decimals()` has been read. Every price and
+  // volume here is normalised by these, so without both there is nothing honest
+  // to fetch: the scan stays off rather than running in invented 18-decimal units.
+  decimals0: number | undefined,
+  decimals1: number | undefined,
 ) {
   const publicClient = usePublicClient({ chainId: monadTestnet.id });
+  const unitsKnown = decimals0 !== undefined && decimals1 !== undefined;
 
   return useQuery({
     queryKey: ["pool-analytics", pairAddress, decimals0, decimals1],
-    enabled: Boolean(publicClient && pairAddress),
+    enabled: Boolean(publicClient && pairAddress && unitsKnown),
     staleTime: 30_000,
     queryFn: async (): Promise<PoolAnalytics> => {
-      if (!publicClient || !pairAddress) {
+      if (!publicClient || !pairAddress || decimals0 === undefined || decimals1 === undefined) {
         return EMPTY_ANALYTICS;
       }
 
